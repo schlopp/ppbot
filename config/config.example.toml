@@ -1,14 +1,14 @@
 token = "bot_token"  # The token for the bot.
 pubkey = "bot_interaction_pubkey"  # The HTTP interactions pubkey for your bot.
 owners = []  # List of owner IDs - these people override all permission checks.
-dm_uncaught_errors = true  # Whether or not to DM the owners when unhandled errors are encountered.
+dm_uncaught_errors = false  # Whether or not to DM the owners when unhandled errors are encountered.
 user_agent = ""  # A custom string to populate Bot.user_agent with.
 guild_settings_prefix_column = "prefix"  # Used if multiple bots connect to the same database and need to seperate their prefixes.
 ephemeral_error_messages = true  # Whether or not error messages [from slash commands] should be ephemeral.
 owners_ignore_check_failures = false  # Whether or not owners ignore check failures on messages.
 
 # These are used with the on_message event. As such, they will likely soon be deprecated.
-default_prefix = ""  # The prefix for the bot's commands.
+default_prefix = "pp "  # The prefix for the bot's commands.
 cached_messages = 1000  # The number of messages to cache within the bot.
 
 # These are used by non-global commands. As such, they may be removed when the message intent becomes privileged.
@@ -19,12 +19,12 @@ bot_support_role_id = 0  # The ID used to determine whether or not the user is p
 [event_webhook]
     event_webhook_url = ""
     [event_webhook.events]  # If you use true then your `event_webhook_url` will be used.
-        guild_join = false
-        guild_remove = false
-        shard_connect = false
-        shard_disconnect = false
-        shard_ready = false
-        bot_ready = false
+        guild_join = true
+        guild_remove = true
+        shard_connect = true
+        shard_disconnect = true
+        shard_ready = true
+        bot_ready = true
         unhandled_error = true
 
 # The intents that the bot should start with
@@ -56,27 +56,16 @@ bot_support_role_id = 0  # The ID used to determine whether or not the user is p
     enabled = false
     include_stats = true
     content = """
-        Here you should give a basic description of your bot and what it does.
-        Since this content will go directly into an embed, you're able to [link text](https://google.com).
-        You're also able to __use__ **standard** *markdown*.
-        This will also be `.format`ted with your bot instance, so you can do things like {bot.user.id} and that should come out properly.
+        Welcome to pp bot!
     """
     thumbnail = ""  # A url to an image to be added to the embed
     image = ""  # A url to an image to be added to the embed
 
     # These are added as link buttons the bottom of the message.
     # Your bot invite (if enabled) will always be added as the first button.
-    [bot_info.links.Website]
-        url = "https://example.com/#your_website_url"
-        emoji = "\U0001f517"  # You can give emojis too if you want
-    [bot_info.links."Support Server"]  # You CAN have multiple words in a label
-        url = "https://example.com/#your_guild_invite"
-    [bot_info.links.Git]
-        url = "https://example.com/#your_git_link"
-    [bot_info.links.Donate]
-        url = "https://example.com/#your_donate_link"
-    [bot_info.links.Vote]
-        url = "https://example.com/#your_vote_link"
+    [bot_info.links]
+        [bot_info.links.Git]
+            url = "https://example.com/#your-git-link"
 
 # Used to generate the invite link.
 [oauth]
@@ -89,11 +78,11 @@ bot_support_role_id = 0  # The ID used to determine whether or not the user is p
 
 # Data needed for SQL database connections
 [database]
-    type = "sqlite"  # postgres, sqlite, mysql
+    type = "postgres"  # postgres, sqlite, mysql
     enabled = true
     user = ""
     password = ""
-    database = ".database.sqlite"
+    database = "ppbot"
     host = "127.0.0.1"
     port = 5432
 
@@ -125,7 +114,7 @@ bot_support_role_id = 0  # The ID used to determine whether or not the user is p
 # What the bot is playing
 [presence]
     activity_type = "playing"  # Should be one of 'playing', 'listening', 'watching', 'competing'
-    text = ""
+    text = "with myself (sexual style)"
     status = "online"  # Should be one of 'online', 'invisible', 'idle', 'dnd'
     include_shard_id = true  # Whether or not to append "(shard N)" to the presence text; only present if there's more than 1 shard
     [presence.streaming]  # This is used to automatically set the bot's status to your Twitch stream when you go live
@@ -142,5 +131,5 @@ bot_support_role_id = 0  # The ID used to determine whether or not the user is p
 [statsd]
     host = "127.0.0.1"
     port = 8125  # This is the DataDog default, 9125 is the general statsd default
-    [constant_tags]
+    [statsd.constant_tags]
         service = ""  # Put your bot name here - leave blank to disable stats collection
