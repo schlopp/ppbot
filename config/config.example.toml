@@ -142,4 +142,5 @@ bot_support_role_id = 0  # The ID used to determine whether or not the user is p
 [statsd]
     host = "127.0.0.1"
     port = 8125  # This is the DataDog default, 9125 is the general statsd default
-    constant_tags.service = ""  # Put your bot name here - leave blank to disable stats collection
+    [constant_tags]
+        service = ""  # Put your bot name here - leave blank to disable stats collection
