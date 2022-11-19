@@ -32,7 +32,13 @@ class Pp(Object):
         return f"<{self.__class__.__name__} {attribute_text}>"
 
     @classmethod
-    async def fetch(cls, user_id: int, connection: asyncpg.Connection, *, lock_for_update: bool = False):
+    async def fetch(
+        cls,
+        user_id: int,
+        connection: asyncpg.Connection,
+        *,
+        lock_for_update: bool = False,
+    ):
         query = "SELECT * FROM pps WHERE user_id = $1"
         if lock_for_update:
             query += " FOR UPDATE"
@@ -41,4 +47,9 @@ class Pp(Object):
         )
         if record is None:
             raise PpRecordNotFoundError(user_id)
-        return cls(record["user_id"], record["pp_multiplier"], record["pp_size"], record["pp_name"])
+        return cls(
+            record["user_id"],
+            record["pp_multiplier"],
+            record["pp_size"],
+            record["pp_name"],
+        )
