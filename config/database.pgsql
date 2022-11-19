@@ -11,6 +11,14 @@ CREATE TABLE IF NOT EXISTS guild_settings(
 CREATE TABLE IF NOT EXISTS user_settings(
     user_id BIGINT PRIMARY KEY
 );
+
+
+CREATE TABLE IF NOT EXISTS pps (
+    user_id BIGINT PRIMARY KEY,
+    pp_multiplier BIGINT NOT NULL DEFAULT 1,
+    pp_size BIGINT NOT NULL DEFAULT 0,
+    pp_name TEXT NOT NULL DEFAULT 'Unnamed Pp'
+)
 -- A default guild settings table.
 -- This is required for VBU and should not be deleted.
 -- You can add more columns to this table should you want to add more user-specific
