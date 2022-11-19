@@ -1,11 +1,9 @@
 CREATE TABLE IF NOT EXISTS guild_settings(
     guild_id BIGINT PRIMARY KEY,
-    prefix TEXT
+    prefix TEXT,
+    custom_role_requirement_role_id BIGINT,
+    custom_role_parent_role_id BIGINT
 );
--- A default guild settings table.
--- This is required for VBU and should not be deleted.
--- You can add more columns to this table should you want to add more guild-specific
--- settings.
 
 
 CREATE TABLE IF NOT EXISTS user_settings(
@@ -18,13 +16,15 @@ CREATE TABLE IF NOT EXISTS pps (
     pp_multiplier BIGINT NOT NULL DEFAULT 1,
     pp_size BIGINT NOT NULL DEFAULT 0,
     pp_name TEXT NOT NULL DEFAULT 'Unnamed Pp'
-)
--- A default guild settings table.
--- This is required for VBU and should not be deleted.
--- You can add more columns to this table should you want to add more user-specific
--- settings.
--- This table is not suitable for member-specific settings as there's no
--- guild ID specified.
+);
+
+
+CREATE TABLE IF NOT EXISTS inventory (
+    user_id BIGINT,
+    item_name TEXT,
+    amount BIGINT,
+    PRIMARY KEY (user_id, item_name)
+);
 
 
 -- CREATE TABLE IF NOT EXISTS role_list(
