@@ -3,7 +3,7 @@ from typing import Any
 
 import asyncpg  # type: ignore
 
-from . import Object
+from . import Object, DifferenceTracker
 
 
 class PpRecordNotFoundError(Exception):
@@ -16,20 +16,13 @@ class PpRecordNotFoundError(Exception):
 
 class Pp(Object):
     __slots__ = ("user_id", "multiplier", "size", "name")
+    _repr_attributes = __slots__
 
     def __init__(self, user_id: int, multiplier: int, size: int, name: str) -> None:
         self.user_id = user_id
-        self.multiplier = multiplier
-        self.size = size
-        self.name = name
-
-    def __repr__(self) -> str:
-        attribute_text = " ".join(
-            f"{slot}={getattr(self, slot)}"
-            for slot in self.__slots__
-            if not slot.startswith("_")
-        )
-        return f"<{self.__class__.__name__} {attribute_text}>"
+        self.multiplier = DifferenceTracker(multiplier, column="pp_multiplier")
+        self.size = DifferenceTracker(size, column="pp_size")
+        self.name = DifferenceTracker(name, column="pp_name")
 
     @classmethod
     async def fetch(
