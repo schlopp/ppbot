@@ -16,19 +16,19 @@ class Object:
         )
         return f"<{self.__class__.__name__}{' ' if attribute_text else ''}{attribute_text}>"
 
-    def pretty_print(self, *, indent: int = 4, prefix: str = "", indent_level: int = 0):
+    def pretty_print(self, *, indent: int = 4, prefix: str = "", indent_level: int = 0, attribute_name: str | None = None):
         if not self._repr_attributes or not indent:
             print(repr(self))
             return
 
         full_prefix = (prefix + " " * (indent - len(prefix))) * indent_level
         added_full_prefix = (prefix + " " * (indent - len(prefix))) * (indent_level + 1)
-        print(f"{full_prefix}<{self.__class__.__name__}")
+        print(f"{full_prefix}{'' if attribute_name is None else attribute_name + '='}<{self.__class__.__name__}")
         for attribute_name in self._repr_attributes:
             attribute = getattr(self, attribute_name)
             if isinstance(attribute, Object):
                 attribute.pretty_print(
-                    prefix=prefix, indent=indent, indent_level=indent_level + 1
+                    prefix=prefix, indent=indent, indent_level=indent_level + 1, attribute_name=attribute_name
                 )
                 continue
             print(f"{added_full_prefix}{attribute_name}={repr(attribute)}")
