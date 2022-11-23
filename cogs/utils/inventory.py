@@ -1,5 +1,7 @@
 import asyncpg  # type: ignore
 
+from . import DatabaseWrapperObject, DifferenceTracker
+
 
 async def fetch_inventory(
     user_id: int,
@@ -34,3 +36,39 @@ async def fetch_inventory_item_amount(
         query += " FOR UPDATE"
     amount = await connection.fetchval(query, user_id, item_name)
     return 0 if amount is None else amount
+
+
+class InventoryItem(DatabaseWrapperObject):
+    __slots__ = ("user_id", "name", "amount")
+    _repr_attributes = __slots__
+    _trackers = "amount"
+    _table = "inventory"
+
+    def __init__(self, user_id: int, name: str, amount: int) -> None:
+        self.user_id = user_id
+        self.name = name
+        self.amount = DifferenceTracker(amount, column="item_amount")
+
+    async def update(
+        self, connection: asyncpg.Connection, ensure_difference: bool = True
+    ):
+        if ensure_difference and self.amount.difference is None:
+            return
+        if not self.amount.value:
+            await connection.execute(
+                "DELETE FROM inventory WHERE user_id=$1 AND item_name=$2",
+                self.user_id,
+                self.name,
+            )
+            return
+        await connection.execute(
+            """
+            INSERT INTO inventory
+            VALUES ($1, $2, $3)
+            ON CONFLICT (user_id, item_name)
+            DO UPDATE SET item_amount=$3
+            """,
+            self.user_id,
+            self.name,
+            self.amount.value,
+        )
