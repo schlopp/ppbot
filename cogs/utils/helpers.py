@@ -47,7 +47,7 @@ class Object:
         print(f"{full_prefix}>")
 
 
-class DatabaseWrapperObject:
+class DatabaseWrapperObject(Object):
     _trackers: tuple[str, ...] = ()
     _table: str
 
