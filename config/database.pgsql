@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS pps (
 CREATE TABLE IF NOT EXISTS inventory (
     user_id BIGINT,
     item_name TEXT,
-    amount BIGINT,
+    item_amount BIGINT,
     PRIMARY KEY (user_id, item_name)
 );
 
