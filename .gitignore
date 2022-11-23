@@ -1,3 +1,6 @@
 __pycache__/
 config/config.toml
 config/website.toml
+.vscode/
+.venv/
+.mypy_cache/
