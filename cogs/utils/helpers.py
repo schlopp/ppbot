@@ -1,8 +1,20 @@
 from __future__ import annotations
-from typing import Generic, TypeVar
+import sys
+from collections.abc import Mapping
+from typing import Generic, TypeVar, Any
+
+import asyncpg  # type: ignore
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 
 _IntStrT_co = TypeVar("_IntStrT_co", str, int, covariant=True)
+
+
+Record = Mapping[str, Any]
 
 
 class Object:
@@ -48,14 +60,18 @@ class Object:
 
 
 class DatabaseWrapperObject(Object):
-    _trackers: tuple[str, ...] = ()
     _table: str
+    _columns: dict[str, str] = {}
+    _column_attributes: dict[str, str] = {}
+    _identifier_attributes: tuple[str, ...] = ()
+    _trackers: tuple[str, ...] = ()
 
     def _generate_pgsql_set_query(
-        self, argument_position: int = 1
-    ) -> None | tuple[str, list[int | str]]:
-        update_values = []
+        self, *, argument_position: int = 1
+    ) -> None | tuple[str, list[int | str],]:
+        update_values: list[str] = []
         query_arguments = []
+
         for tracker_attribute_name in self._trackers:
             tracker = getattr(self, tracker_attribute_name)
             if not isinstance(tracker, DifferenceTracker):
@@ -63,22 +79,103 @@ class DatabaseWrapperObject(Object):
                     f"Expected atrribute {tracker_attribute_name!r} to be of type DifferenceTracker, "
                     f"got {type(tracker)!r}"
                 )
+
             if tracker.difference is None:
                 continue
-            elif isinstance(tracker.difference, int | str):
+
+            assert tracker.column is not None
+
+            if isinstance(tracker.difference, int | str):
                 update_values.append(f"{tracker.column}=${argument_position}")
             else:
                 raise TypeError(
                     f"Expected DifferenceTracker {tracker!r}'s value to be of type int or str, "
                     f"got {type(tracker.value)!r}"
                 )
+
             query_arguments.append(tracker.value)
             argument_position += 1
         return (
-            (f"SET {', '.join(update_values)}", query_arguments)
+            (f"SET {', '.join(update_values)}", query_arguments, argument_position)
             if update_values
             else None
         )
+
+    @classmethod
+    def _generate_static_pgsql_where_query(
+        cls, required_values: dict[str, Any], *, argument_position: int = 1
+    ) -> tuple[str, list[str], int]:
+        conditional_values: list[str] = []
+        query_arguments = []
+
+        for required_column, required_value in required_values.items():
+            query_arguments.append(required_value)
+            conditional_values.append(
+                f"{cls._column_attributes[required_column]}=${argument_position}"
+            )
+            argument_position += 1
+
+        return (
+            f"WHERE {' AND '.join(conditional_values)}" if conditional_values else "",
+            query_arguments,
+            argument_position,
+        )
+
+    def _generate_pgsql_where_query(
+        self, *, argument_position: int = 1
+    ) -> tuple[str, list[str], int]:
+        conditional_values = []
+        query_arguments = []
+
+        for identifier_attribute in self._identifier_attributes:
+            query_arguments.append(getattr(self, identifier_attribute))
+            conditional_values.append(
+                f"{self._column_attributes[identifier_attribute]}=${argument_position}"
+            )
+            argument_position += 1
+
+        return (
+            f"WHERE {' AND '.join(conditional_values)}" if conditional_values else "",
+            query_arguments,
+            argument_position,
+        )
+
+    @classmethod
+    def from_record(cls: type[Self], record: Record) -> Self:
+        return cls(**{cls._columns[column]: value for column, value in record.items()})
+
+    @classmethod
+    async def fetch(
+        cls,
+        connection: asyncpg.Connection,
+        required_values: dict[str, Any],
+        *,
+        lock_for_update: bool = False,
+    ):
+        where_query, where_query_arguments, _ = cls._generate_static_pgsql_where_query(
+            required_values
+        )
+        query = f"SELECT * FROM {cls._table} {where_query}"
+
+        if lock_for_update:
+            query += " FOR UPDATE"
+
+        record: Record = await connection.fetchrow(query, *where_query_arguments)
+        if record is None:
+            return None
+
+        return cls.from_record(record)
+
+    async def update(self, connection: asyncpg.Connection) -> None:
+        set_query_result = self._generate_pgsql_set_query()
+        if set_query_result is None:
+            return
+        set_query, set_arguments, argument_position = set_query_result
+        where_query, where_arguments, _ = self._generate_pgsql_where_query(
+            argument_position=argument_position
+        )
+        query = f"UPDATE {self._table} {set_query} {where_query}"
+        await connection.execute(query, *set_arguments, *where_arguments)
 
 
 class DifferenceTracker(Object, Generic[_IntStrT_co]):
