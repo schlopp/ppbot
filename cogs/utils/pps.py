@@ -41,7 +41,7 @@ class Pp(DatabaseWrapperObject):
             "SELECT * FROM pps WHERE user_id = $1 FOR UPDATE", user_id
         )
         if record is None:
-            raise PpRecordNotFoundError(user_id)
+            return None
         return cls(
             record["user_id"],
             record["pp_multiplier"],
