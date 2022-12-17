@@ -6,7 +6,7 @@ from discord.ext import commands, vbu
 from . import utils
 
 
-class ShowCommandCog(vbu.Cog[vbu.Bot]):
+class ShowCommandCog(vbu.Cog[utils.Bot]):
     REAL_LIFE_COMPARISONS = {
         0: "your IRL pp",
         11_800: "the Eiffel Tower",
@@ -57,9 +57,9 @@ class ShowCommandCog(vbu.Cog[vbu.Bot]):
         )
         return embed
 
-    @commands.command(application_command_meta=commands.ApplicationCommandMeta())
+    @commands.command(application_command_meta=commands.ApplicationCommandMeta())  # type: ignore
     @commands.is_owner()
-    async def show(self, ctx: vbu.SlashContext[discord.Guild]):
+    async def show(self, ctx: vbu.SlashContext[discord.Guild]) -> None:
         """
         Show your pp to the whole wide world.
         """
@@ -75,6 +75,9 @@ class ShowCommandCog(vbu.Cog[vbu.Bot]):
                 ["item_name", "item_amount"],
                 fetch_multiple_rows=True,
             )
+            
+            if inventory_records is None:
+                inventory_records = []
 
         inventory: dict[str, int] = {
             inventory_record["item_name"]: inventory_record["item_amount"]
@@ -84,6 +87,6 @@ class ShowCommandCog(vbu.Cog[vbu.Bot]):
         await ctx.send(embed=self.create_show_embed(pp, inventory, ctx.author))
 
 
-def setup(bot: vbu.Bot):
+def setup(bot: utils.Bot):
     x = ShowCommandCog(bot)
     bot.add_cog(x)
