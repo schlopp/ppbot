@@ -327,7 +327,9 @@ class DatabaseWrapperObject(Object):
                 )
             ]
         record = await cls.fetch_record(
-            connection, required_values, lock_for_update=lock_for_update,
+            connection,
+            required_values,
+            lock_for_update=lock_for_update,
         )
 
         return cls.from_record(record)
