@@ -9,13 +9,11 @@ from typing import Generic, TypeVar, Any, Literal, overload
 import asyncpg  # type: ignore
 import discord
 
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
-
 
 _IntStrT_co = TypeVar("_IntStrT_co", str, int, covariant=True)
+_DatabaseWrapperObject = TypeVar(
+    "_DatabaseWrapperObject", bound="DatabaseWrapperObject"
+)
 
 
 Record = Mapping[str, Any]
@@ -50,19 +48,25 @@ def find_nearest_number(
 ) -> tuple[int, Literal[-1, 0, 1]]:
     nearest_number: int | None = None
     for i in numbers:
-        if i > number:
-            if nearest_number is not None:
-                match compare(abs(nearest_number - number), abs(i - number)):
-                    case -1:
-                        return nearest_number, -1
-                    case 0:
-                        return random.choice([(nearest_number, -1), (i, 1)])
-                    case _:
-                        return i, 1
-            return i
         if i == number:
             return i, 0
+        if i < number:
+            nearest_number = i
+            continue
+        if nearest_number is None:
+            return i, 1
+        match compare(abs(nearest_number - number), abs(i - number)):
+            case -1:
+                return nearest_number, -1
+            case 0:
+                if random.randint(0, 1):
+                    return nearest_number, -1
+                return i, 1
+            case 1:
+                return i, 1
         nearest_number = i
+    if nearest_number is None:
+        raise ValueError("Empty numbers iterable given")
     return nearest_number, -1
 
 
@@ -139,9 +143,9 @@ class DatabaseWrapperObject(Object):
 
     def _generate_pgsql_set_query(
         self, *, argument_position: int = 1
-    ) -> None | tuple[str, list[int | str],]:
+    ) -> None | tuple[str, list[int | str], int]:
         update_values: list[str] = []
-        query_arguments = []
+        query_arguments: list[int | str] = []
 
         for tracker_attribute_name in self._trackers:
             tracker = getattr(self, tracker_attribute_name)
@@ -219,36 +223,53 @@ class DatabaseWrapperObject(Object):
         return f"SELECT {', '.join(columns)}"
 
     @classmethod
-    def from_record(cls: type[Self], record: Record) -> Self:
+    def from_record(
+        cls: type[_DatabaseWrapperObject], record: Record
+    ) -> _DatabaseWrapperObject:
         return cls(**{cls._columns[column]: value for column, value in record.items()})
 
     @overload
     @classmethod
     async def fetch_record(
-        cls: type[Self],
+        cls,
         connection: asyncpg.Connection,
         required_values: dict[str, Any],
         selected_columns: Iterable[str] | None = None,
         *,
-        fetch_multiple_rows: bool = True,
+        lock_for_update: Literal[False] = False,
+        fetch_multiple_rows: Literal[True],
     ) -> list[Record] | None:
         ...
 
     @overload
     @classmethod
     async def fetch_record(
-        cls: type[Self],
+        cls,
         connection: asyncpg.Connection,
         required_values: dict[str, Any],
         selected_columns: Iterable[str] | None = None,
         *,
         lock_for_update: bool = False,
+        fetch_multiple_rows: Literal[False] = False,
     ) -> Record | None:
+        ...
+
+    @overload
+    @classmethod
+    async def fetch_record(
+        cls,
+        connection: asyncpg.Connection,
+        required_values: dict[str, Any],
+        selected_columns: Iterable[str] | None = None,
+        *,
+        lock_for_update: bool = False,
+        fetch_multiple_rows: bool = ...,
+    ) -> Record | list[Record] | None:
         ...
 
     @classmethod
     async def fetch_record(
-        cls: type[Self],
+        cls,
         connection: asyncpg.Connection,
         required_values: dict[str, Any],
         selected_columns: Iterable[str] | None = None,
@@ -277,34 +298,48 @@ class DatabaseWrapperObject(Object):
     @overload
     @classmethod
     async def fetch(
-        cls: type[Self],
+        cls: type[_DatabaseWrapperObject],
         connection: asyncpg.Connection,
         required_values: dict[str, Any],
         *,
+        lock_for_update: Literal[False] = False,
         fetch_multiple_rows: Literal[True],
-    ) -> list[Self] | None:
+    ) -> list[_DatabaseWrapperObject] | None:
         ...
 
     @overload
     @classmethod
     async def fetch(
-        cls: type[Self],
+        cls: type[_DatabaseWrapperObject],
         connection: asyncpg.Connection,
         required_values: dict[str, Any],
         *,
-        lock_for_update: Literal[True],
-    ) -> Self | None:
+        lock_for_update: bool = False,
+        fetch_multiple_rows: Literal[False] = False,
+    ) -> _DatabaseWrapperObject | None:
+        ...
+
+    @overload
+    @classmethod
+    async def fetch(
+        cls: type[_DatabaseWrapperObject],
+        connection: asyncpg.Connection,
+        required_values: dict[str, Any],
+        *,
+        lock_for_update: bool = False,
+        fetch_multiple_rows: bool = ...,
+    ) -> _DatabaseWrapperObject | list[_DatabaseWrapperObject] | None:
         ...
 
     @classmethod
     async def fetch(
-        cls: type[Self],
+        cls: type[_DatabaseWrapperObject],
         connection: asyncpg.Connection,
         required_values: dict[str, Any],
         *,
         lock_for_update: bool = False,
         fetch_multiple_rows: bool = False,
-    ) -> Self | list[Self] | None:
+    ) -> _DatabaseWrapperObject | list[_DatabaseWrapperObject] | None:
         if fetch_multiple_rows:
             records = await cls.fetch_record(
                 connection, required_values, fetch_multiple_rows=True
@@ -312,8 +347,8 @@ class DatabaseWrapperObject(Object):
             if not records:
                 return None
             return [cls.from_record(record) for record in records]
-        record: Record = await cls.fetch_record(
-            connection, required_values, lock_for_update=True
+        record = await cls.fetch_record(
+            connection, required_values, lock_for_update=lock_for_update
         )
         if record is None:
             return None
@@ -337,8 +372,8 @@ class DifferenceTracker(Object, Generic[_IntStrT_co]):
     _repr_attributes = ("value", "start_value", "difference", "column")
 
     def __init__(self, start_value: _IntStrT_co, *, column: str | None = None) -> None:
-        self.value = start_value
-        self.__start_value = start_value
+        self.value: _IntStrT_co = start_value
+        self.__start_value: _IntStrT_co = start_value
         self.column = column
 
     @property
