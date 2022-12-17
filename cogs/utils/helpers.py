@@ -19,6 +19,10 @@ _DatabaseWrapperObject = TypeVar(
 Record = Mapping[str, Any]
 
 
+class RecordNotFoundError(Exception):
+    pass
+
+
 RED = discord.Colour(16007990)
 GREEN = discord.Colour(5025616)
 BLUE = discord.Colour(2201331)
@@ -238,7 +242,7 @@ class DatabaseWrapperObject(Object):
         *,
         lock_for_update: Literal[False] = False,
         fetch_multiple_rows: Literal[True],
-    ) -> list[Record] | None:
+    ) -> list[Record]:
         ...
 
     @overload
@@ -251,20 +255,7 @@ class DatabaseWrapperObject(Object):
         *,
         lock_for_update: bool = False,
         fetch_multiple_rows: Literal[False] = False,
-    ) -> Record | None:
-        ...
-
-    @overload
-    @classmethod
-    async def fetch_record(
-        cls,
-        connection: asyncpg.Connection,
-        required_values: dict[str, Any],
-        selected_columns: Iterable[str] | None = None,
-        *,
-        lock_for_update: bool = False,
-        fetch_multiple_rows: bool = ...,
-    ) -> Record | list[Record] | None:
+    ) -> Record:
         ...
 
     @classmethod
@@ -276,7 +267,7 @@ class DatabaseWrapperObject(Object):
         *,
         lock_for_update: bool = False,
         fetch_multiple_rows: bool = False,
-    ) -> Record | list[Record] | None:
+    ) -> Record | list[Record]:
         where_query, where_query_arguments, _ = cls._generate_cls_pgsql_where_query(
             required_values
         )
@@ -286,14 +277,14 @@ class DatabaseWrapperObject(Object):
             query += " FOR UPDATE"
 
         if fetch_multiple_rows:
-            rows: list[Record] = await connection.fetch(query, *where_query_arguments)
-            if not rows:
-                return None
-            return rows
+            return await connection.fetch(query, *where_query_arguments)
         record: Record = await connection.fetchrow(query, *where_query_arguments)
-        if record is None:
-            return None
-        return record
+        if record is not None:
+            return record
+        raise RecordNotFoundError(
+            f"Couldn't find a record derived from the SQL statement {query!r}"
+            f" with the arguments {where_query_arguments}"
+        )
 
     @overload
     @classmethod
@@ -304,7 +295,7 @@ class DatabaseWrapperObject(Object):
         *,
         lock_for_update: Literal[False] = False,
         fetch_multiple_rows: Literal[True],
-    ) -> list[_DatabaseWrapperObject] | None:
+    ) -> list[_DatabaseWrapperObject]:
         ...
 
     @overload
@@ -316,19 +307,7 @@ class DatabaseWrapperObject(Object):
         *,
         lock_for_update: bool = False,
         fetch_multiple_rows: Literal[False] = False,
-    ) -> _DatabaseWrapperObject | None:
-        ...
-
-    @overload
-    @classmethod
-    async def fetch(
-        cls: type[_DatabaseWrapperObject],
-        connection: asyncpg.Connection,
-        required_values: dict[str, Any],
-        *,
-        lock_for_update: bool = False,
-        fetch_multiple_rows: bool = ...,
-    ) -> _DatabaseWrapperObject | list[_DatabaseWrapperObject] | None:
+    ) -> _DatabaseWrapperObject:
         ...
 
     @classmethod
@@ -339,19 +318,17 @@ class DatabaseWrapperObject(Object):
         *,
         lock_for_update: bool = False,
         fetch_multiple_rows: bool = False,
-    ) -> _DatabaseWrapperObject | list[_DatabaseWrapperObject] | None:
+    ) -> _DatabaseWrapperObject | list[_DatabaseWrapperObject]:
         if fetch_multiple_rows:
-            records = await cls.fetch_record(
-                connection, required_values, fetch_multiple_rows=True
-            )
-            if not records:
-                return None
-            return [cls.from_record(record) for record in records]
+            return [
+                cls.from_record(record)
+                for record in await cls.fetch_record(
+                    connection, required_values, fetch_multiple_rows=True
+                )
+            ]
         record = await cls.fetch_record(
-            connection, required_values, lock_for_update=lock_for_update
+            connection, required_values, lock_for_update=lock_for_update,
         )
-        if record is None:
-            return None
 
         return cls.from_record(record)
 
