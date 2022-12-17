@@ -18,7 +18,7 @@ class InventoryItem(DatabaseWrapperObject):
         "item_name": "name",
         "item_amount": "amount",
     }
-    _column_attributes = dict(map(reversed, _columns.items()))
+    _column_attributes = {attribute: column for column, attribute in _columns.items()}
     _identifier_attributes = ("user_id", "name")
     _trackers = ("amount",)
 

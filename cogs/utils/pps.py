@@ -24,7 +24,7 @@ class Pp(DatabaseWrapperObject):
         "pp_size": "size",
         "pp_name": "name",
     }
-    _column_attributes = dict(map(reversed, _columns.items()))
+    _column_attributes = {attribute: column for column, attribute in _columns.items()}
     _identifier_attributes = ("user_id",)
     _trackers = ("multiplier", "size", "name")
 
