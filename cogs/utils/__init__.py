@@ -13,6 +13,6 @@ from .helpers import (
     DatabaseWrapperObject,
     DifferenceTracker,
 )
-from .typehinted_methods import get_database_connection
+from .bot import Bot
 from .inventory import InventoryItem
 from .pps import PpRecordNotFoundError, Pp
