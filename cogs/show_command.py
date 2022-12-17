@@ -1,5 +1,5 @@
+from datetime import datetime, timedelta
 import asyncio
-
 import discord
 from discord.ext import commands, vbu
 
@@ -41,7 +41,8 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                     f"{name} - **{utils.format_int(amount)}**"
                     for name, amount in inventory.items()
                 ]
-            ),
+            )
+            or "You got no items l",
         )
 
         match utils.find_nearest_number(self.REAL_LIFE_COMPARISONS, pp.size.value):
@@ -58,15 +59,14 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
         return embed
 
     @commands.command(application_command_meta=commands.ApplicationCommandMeta())  # type: ignore
-    @commands.is_owner()
-    async def show(self, ctx: vbu.SlashContext[discord.Guild]) -> None:
+    async def show(self, ctx: vbu.SlashContext[discord.Guild | None]) -> None:
         """
         Show your pp to the whole wide world.
         """
         async with self.bot.database() as db:
-            pp = await utils.Pp.fetch(db.conn, {"user_id": ctx.author.id})
-
-            if pp is None:
+            try:
+                pp = await utils.Pp.fetch(db.conn, {"user_id": ctx.author.id})
+            except utils.RecordNotFoundError:
                 raise commands.CheckFailure("You don't have a pp!")
 
             inventory_records = await utils.InventoryItem.fetch_record(
@@ -76,15 +76,17 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                 fetch_multiple_rows=True,
             )
 
-            if inventory_records is None:
-                inventory_records = []
-
         inventory: dict[str, int] = {
             inventory_record["item_name"]: inventory_record["item_amount"]
             for inventory_record in inventory_records
         }
+        
+        embed = self.create_show_embed(pp, inventory, ctx.author)
 
-        await ctx.send(embed=self.create_show_embed(pp, inventory, ctx.author))
+        if ctx.interaction.response.is_done():
+            await ctx.interaction.followup.send(embed=embed)
+        else:
+            await ctx.interaction.response.send_message(embed=embed)
 
 
 def setup(bot: utils.Bot):
