@@ -12,6 +12,7 @@ from .helpers import (
     Object,
     DatabaseWrapperObject,
     DifferenceTracker,
+    RecordNotFoundError,
 )
 from .bot import Bot
 from .inventory import InventoryItem
