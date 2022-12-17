@@ -75,7 +75,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                 ["item_name", "item_amount"],
                 fetch_multiple_rows=True,
             )
-            
+
             if inventory_records is None:
                 inventory_records = []
 
