@@ -16,7 +16,9 @@ from .helpers import (
     RecordNotFoundError as RecordNotFoundError,
     Embed as Embed,
     RowLevelLockMode as RowLevelLockMode,
+    IntegerHolder as IntegerHolder,
 )
+from .cards import Rank as Rank, Suit as Suit, Deck as Deck, Hand as Hand
 from .bot import Bot as Bot
 from .command import RedisCooldownMapping as RedisCooldownMapping, Command as Command
 from .inventory import InventoryItem as InventoryItem
