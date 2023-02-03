@@ -1,0 +1,3 @@
+[[tool.mypy.overrides]]
+module = 'discord'
+ignore_all_errors = true
