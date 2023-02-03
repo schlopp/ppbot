@@ -14,7 +14,9 @@ class RedisCooldownMapping(commands.CooldownMapping):
         identifier: discord.Message | discord.Interaction,
     ) -> Any:
         ctx.command = cast(Command, ctx.command)
-        if self._type == commands.BucketType.default:  # pyright: ignore [reportUnnecessaryComparison]
+        if (
+            self._type == commands.BucketType.default
+        ):  # pyright: ignore [reportUnnecessaryComparison]
             return f"cooldowns:{ctx.command.name}:default"
         return f"cooldowns:{ctx.command.name}:{self._type(identifier)}"
 
