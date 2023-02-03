@@ -3,15 +3,7 @@ from typing import Any
 
 import asyncpg  # type: ignore
 
-from . import DatabaseWrapperObject, DifferenceTracker, Record
-
-
-class PpRecordNotFoundError(Exception):
-    def __init__(self, user_id: int) -> None:
-        self.user_id = user_id
-        self.message = (
-            f"Database record for pp with the user ID of {self.user_id!r} not found"
-        )
+from . import DatabaseWrapperObject, DifferenceTracker, format_int, MEME_URL
 
 
 class Pp(DatabaseWrapperObject):
@@ -33,3 +25,14 @@ class Pp(DatabaseWrapperObject):
         self.multiplier = DifferenceTracker(multiplier, column="pp_multiplier")
         self.size = DifferenceTracker(size, column="pp_size")
         self.name = DifferenceTracker(name, column="pp_name")
+
+    def grow(self, growth: int, *, include_multipliers: bool = True) -> int:
+        if include_multipliers:
+            growth *= self.multiplier.value
+        self.size.value += growth
+        return growth
+
+    def format_growth(self, growth: int | None = None) -> str:
+        if growth is None:
+            growth = self.size.difference or 0
+        return f"**[{format_int(growth)}]({MEME_URL}) inches**"
