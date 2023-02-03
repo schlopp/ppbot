@@ -399,3 +399,34 @@ class DifferenceTracker(Object, Generic[_IntStrT_co]):
         if isinstance(self.value, int):
             return self.value - self.start_value
         return self.value
+
+
+class IntegerHolder(Object):
+    _repr_attributes = ("value",)
+
+    def __init__(self, value: int):
+        self.value = value
+
+    def __int__(self):
+        return self.value
+
+    def __add__(self, other: int | float):
+        return self.value + other
+
+    def __sub__(self, other: int | float):
+        return self.value - other
+
+    def __mul__(self, other: int | float):
+        return self.value * other
+
+    def __truediv__(self, other: int | float):
+        return self.value / other
+
+    def __floordiv__(self, other: int | float):
+        return self.value // other
+
+    def __mod__(self, other: int | float):
+        return self.value % other
+
+    def __pow__(self, other: int | float):
+        return self.value**other
