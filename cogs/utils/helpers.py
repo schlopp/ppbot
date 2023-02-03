@@ -2,7 +2,6 @@ from __future__ import annotations
 import enum
 import math
 import random
-import sys
 from collections.abc import Mapping, Iterable
 from typing import Generic, TypeVar, Any, Literal, overload
 
@@ -23,11 +22,23 @@ class RecordNotFoundError(Exception):
     pass
 
 
+MEME_URL = "https://yt.be/4rgxdf-fVw0"
 RED = discord.Colour(16007990)
 GREEN = discord.Colour(5025616)
 BLUE = discord.Colour(2201331)
 PINK = discord.Colour(15418782)
-UNITS = ["million", "billion", "trillion", "quadrillion"]
+UNITS = [
+    "million",
+    "billion",
+    "trillion",
+    "quadrillion",
+    "quintillion",
+    "sextillion",
+    "septillion",
+    "octillion",
+    "nonillion",
+    "decillion",
+]
 
 
 def limit_text(text: str, limit: int):
@@ -96,6 +107,22 @@ def format_int(value: int, format_type: IntFormatType = IntFormatType.FULL_UNIT)
         return f"{unit_value}{UNITS[unit - 2][0].upper()}"
 
 
+class Embed(discord.Embed):
+    TIPS = ["There is no tip, take off your clothes."]
+
+    def __init__(self, *args, include_tip: bool = True, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.include_tip = include_tip
+
+    def __enter__(self) -> Embed:
+        return self
+
+    def __exit__(self, *_) -> None:
+        if not self.include_tip or random.randrange(0, 5):
+            return
+        self.add_field(name="TIP:", value=random.choice(self.TIPS))
+
+
 class Object:
     _repr_attributes: tuple[str, ...] = ()
 
@@ -136,6 +163,12 @@ class Object:
                 continue
             print(f"{added_full_prefix}{attribute_name}={repr(attribute)}")
         print(f"{full_prefix}>")
+
+
+class RowLevelLockMode(enum.Enum):
+    FOR_UPDATE = "UPDATE"
+    FOR_NO_KEY_UPDATE = "NO KEY UPDATE"
+    FOR_KEY_SHARE = "KEY SHARE"
 
 
 class DatabaseWrapperObject(Object):
@@ -240,7 +273,7 @@ class DatabaseWrapperObject(Object):
         required_values: dict[str, Any],
         selected_columns: Iterable[str] | None = None,
         *,
-        lock_for_update: Literal[False] = False,
+        lock: Literal[None] = None,
         fetch_multiple_rows: Literal[True],
     ) -> list[Record]:
         ...
@@ -253,7 +286,7 @@ class DatabaseWrapperObject(Object):
         required_values: dict[str, Any],
         selected_columns: Iterable[str] | None = None,
         *,
-        lock_for_update: bool = False,
+        lock: RowLevelLockMode | None = None,
         fetch_multiple_rows: Literal[False] = False,
     ) -> Record:
         ...
@@ -265,7 +298,7 @@ class DatabaseWrapperObject(Object):
         required_values: dict[str, Any],
         selected_columns: Iterable[str] | None = None,
         *,
-        lock_for_update: bool = False,
+        lock: RowLevelLockMode | None = None,
         fetch_multiple_rows: bool = False,
     ) -> Record | list[Record]:
         where_query, where_query_arguments, _ = cls._generate_cls_pgsql_where_query(
@@ -273,8 +306,8 @@ class DatabaseWrapperObject(Object):
         )
         query = f"{cls._generate_cls_pgsql_select_query(selected_columns)} FROM {cls._table} {where_query}"
 
-        if lock_for_update:
-            query += " FOR UPDATE"
+        if lock is not None:
+            query += f" FOR {lock.value}"
 
         if fetch_multiple_rows:
             return await connection.fetch(query, *where_query_arguments)
@@ -293,7 +326,7 @@ class DatabaseWrapperObject(Object):
         connection: asyncpg.Connection,
         required_values: dict[str, Any],
         *,
-        lock_for_update: Literal[False] = False,
+        lock: Literal[None] = None,
         fetch_multiple_rows: Literal[True],
     ) -> list[_DatabaseWrapperObject]:
         ...
@@ -305,7 +338,7 @@ class DatabaseWrapperObject(Object):
         connection: asyncpg.Connection,
         required_values: dict[str, Any],
         *,
-        lock_for_update: bool = False,
+        lock: RowLevelLockMode | None = None,
         fetch_multiple_rows: Literal[False] = False,
     ) -> _DatabaseWrapperObject:
         ...
@@ -316,7 +349,7 @@ class DatabaseWrapperObject(Object):
         connection: asyncpg.Connection,
         required_values: dict[str, Any],
         *,
-        lock_for_update: bool = False,
+        lock: RowLevelLockMode | None = None,
         fetch_multiple_rows: bool = False,
     ) -> _DatabaseWrapperObject | list[_DatabaseWrapperObject]:
         if fetch_multiple_rows:
@@ -329,7 +362,7 @@ class DatabaseWrapperObject(Object):
         record = await cls.fetch_record(
             connection,
             required_values,
-            lock_for_update=lock_for_update,
+            lock=lock,
         )
 
         return cls.from_record(record)
