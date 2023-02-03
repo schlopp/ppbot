@@ -3,9 +3,9 @@ import enum
 import math
 import random
 from collections.abc import Mapping, Iterable
-from typing import Generic, TypeVar, Any, Literal, overload
+from typing import Generic, TypeVar, Any, Literal, overload, cast
 
-import asyncpg  # type: ignore
+import asyncpg
 import discord
 
 
@@ -50,7 +50,7 @@ def limit_text(text: str, limit: int):
     return text
 
 
-def compare(x: int, y: int) -> int:
+def compare(x: int, y: int) -> Literal[-1, 0, 1]:
     if x < y:
         return -1
     if x == y:
@@ -216,7 +216,7 @@ class DatabaseWrapperObject(Object):
     @classmethod
     def _generate_cls_pgsql_where_query(
         cls, required_values: dict[str, Any], *, argument_position: int = 1
-    ) -> tuple[str, list[str], int]:
+    ) -> tuple[str, list, int]:
         conditional_values: list[str] = []
         query_arguments = []
 
@@ -311,7 +311,7 @@ class DatabaseWrapperObject(Object):
 
         if fetch_multiple_rows:
             return await connection.fetch(query, *where_query_arguments)
-        record: Record = await connection.fetchrow(query, *where_query_arguments)
+        record = cast(Record, await connection.fetchrow(query, *where_query_arguments))
         if record is not None:
             return record
         raise RecordNotFoundError(

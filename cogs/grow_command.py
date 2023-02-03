@@ -5,7 +5,7 @@ from . import utils
 
 
 class GrowCommandCog(vbu.Cog[utils.Bot]):
-    @commands.command(  # type: ignore
+    @commands.command( 
         "grow",
         utils.Command,
         application_command_meta=commands.ApplicationCommandMeta(),

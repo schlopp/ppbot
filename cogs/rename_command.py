@@ -1,12 +1,11 @@
 import discord
 import random
-import asyncio
 from discord.ext import commands, vbu
 from . import utils
 
 
 class RenameCommandCog(vbu.Cog[utils.Bot]):
-    @commands.command(  # type: ignore
+    @commands.command(
         "rename",
         utils.Command,
         application_command_meta=commands.ApplicationCommandMeta(

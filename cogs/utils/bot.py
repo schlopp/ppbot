@@ -3,7 +3,7 @@ from typing import cast
 
 
 from discord.ext import vbu
-import asyncpg  # type: ignore
+import asyncpg
 
 
 class DatabaseWrapper(vbu.DatabaseWrapper):

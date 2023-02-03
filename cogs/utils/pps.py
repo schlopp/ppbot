@@ -1,8 +1,3 @@
-from collections.abc import Mapping
-from typing import Any
-
-import asyncpg  # type: ignore
-
 from . import DatabaseWrapperObject, DifferenceTracker, format_int, MEME_URL
 
 

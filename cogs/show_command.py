@@ -1,6 +1,4 @@
 import discord
-import random
-import asyncio
 from discord.ext import commands, vbu
 from . import utils
 
@@ -20,7 +18,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
         5_984_252_000_000: "the distance from the earth to THE SUN",
     }
 
-    @commands.command(  # type: ignore
+    @commands.command(
         "show",
         utils.Command,
         application_command_meta=commands.ApplicationCommandMeta(),
@@ -81,7 +79,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                     comparison_text = f"{utils.format_int(pp.size.value - nearest_number)} inches bigger than"
                 case nearest_number, 0:
                     comparison_text = f"the same size as"
-                case nearest_number, 1:
+                case nearest_number, _:
                     comparison_text = f"{utils.format_int(nearest_number - pp.size.value)} inches smaller than"
 
             embed.set_footer(

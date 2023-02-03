@@ -4,7 +4,6 @@ import time
 from typing import Any, cast
 import discord
 from discord.ext import commands, vbu
-
 from . import Bot
 
 
@@ -15,11 +14,9 @@ class RedisCooldownMapping(commands.CooldownMapping):
         identifier: discord.Message | discord.Interaction,
     ) -> Any:
         ctx.command = cast(Command, ctx.command)
-        if self._type == commands.BucketType.default:
-            X = f"cooldowns:{ctx.command.name}:default"
-        X = f"cooldowns:{ctx.command.name}:{self._type(identifier)}"
-        print(X)
-        return X
+        if self._type == commands.BucketType.default:  # pyright: ignore [reportUnnecessaryComparison]
+            return f"cooldowns:{ctx.command.name}:default"
+        return f"cooldowns:{ctx.command.name}:{self._type(identifier)}"
 
     async def redis_get_bucket(
         self, redis: vbu.Redis, key: str, current: float | None = None
@@ -91,7 +88,7 @@ class RedisCooldownMapping(commands.CooldownMapping):
 class Command(commands.Command):
     _buckets: RedisCooldownMapping
 
-    def __init__(self, func, **kwargs: Any):
+    def __init__(self, func, **kwargs):
         super().__init__(func, **kwargs)
         self._buckets = RedisCooldownMapping(
             self._buckets._cooldown, self._buckets._type
@@ -161,7 +158,7 @@ class Command(commands.Command):
                 await self._max_concurrency.release(ctx)  # type: ignore
             raise
 
-    def is_on_cooldown(self):
+    def is_on_cooldown(self, *_):
         raise NotImplementedError("Use async_is_on_cooldown instead.")
 
     async def async_is_on_cooldown(self, ctx: commands.Context[Bot]) -> bool:

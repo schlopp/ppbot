@@ -1,3 +1,10 @@
-[[tool.mypy.overrides]]
-module = 'discord'
-ignore_all_errors = true
+[tool.pyright]
+reportPrivateUsage = false
+reportImportCycles = false
+reportUnknownMemberType = false
+reportUnknownParameterType = false
+reportUnknownArgumentType = false
+reportUnknownVariableType = false
+reportMissingParameterType = false
+reportMissingTypeArgument = false
+reportMissingTypeStubs = false

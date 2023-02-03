@@ -1,12 +1,7 @@
 from __future__ import annotations
-from collections.abc import Mapping
-from typing import Any
-from typing_extensions import Protocol
+import asyncpg
 
-
-import asyncpg  # type: ignore
-
-from . import DatabaseWrapperObject, DifferenceTracker, Record
+from . import DatabaseWrapperObject, DifferenceTracker
 
 
 class InventoryItem(DatabaseWrapperObject):
