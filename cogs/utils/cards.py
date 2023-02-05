@@ -1,19 +1,18 @@
 from __future__ import annotations
 import random
 from typing import overload, Literal
-from enum import Enum
-
+from enum import StrEnum, IntEnum
 from . import Object, IntegerHolder
 
 
-class Suit(Enum):
+class Suit(StrEnum):
     CLUBS = "♣"
     DIAMONDS = "♦"
     HEARTS = "♥"
     SPADES = "♠"
 
 
-class Rank(Enum):
+class Rank(IntEnum):
     ONE = 1
     TWO = 2
     THREE = 3
@@ -77,7 +76,7 @@ class Hand(Object):
     _repr_attributes = ("cards",)
 
     def __init__(self):
-        self.cards = []
+        self.cards: list[Card] = []
 
     def give(self, *cards: Card):
         self.cards.extend(cards)
@@ -91,3 +90,25 @@ class Hand(Object):
         if format_spec == "blackjack":
             return " ".join(f"{card:blackjack}" for card in self.cards)
         raise ValueError(f"Invalid format specification {format_spec!r}")
+
+
+class BlackjackHand(Hand):
+    _repr_attributes = ("cards", "hide_second_card")
+
+    def __init__(self, *, hide_second_card: bool = False):
+        super().__init__()
+        self.hide_second_card = hide_second_card
+
+    @property
+    def total(self) -> int:
+        total = 0
+        for card in self.cards:
+            total += card.rank.value
+        return total
+
+    @property
+    def visual_total(self) -> int:
+        total = 0
+        if self.hide_second_card and len(self.cards) == 2:
+            return self.cards[0].rank.value
+        return total
