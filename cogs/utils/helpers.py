@@ -120,7 +120,7 @@ class Embed(discord.Embed):
     def __exit__(self, *_) -> None:
         if not self.include_tip or random.randrange(0, 5):
             return
-        self.add_field(name="TIP:", value=random.choice(self.TIPS))
+        self.add_field(name="TIP:", value=random.choice(self.TIPS), inline=False)
 
 
 class Object:
