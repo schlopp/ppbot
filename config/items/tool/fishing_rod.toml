@@ -1,0 +1,5 @@
+id = "MY_TOOL"
+name = "my tool"
+description = "Perfect for fishing pps"
+price = 250
+command = "fish"

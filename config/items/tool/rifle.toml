@@ -1,0 +1,5 @@
+id = "RIFLE"
+name = "rifle"
+description = "Ever wanted to kill hobos and steal their pps?"
+price = 1000
+command = "hunt"

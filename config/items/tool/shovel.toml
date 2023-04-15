@@ -1,0 +1,5 @@
+id = "SHOVEL"
+name = "shovel"
+description = "Dig up some ancient pps"
+price = 25000
+command = "hunt"
