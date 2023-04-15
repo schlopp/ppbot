@@ -22,7 +22,7 @@ class RecordNotFoundError(Exception):
     pass
 
 
-MEME_URL = "https://yt.be/4rgxdf-fVw0"
+MEME_URL = "https://youtu.be/4rgxdf-fVw0"
 RED = discord.Colour(16007990)
 GREEN = discord.Colour(5025616)
 BLUE = discord.Colour(2201331)
@@ -39,6 +39,15 @@ UNITS = [
     "nonillion",
     "decillion",
 ]
+TIME_UNITS: dict[str, float] = {
+    "year": 60 * 60 * 24 * 365,
+    "week": 60 * 60 * 24 * 7,
+    "day": 60 * 60 * 24,
+    "hour": 60 * 60,
+    "minute": 60,
+    "second": 1,
+    "millisecond": 1 / 1000,
+}
 
 
 def limit_text(text: str, limit: int):
@@ -105,6 +114,30 @@ def format_int(value: int, format_type: IntFormatType = IntFormatType.FULL_UNIT)
             return f"{unit_value} {UNITS[unit - 2]}"
 
         return f"{unit_value}{UNITS[unit - 2][0].upper()}"
+
+
+def format_time(value: float, smallest_unit: str | None = "second") -> str:
+    durations: list[str] = []
+
+    for time_unit, time_unit_value in TIME_UNITS.items():
+        if value // time_unit_value:
+            plural = "s" if value // time_unit_value != 1 else ""
+            durations.append(f"{int(value // time_unit_value)} {time_unit}{plural}")
+
+        if time_unit == smallest_unit:
+            break
+
+        value -= value // time_unit_value * time_unit_value
+
+    try:
+        last_duration = durations.pop()
+    except IndexError:
+        return f"0 {smallest_unit}s"
+
+    if durations:
+        return f"{', '.join(durations)} and {last_duration}"
+
+    return last_duration
 
 
 class Embed(discord.Embed):
@@ -311,7 +344,9 @@ class DatabaseWrapperObject(Object):
 
         if fetch_multiple_rows:
             return await connection.fetch(query, *where_query_arguments)
-        record = cast(Record, await connection.fetchrow(query, *where_query_arguments))
+        record = cast(
+            Record | None, await connection.fetchrow(query, *where_query_arguments)
+        )
         if record is not None:
             return record
         raise RecordNotFoundError(
@@ -410,23 +445,23 @@ class IntegerHolder(Object):
     def __int__(self):
         return self.value
 
-    def __add__(self, other: int | float):
+    def __add__(self, other: float):
         return self.value + other
 
-    def __sub__(self, other: int | float):
+    def __sub__(self, other: float):
         return self.value - other
 
-    def __mul__(self, other: int | float):
+    def __mul__(self, other: float):
         return self.value * other
 
-    def __truediv__(self, other: int | float):
+    def __truediv__(self, other: float):
         return self.value / other
 
-    def __floordiv__(self, other: int | float):
+    def __floordiv__(self, other: float):
         return self.value // other
 
-    def __mod__(self, other: int | float):
+    def __mod__(self, other: float):
         return self.value % other
 
-    def __pow__(self, other: int | float):
+    def __pow__(self, other: float):
         return self.value**other
