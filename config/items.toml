@@ -1,0 +1,65 @@
+[multipliers]
+    [multipliers."PILLS"]
+    name = "pills"
+    description = "I LOVE DRUGS!!!"
+    price = 60
+    gain = 1
+
+    [multipliers."STRONG_PILLS"]
+    name = "stronger pills"
+    description = "I think cocaine and some sildenafil in these..."
+    price = 500
+    gain = 20
+
+[tools]
+    [tools."FISHING_ROD"]
+    name = "fishing rod"
+    description = "Perfect for fishing pps."
+    price = 250
+    command = "fish"
+
+    [tools."RIFLE"]
+    name = "rifle"
+    description = "Ever wanted to kill hobos and steal their pps?"
+    price = 1000
+    command = "hunt"
+
+    [tools."SHOVEL"]
+    name = "shovel"
+    description = "Dig up some ancient pps."
+    price = 25_000
+    command = "hunt"
+
+[buffs]
+    [buffs."HAPPY_FLOUR"]
+    name = "happy flour"
+    description = "Definitely not cocaine, trust me."
+    price = 1000
+    multiplier = 0.25
+    command = "snort"
+
+[useless]
+    [useless."BRONZE_COIN"]
+    name = "bronze coin"
+    description = "Completely worthless. Doesn't do anything. Don't buy this."
+    price = 1000
+
+    [useless."GOLDEN_COIN"]
+    name = "golden coin"
+    description = "This coin is also completely useless. It doesn't do anything, and it's even more expensive. Why on earth would you buy this?"
+    price = 100_000
+
+    [useless."COOKIE"]
+    name = "cookie"
+    description = "A nice, tasty chocolate chip cookie."
+    price = 50
+
+    [useless."KNIFE"]
+    name = "knife"
+    description = "Sometimes drastic measures are needed..."
+    price = 50
+
+    [useless."APPLE"]
+    name = "apple"
+    description = "An apple a day keeps the doctor away!"
+    price = 500

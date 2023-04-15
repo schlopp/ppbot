@@ -1,5 +1,0 @@
-id = "MY_TOOL"
-name = "my tool"
-description = "This is an example description for a tool. Add some text here, keep it about this length."
-price = 250
-command = "example-command"
