@@ -31,12 +31,23 @@
     command = "hunt"
 
 [buffs]
-    [buffs."HAPPY_FLOUR"]
-    name = "happy flour"
-    description = "Definitely not cocaine, trust me."
-    price = 1000
-    multiplier = 0.25
-    command = "snort"
+    [buffs.multiplier]
+        [buffs.multiplier."HAPPY_FLOUR"]
+        name = "happy flour"
+        description = "Definitely not cocaine, trust me."
+        price = 500
+        multiplier = 0.25
+        duration = 0.5
+        cooldown = 12
+
+    [buffs.command]
+        [buffs.command."APPLE"]
+        name = "apple"
+        description = "An apple a day keeps the doctor away!"
+        perk = "Gives all `/hospital` surgeries a 100% success rate"
+        price = 1000
+        duration = 0.5
+        command = "snort"
 
 [useless]
     [useless."BRONZE_COIN"]
@@ -58,8 +69,3 @@
     name = "knife"
     description = "Sometimes drastic measures are needed..."
     price = 50
-
-    [useless."APPLE"]
-    name = "apple"
-    description = "An apple a day keeps the doctor away!"
-    price = 500
