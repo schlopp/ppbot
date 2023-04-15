@@ -45,3 +45,20 @@ class InventoryItem(DatabaseWrapperObject):
             self.name,
             self.amount.value,
         )
+
+    @staticmethod
+    async def has_item(connection: asyncpg.Connection, user_id: int, name: str) -> bool:
+        return bool(
+            await connection.fetchval(
+                """
+            SELECT 1
+            FROM inventory
+            WHERE
+                user_id = $1
+                AND item_name = $2
+                AND item_amount >= 1
+            """,
+                user_id,
+                name,
+            )
+        )

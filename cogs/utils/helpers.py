@@ -268,19 +268,19 @@ class DatabaseWrapperObject(Object):
 
     def _generate_pgsql_where_query(
         self, *, argument_position: int = 1
-    ) -> tuple[str, list[str], int]:
-        conditional_values = []
+    ) -> tuple[str, list, int]:
+        sql_conditions: list[str] = []
         query_arguments = []
 
         for identifier_attribute in self._identifier_attributes:
             query_arguments.append(getattr(self, identifier_attribute))
-            conditional_values.append(
+            sql_conditions.append(
                 f"{self._column_attributes[identifier_attribute]}=${argument_position}"
             )
             argument_position += 1
 
         return (
-            f"WHERE {' AND '.join(conditional_values)}" if conditional_values else "",
+            f"WHERE {' AND '.join(sql_conditions)}" if sql_conditions else "",
             query_arguments,
             argument_position,
         )
