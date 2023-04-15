@@ -26,7 +26,7 @@ class GrowCommandCog(vbu.Cog[utils.Bot]):
             except utils.RecordNotFoundError:
                 raise commands.CheckFailure("You don't have a pp!")
 
-            pp.grow(random.randint(1, 15))
+            pp.grow(random.randint(1, 15000))
             await pp.update(db.conn)
 
             with utils.Embed(include_tip=True) as embed:
