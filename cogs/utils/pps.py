@@ -1,4 +1,11 @@
+import enum
+
 from . import DatabaseWrapperObject, DifferenceTracker, format_int, MEME_URL
+
+
+class PpGrowthMarkdown(enum.Enum):
+    BOLD_BLUE = enum.auto()
+    BOLD = enum.auto()
 
 
 class Pp(DatabaseWrapperObject):
@@ -27,7 +34,29 @@ class Pp(DatabaseWrapperObject):
         self.size.value += growth
         return growth
 
-    def format_growth(self, growth: int | None = None) -> str:
+    def format_growth(
+        self,
+        growth: int | None = None,
+        *,
+        markdown: PpGrowthMarkdown | None = PpGrowthMarkdown.BOLD,
+        prefixed: bool = False,
+    ) -> str:
         if growth is None:
             growth = self.size.difference or 0
-        return f"**[{format_int(growth)}]({MEME_URL}) inches**"
+
+        if prefixed:
+            if growth < 0:
+                prefix = "lost "
+                growth = abs(growth)
+            else:
+                prefix = "earned "
+        else:
+            prefix = ""
+
+        if not markdown:
+            return prefix + f"{format_int(growth)} inches"
+
+        if markdown == PpGrowthMarkdown.BOLD:
+            return prefix + f"**{format_int(growth)}** inches"
+
+        return prefix + f"**[{format_int(growth)}]({MEME_URL}) inches**"
