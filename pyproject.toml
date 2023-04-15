@@ -8,3 +8,4 @@ reportUnknownVariableType = false
 reportMissingParameterType = false
 reportMissingTypeArgument = false
 reportMissingTypeStubs = false
+reportUnknownLambdaType = false
