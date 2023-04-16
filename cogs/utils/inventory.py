@@ -5,21 +5,21 @@ from . import DatabaseWrapperObject, DifferenceTracker
 
 
 class InventoryItem(DatabaseWrapperObject):
-    __slots__ = ("user_id", "name", "amount")
+    __slots__ = ("user_id", "id", "amount")
     _repr_attributes = __slots__
     _table = "inventory"
     _columns = {
         "user_id": "user_id",
-        "item_name": "name",
+        "item_id": "id",
         "item_amount": "amount",
     }
     _column_attributes = {attribute: column for column, attribute in _columns.items()}
-    _identifier_attributes = ("user_id", "name")
+    _identifier_attributes = ("user_id", "id")
     _trackers = ("amount",)
 
-    def __init__(self, user_id: int, name: str, amount: int) -> None:
+    def __init__(self, user_id: int, id: str, amount: int) -> None:
         self.user_id = user_id
-        self.name = name
+        self.id = id
         self.amount = DifferenceTracker(amount, column="item_amount")
 
     async def update(
@@ -29,25 +29,25 @@ class InventoryItem(DatabaseWrapperObject):
             return
         if not self.amount.value:
             await connection.execute(
-                "DELETE FROM inventory WHERE user_id=$1 AND item_name=$2",
+                "DELETE FROM inventory WHERE user_id=$1 AND item_id=$2",
                 self.user_id,
-                self.name,
+                self.id,
             )
             return
         await connection.execute(
             """
             INSERT INTO inventory
             VALUES ($1, $2, $3)
-            ON CONFLICT (user_id, item_name)
+            ON CONFLICT (user_id, item_id)
             DO UPDATE SET item_amount=$3
             """,
             self.user_id,
-            self.name,
+            self.id,
             self.amount.value,
         )
 
     @staticmethod
-    async def has_item(connection: asyncpg.Connection, user_id: int, name: str) -> bool:
+    async def has_item(connection: asyncpg.Connection, user_id: int, id: str) -> bool:
         return bool(
             await connection.fetchval(
                 """
@@ -55,10 +55,10 @@ class InventoryItem(DatabaseWrapperObject):
             FROM inventory
             WHERE
                 user_id = $1
-                AND item_name = $2
+                AND item_id = $2
                 AND item_amount >= 1
             """,
                 user_id,
-                name,
+                id,
             )
         )
