@@ -1,71 +1,69 @@
 [multipliers]
-    [multipliers."PILLS"]
+    [multipliers.PILLS]
     name = "pills"
     description = "I LOVE DRUGS!!!"
     price = 60
     gain = 1
 
-    [multipliers."STRONG_PILLS"]
+    [multipliers.STRONG_PILLS]
     name = "stronger pills"
-    description = "I think cocaine and some sildenafil in these..."
+    description = "I think there's some cocaine and some sildenafil in these..."
     price = 500
     gain = 20
 
+[buffs]
+    [buffs.HAPPY_FLOUR]
+    name = "happy flour"
+    description = "Definitely not cocaine, trust me."
+    price = 500
+    duration = 0.5
+    cooldown = 12
+    multiplier = 0.05
+
+    [buffs.APPLE]
+    name = "apple"
+    description = "An apple a day keeps the doctor away!"
+    price = 1000
+    duration = 0.5
+    specified_perks = ["Gives all `/hospital` surgeries a 100% success rate"]
+
 [tools]
-    [tools."FISHING_ROD"]
+    [tools.FISHING_ROD]
     name = "fishing rod"
     description = "Perfect for fishing pps."
     price = 250
-    command = "fish"
+    associated_command_name = "fish"
 
-    [tools."RIFLE"]
+    [tools.RIFLE]
     name = "rifle"
     description = "Ever wanted to kill hobos and steal their pps?"
     price = 1000
-    command = "hunt"
+    associated_command_name = "hunt"
 
-    [tools."SHOVEL"]
+    [tools.SHOVEL]
     name = "shovel"
     description = "Dig up some ancient pps."
     price = 25_000
-    command = "hunt"
+    associated_command_name = "dig"
 
-[buffs]
-    [buffs.multiplier]
-        [buffs.multiplier."HAPPY_FLOUR"]
-        name = "happy flour"
-        description = "Definitely not cocaine, trust me."
-        price = 500
-        multiplier = 0.25
-        duration = 0.5
-        cooldown = 12
-
-    [buffs.command]
-        [buffs.command."APPLE"]
-        name = "apple"
-        description = "An apple a day keeps the doctor away!"
-        perk = "Gives all `/hospital` surgeries a 100% success rate"
-        price = 1000
-        duration = 0.5
-        command = "snort"
 
 [useless]
-    [useless."BRONZE_COIN"]
+    [useless.BRONZE_COIN]
     name = "bronze coin"
     description = "Completely worthless. Doesn't do anything. Don't buy this."
     price = 1000
 
-    [useless."GOLDEN_COIN"]
+    [useless.GOLDEN_COIN]
     name = "golden coin"
     description = "This coin is also completely useless. It doesn't do anything, and it's even more expensive. Why on earth would you buy this?"
     price = 100_000
 
-    [useless."COOKIE"]
+    [useless.COOKIE]
     name = "cookie"
     description = "A nice, tasty chocolate chip cookie."
     price = 50
 
-    [useless."KNIFE"]
+    [useless.KNIFE]
     name = "knife"
     description = "Sometimes drastic measures are needed..."
     price = 50
