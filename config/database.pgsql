@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS pps (
 );
 
 
-CREATE TABLE IF NOT EXISTS inventory (
+CREATE TABLE IF NOT EXISTS inventories (
     user_id BIGINT,
     item_id TEXT,
     item_amount BIGINT,
@@ -47,4 +47,3 @@ CREATE TABLE IF NOT EXISTS inventory (
 -- );
 -- A list of channel: value mappings should you need one.
 -- This is not required for VBU, so is commented out by default.
-ALTER TABLE inventory RENAME COLUMN item_name TO item_id

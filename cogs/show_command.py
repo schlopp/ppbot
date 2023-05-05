@@ -36,12 +36,12 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
             inventory_records = await utils.InventoryItem.fetch_record(
                 db.conn,
                 {"user_id": ctx.author.id},
-                ["item_name", "item_amount"],
+                ["item_id", "item_amount"],
                 fetch_multiple_rows=True,
             )
 
         inventory: dict[str, int] = {
-            inventory_record["item_name"]: inventory_record["item_amount"]
+            inventory_record["item_id"]: inventory_record["item_amount"]
             for inventory_record in inventory_records
         }
 
