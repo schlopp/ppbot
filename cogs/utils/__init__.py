@@ -22,5 +22,14 @@ from .helpers import (
 from .cards import Rank as Rank, Suit as Suit, Deck as Deck, Hand as Hand
 from .bot import Bot as Bot
 from .command import RedisCooldownMapping as RedisCooldownMapping, Command as Command
-from .inventory import InventoryItem as InventoryItem
+from .items import (
+    UnknownItemError as UnknownItemError,
+    UselessItem as UselessItem,
+    MultiplierItem as MultiplierItem,
+    BuffItem as BuffItem,
+    ToolItem as ToolItem,
+    Item as Item,
+    InventoryItem as InventoryItem,
+    ItemManager as ItemManager,
+)
 from .pps import PpGrowthMarkdown as PpGrowthMarkdown, Pp as Pp
