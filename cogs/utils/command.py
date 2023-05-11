@@ -40,6 +40,7 @@ class RedisCooldownMapping(commands.CooldownMapping):
 
         if current > window + self._cooldown.per:
             assert redis.conn is not None
+            assert redis.pool is not None
             await redis.pool.delete(key)
             tokens = self._cooldown.rate
 
