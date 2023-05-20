@@ -13,7 +13,6 @@ class Suit(StrEnum):
 
 
 class Rank(IntEnum):
-    ONE = 1
     TWO = 2
     THREE = 3
     FOUR = 4
@@ -25,7 +24,8 @@ class Rank(IntEnum):
     TEN = IntegerHolder(10)
     QUEEN = IntegerHolder(10)
     KING = IntegerHolder(10)
-    JACK = 11
+    JACK = IntegerHolder(10)
+    ACE = 11
 
 
 class Card(Object):
