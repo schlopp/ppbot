@@ -3,16 +3,13 @@ import enum
 import math
 import random
 from collections.abc import Mapping, Iterable
-from typing import Generic, TypeVar, Any, Literal, overload, cast
+from typing import Generic, TypeVar, Any, Literal, overload, cast, Self
 
 import asyncpg
 import discord
 
 
 _IntStrT_co = TypeVar("_IntStrT_co", str, int, covariant=True)
-_DatabaseWrapperObject = TypeVar(
-    "_DatabaseWrapperObject", bound="DatabaseWrapperObject"
-)
 
 
 Record = Mapping[str, Any]
@@ -38,6 +35,16 @@ UNITS = [
     "octillion",
     "nonillion",
     "decillion",
+    "undecillion",
+    "duodecillion",
+    "tredicillion",
+    "quattuordecillion",
+    "quindecillion",
+    "sexdecillion",
+    "septendecillion",
+    "octodecillion",
+    "novemdecillion",
+    "vigintillion",
 ]
 TIME_UNITS: dict[str, float] = {
     "year": 60 * 60 * 24 * 365,
@@ -98,6 +105,11 @@ class IntFormatType(enum.Enum):
     FULL = enum.auto()
     FULL_UNIT = enum.auto()
     ABBREVIATED_UNIT = enum.auto()
+
+
+class MarkdownFormat(enum.Enum):
+    BOLD_BLUE = enum.auto()
+    BOLD = enum.auto()
 
 
 def format_int(value: int, format_type: IntFormatType = IntFormatType.FULL_UNIT) -> str:
@@ -293,10 +305,8 @@ class DatabaseWrapperObject(Object):
         return f"SELECT {', '.join(columns)}"
 
     @classmethod
-    def from_record(
-        cls: type[_DatabaseWrapperObject], record: Record
-    ) -> _DatabaseWrapperObject:
-        return cls(**{cls._columns[column]: value for column, value in record.items()})
+    def from_record(cls: type[Self], record: Record) -> Self:
+        return cls(**{cls._columns[column]: value for column, value in record.items()})  # type: ignore
 
     @overload
     @classmethod
@@ -357,36 +367,36 @@ class DatabaseWrapperObject(Object):
     @overload
     @classmethod
     async def fetch(
-        cls: type[_DatabaseWrapperObject],
+        cls: type[Self],
         connection: asyncpg.Connection,
         required_values: dict[str, Any],
         *,
         lock: Literal[None] = None,
         fetch_multiple_rows: Literal[True],
-    ) -> list[_DatabaseWrapperObject]:
+    ) -> list[Self]:
         ...
 
     @overload
     @classmethod
     async def fetch(
-        cls: type[_DatabaseWrapperObject],
+        cls: type[Self],
         connection: asyncpg.Connection,
         required_values: dict[str, Any],
         *,
         lock: RowLevelLockMode | None = None,
         fetch_multiple_rows: Literal[False] = False,
-    ) -> _DatabaseWrapperObject:
+    ) -> Self:
         ...
 
     @classmethod
     async def fetch(
-        cls: type[_DatabaseWrapperObject],
+        cls: type[Self],
         connection: asyncpg.Connection,
         required_values: dict[str, Any],
         *,
         lock: RowLevelLockMode | None = None,
         fetch_multiple_rows: bool = False,
-    ) -> _DatabaseWrapperObject | list[_DatabaseWrapperObject]:
+    ) -> Self | list[Self]:
         if fetch_multiple_rows:
             return [
                 cls.from_record(record)
@@ -436,7 +446,11 @@ class DifferenceTracker(Object, Generic[_IntStrT_co]):
         return self.value
 
 
-class IntegerHolder(Object):
+class IntegerHolder(int, Object):
+    """
+    Stores an integer inside a class so that it can be used multiple times as a value for an enum
+    """
+
     _repr_attributes = ("value",)
 
     def __init__(self, value: int):
@@ -445,23 +459,23 @@ class IntegerHolder(Object):
     def __int__(self):
         return self.value
 
-    def __add__(self, other: float):
+    def __add__(self, other: int):
         return self.value + other
 
-    def __sub__(self, other: float):
+    def __sub__(self, other: int):
         return self.value - other
 
-    def __mul__(self, other: float):
+    def __mul__(self, other: int):
         return self.value * other
 
-    def __truediv__(self, other: float):
+    def __truediv__(self, other: int):
         return self.value / other
 
-    def __floordiv__(self, other: float):
+    def __floordiv__(self, other: int):
         return self.value // other
 
-    def __mod__(self, other: float):
+    def __mod__(self, other: int):
         return self.value % other
 
-    def __pow__(self, other: float):
+    def __pow__(self, other: int):
         return self.value**other

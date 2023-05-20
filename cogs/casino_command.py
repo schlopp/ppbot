@@ -162,9 +162,9 @@ class CasinoSession(utils.Object):
 
         if stakes not in range(self.MIN_STAKES, self.MAX_STAKES + 1):
             await interaction.response.send_message(
-                f"You can't gamble {self.pp.format_growth(stakes, markdown=utils.PpGrowthMarkdown.BOLD)}"
-                f" bro you can only gamble {self.pp.format_growth(self.MIN_STAKES, markdown=utils.PpGrowthMarkdown.BOLD)}"
-                f" to {self.pp.format_growth(self.MAX_STAKES, markdown=utils.PpGrowthMarkdown.BOLD)}"
+                f"You can't gamble {self.pp.format_growth(stakes, markdown=utils.MarkdownFormat.BOLD)}"
+                f" bro you can only gamble {self.pp.format_growth(self.MIN_STAKES, markdown=utils.MarkdownFormat.BOLD)}"
+                f" to {self.pp.format_growth(self.MAX_STAKES, markdown=utils.MarkdownFormat.BOLD)}"
                 " at a time",
                 ephemeral=True,
             )
@@ -173,8 +173,8 @@ class CasinoSession(utils.Object):
 
         if stakes > self.pp.size.value:
             await interaction.response.send_message(
-                f"You can't gamble {self.pp.format_growth(stakes, markdown=utils.PpGrowthMarkdown.BOLD)}"
-                f" LMAO you only have {self.pp.format_growth(self.pp.size.value, markdown=utils.PpGrowthMarkdown.BOLD)}",
+                f"You can't gamble {self.pp.format_growth(stakes, markdown=utils.MarkdownFormat.BOLD)}"
+                f" LMAO you only have {self.pp.format_growth(self.pp.size.value, markdown=utils.MarkdownFormat.BOLD)}",
                 ephemeral=True,
             )
             self.state = CasinoState.MENU
