@@ -22,26 +22,30 @@
 
     [buffs.APPLE]
     name = "apple"
+    plural = "apples"
     description = "An apple a day keeps the doctor away!"
     price = 1000
     duration = 0.5
-    specified_perks = ["Gives all `/hospital` surgeries a 100% success rate"]
+    specified_details = ["Gives all **/hospital** surgeries a **100% success rate**"]
 
 [tools]
     [tools.FISHING_ROD]
     name = "fishing rod"
+    plural = "fishing rods"
     description = "Perfect for fishing pps."
     price = 250
     associated_command_name = "fish"
 
     [tools.RIFLE]
     name = "rifle"
+    plural = "rifles"
     description = "Ever wanted to kill hobos and steal their pps?"
     price = 1000
     associated_command_name = "hunt"
 
     [tools.SHOVEL]
     name = "shovel"
+    plural = "shovels"
     description = "Dig up some ancient pps."
     price = 25_000
     associated_command_name = "dig"
@@ -50,20 +54,24 @@
 [useless]
     [useless.BRONZE_COIN]
     name = "bronze coin"
+    plural = "bronze coins"
     description = "Completely worthless. Doesn't do anything. Don't buy this."
     price = 1000
 
     [useless.GOLDEN_COIN]
     name = "golden coin"
+    plural = "bronze coins"
     description = "This coin is also completely useless. It doesn't do anything, and it's even more expensive. Why on earth would you buy this?"
     price = 100_000
 
     [useless.COOKIE]
     name = "cookie"
+    plural = "cookies"
     description = "A nice, tasty chocolate chip cookie."
     price = 50
 
     [useless.KNIFE]
     name = "knife"
+    plural = "knives"
     description = "Sometimes drastic measures are needed..."
     price = 50

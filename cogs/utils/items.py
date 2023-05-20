@@ -5,7 +5,14 @@ from typing import Any
 
 import toml
 
-from . import Object, DatabaseWrapperObject, DifferenceTracker
+from . import (
+    Object,
+    DatabaseWrapperObject,
+    DifferenceTracker,
+    MarkdownFormat,
+    format_int,
+    MEME_URL,
+)
 
 
 class UnknownItemError(Exception):
@@ -13,79 +20,137 @@ class UnknownItemError(Exception):
 
 
 class UselessItem(Object):
-    __slots__ = ("id", "name", "description")
+    __slots__ = ("id", "name", "plural", "description", "price")
     _repr_attributes = __slots__
-
-    def __init__(self, id: str, *, name: str, description: str, price: int) -> None:
-        self.id = id
-        self.name = name
-        self.description = description
-        self.price = price
-
-
-class MultiplierItem(UselessItem):
-    __slots__ = ("id", "name", "description", "gain")
-    _repr_attributes = __slots__
-
-    def __init__(
-        self, id: str, *, name: str, description: str, price: int, gain: int
-    ) -> None:
-        self.id = id
-        self.name = name
-        self.description = description
-        self.price = price
-        self.gain = gain
-
-
-class BuffItem(UselessItem):
-    __slots__ = (
-        "id",
-        "name",
-        "description",
-        "multiplier",
-        "duration",
-        "cooldown",
-        "specified_perks",
-    )
-    _repr_attributes = __slots__
+    category = "USELESS"
 
     def __init__(
         self,
         id: str,
         *,
         name: str,
+        plural: str | None = None,
         description: str,
         price: int,
-        duration: timedelta,
-        cooldown: str | None,
-        multiplier: int | None,
-        specified_perks: list[str] | None,
     ) -> None:
         self.id = id
         self.name = name
+        self.plural = plural or name
+        self.description = description
+        self.price = price
+
+    def format_amount(
+        self, amount: int, *, markdown: MarkdownFormat | None = MarkdownFormat.BOLD
+    ) -> str:
+        name = self.name if amount == 1 else self.plural
+
+        if markdown is None:
+            return f"{format_int(amount)} {name}"
+
+        if markdown == MarkdownFormat.BOLD:
+            return f"**{format_int(amount)}** {name}"
+
+        return f"**[{format_int(amount)}]({MEME_URL})** {name}"
+
+
+class MultiplierItem(UselessItem):
+    __slots__ = ("id", "name", "plural", "description", "price", "gain")
+    _repr_attributes = __slots__
+    category = "MUTLIPLIER"
+
+    def __init__(
+        self,
+        id: str,
+        *,
+        name: str,
+        plural: str | None = None,
+        description: str,
+        price: int,
+        gain: int,
+    ) -> None:
+        self.id = id
+        self.name = name
+        self.plural = plural or name
+        self.description = description
+        self.price = price
+        self.gain = gain
+
+    def get_scaled_values(self, amount: int, *, multiplier: int) -> tuple[int, int]:
+        price = 0
+        gain = 0
+        for _ in range(amount):
+            price += int(self.price * (multiplier + gain) ** 1.3)
+            gain += self.gain
+        return price, gain
+
+
+class BuffItem(UselessItem):
+    __slots__ = (
+        "name",
+        "plural",
+        "description",
+        "price",
+        "duration",
+        "cooldown",
+        "multiplier",
+        "specified_details",
+    )
+    _repr_attributes = __slots__
+    category = "BUFF"
+
+    def __init__(
+        self,
+        id: str,
+        *,
+        name: str,
+        plural: str | None = None,
+        description: str,
+        price: int,
+        duration: timedelta,
+        cooldown: timedelta | None,
+        multiplier: float | None,
+        specified_details: list[str] | None,
+    ) -> None:
+        self.id = id
+        self.name = name
+        self.plural = plural or name
         self.description = description
         self.price = price
         self.multiplier = multiplier
         self.duration = duration
         self.cooldown = cooldown
-        self.specified_perks = specified_perks
+
+        if specified_details:
+            self.specified_details = specified_details
+        else:
+            self.specified_details = []
 
 
 class ToolItem(UselessItem):
-    __slots__ = ("id", "name", "description", "price", "associated_command_name")
+    __slots__ = (
+        "id",
+        "name",
+        "plural",
+        "description",
+        "price",
+        "associated_command_name",
+    )
     _repr_attributes = __slots__
+    category = "TOOL"
 
     def __init__(
         self,
         id: str,
         *,
         name: str,
+        plural: str | None = None,
         description: str,
         price: int,
         associated_command_name: str,
     ) -> None:
         self.id = id
         self.name = name
+        self.plural = plural or name
         self.description = description
         self.price = price
         self.associated_command_name = associated_command_name
@@ -166,18 +231,23 @@ class ItemManager:
     buffs: dict[str, BuffItem] = {}
     tools: dict[str, ToolItem] = {}
     useless: dict[str, UselessItem] = {}
+    items_by_name: dict[str, Item] = {}
 
     @classmethod
-    def get(cls, item_id: str) -> Item:
+    def get(cls, item_key: str) -> Item:
         try:
-            return cls.items[item_id]
+            return cls.items[item_key]
         except KeyError:
-            raise UnknownItemError(repr(item_id))
+            try:
+                return cls.items_by_name[item_key]
+            except KeyError:
+                raise UnknownItemError(repr(item_key))
 
     @classmethod
     def add(cls, *items: Item) -> None:
         for item in items:
             cls.items[item.id] = item
+            cls.items_by_name[item.name] = item
 
             if isinstance(item, MultiplierItem):
                 cls.multipliers[item.id] = item
@@ -197,6 +267,8 @@ class ItemManager:
             item = cls.items.pop(item_id)
         except KeyError:
             raise UnknownItemError(repr(item_id))
+
+        cls.items_by_name.pop(item.name)
 
         if isinstance(item, MultiplierItem):
             cls.multipliers.pop(item.id)
@@ -226,12 +298,15 @@ class ItemManager:
                 BuffItem(
                     item_id,
                     name=item["name"],
+                    plural=item.get("plural"),
                     description=item["description"],
                     price=item["price"],
                     duration=timedelta(hours=item["duration"]),
-                    cooldown=item.get("cooldown"),
+                    cooldown=timedelta(hours=item["cooldown"])
+                    if item.get("cooldown") is not None
+                    else None,
                     multiplier=item.get("multiplier"),
-                    specified_perks=item.get("specified_perks"),
+                    specified_details=item.get("specified_details"),
                 )
             )
 
