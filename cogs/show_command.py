@@ -67,8 +67,8 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                 name="inventory",
                 value="\n".join(
                     [
-                        f"{name} - **{utils.format_int(amount)}**"
-                        for name, amount in inventory.items()
+                        f"{utils.ItemManager.get(item_id).name} - **{utils.format_int(amount)}**"
+                        for item_id, amount in inventory.items()
                     ]
                 )
                 or "You got no items l",
