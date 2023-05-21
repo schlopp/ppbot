@@ -324,7 +324,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 )
                 component_interaction = await self.bot.wait_for(
                     "component_interaction",
-                    check=lambda i: i.custom_id.startswith(interaction_id),
+                    check=lambda i: i.user == ctx.author and i.custom_id.startswith(interaction_id),
                     timeout=60,
                 )
                 _, action = component_interaction.custom_id.split("_", 1)

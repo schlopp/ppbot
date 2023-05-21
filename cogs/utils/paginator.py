@@ -83,11 +83,11 @@ class Paginator(Object, Generic[_ItemT, _ActionsT]):
         ]
 
     async def wait_for_interaction(
-        self,
+        self, user: discord.User | discord.Member
     ) -> tuple[discord.ComponentInteraction, _ActionsT]:
         component_interaction = await self.bot.wait_for(
             "component_interaction",
-            check=lambda i: i.custom_id.startswith(self.id),
+            check=lambda i: i.user == user and i.custom_id.startswith(self.id),
             timeout=60,
         )
         return component_interaction, cast(
@@ -115,7 +115,9 @@ class Paginator(Object, Generic[_ItemT, _ActionsT]):
 
         while True:
             try:
-                component_interaction, action = await self.wait_for_interaction()
+                component_interaction, action = await self.wait_for_interaction(
+                    interaction.user
+                )
             except TimeoutError:
                 self._update_components(disable_all=True)
                 await interaction.edit_original_message(components=self._components)
