@@ -90,14 +90,14 @@ class CasinoSession(utils.Object):
                     disabled=self.pp.size.value < self.stakes,
                 ),
                 discord.ui.Button(
-                    label="Blackjack",
+                    label="Blackjack (SOON!)",
                     custom_id=f"{self.id}_BLACKJACK",
                     style=discord.ButtonStyle.green,
                     emoji="🃏",
                     disabled=True,
                 ),
                 discord.ui.Button(
-                    label="Deathroll",
+                    label="Deathroll (SOON!)",
                     custom_id=f"{self.id}_DEATHROLL",
                     style=discord.ButtonStyle.green,
                     emoji="🪦",
