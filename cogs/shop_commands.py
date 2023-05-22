@@ -1,3 +1,4 @@
+import asyncio
 import math
 import uuid
 from collections import Counter
@@ -88,6 +89,64 @@ class ShopPaginator(utils.Paginator[utils.Item, ShopPaginatorActions]):
 
 
 class ShopCommandCog(vbu.Cog[utils.Bot]):
+    def format_listing(
+        self, item: utils.Item, *, pp: utils.Pp, amount_owned: int | None = None
+    ) -> str:
+        listing_title = f"[**`{item.category}`**]({utils.MEME_URL}) **{item.name}**"
+
+        if amount_owned is not None:
+            listing_title += f" ({amount_owned})"
+
+        if isinstance(item, utils.MultiplierItem):
+            price, _ = item.get_scaled_values(1, multiplier=pp.multiplier.value)
+        else:
+            price = item.price
+
+        listing_title += f" — {pp.format_growth(price, markdown=None)}"
+
+        if item.price > pp.size.value:
+            listing_title += " (too expensive!)"
+
+        listing_description = f"{item.description}"
+        listing_details: list[str] = []
+
+        if isinstance(item, utils.MultiplierItem):
+            listing_details.append(
+                f"Gives you a permanent **+{utils.format_int(item.gain)}** multiplier"
+            )
+        elif isinstance(item, utils.BuffItem):
+            listing_details.extend(item.specified_details)
+
+            if item.multiplier is not None:
+                listing_details.append(
+                    f"Increases your multiplier by"
+                    f" **{utils.format_int(round(item.multiplier * 100), utils.IntFormatType.ABBREVIATED_UNIT)}%**"
+                )
+
+            cooldown_message = (
+                f"Lasts **{utils.format_time(item.duration.total_seconds())}**"
+            )
+
+            if item.cooldown is not None:
+                listing_details.append(
+                    cooldown_message
+                    + f" with a **{utils.format_time(item.cooldown.total_seconds())}** cooldown"
+                )
+            else:
+                listing_details.append(cooldown_message)
+                listing_details.append(
+                    f"**Stackable:** You can take multiple at once to increase duration"
+                )
+        elif isinstance(item, utils.ToolItem):
+            listing_details.append(
+                f"Unlocks the **/{item.associated_command_name}** command"
+            )
+
+        if listing_details:
+            listing_description += "\n• " + "\n• ".join(listing_details)
+
+        return f"{listing_title}\n{listing_description}"
+
     @commands.command(
         "shop",
         utils.Command,
@@ -117,9 +176,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 )
             }
 
-        # assert isinstance(ctx.channel, discord.TextChannel)
-        # await ctx.channel.send(repr(utils.ItemManager.items))
-        embed = utils.Embed(include_tip=False)
+        embed = utils.Embed()
         embed.color = utils.BLUE
 
         async def paginator_loader(
@@ -140,60 +197,14 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             listings: list[str] = []
 
             for item in items:
-                listing_title = (
-                    f"[**`{item.category}`**]({utils.MEME_URL}) **{item.name}**"
-                )
-
                 try:
-                    listing_title += f" ({inventory[item.id].amount.value})"
+                    amount_owned = inventory[item.id].amount.value
                 except KeyError:
-                    pass
+                    amount_owned = None
 
-                listing_title += f" — {pp.format_growth(item.price, markdown=None)}"
-
-                if item.price > pp.size.value:
-                    listing_title += " (too expensive!)"
-
-                listing_description = f"{item.description}"
-
-                listing_details: list[str] = []
-
-                if isinstance(item, utils.MultiplierItem):
-                    listing_details.append(
-                        f"Gives you a permanent **+{utils.format_int(item.gain)} multiplier**"
-                    )
-                elif isinstance(item, utils.BuffItem):
-                    listing_details.extend(item.specified_details)
-
-                    if item.multiplier is not None:
-                        listing_details.append(
-                            f"Increases your multiplier by"
-                            f" **{utils.format_int(round(item.multiplier * 100), utils.IntFormatType.ABBREVIATED_UNIT)}%**"
-                        )
-
-                    cooldown_message = (
-                        f"Lasts **{utils.format_time(item.duration.total_seconds())}**"
-                    )
-
-                    if item.cooldown is not None:
-                        listing_details.append(
-                            cooldown_message
-                            + f" with a **{utils.format_time(item.cooldown.total_seconds())}** cooldown"
-                        )
-                    else:
-                        listing_details.append(cooldown_message)
-                        listing_details.append(
-                            f"**Stackable:** You can take multiple at once to increase duration"
-                        )
-                elif isinstance(item, utils.ToolItem):
-                    listing_details.append(
-                        f"Unlocks the **/{item.associated_command_name}** command"
-                    )
-
-                if listing_details:
-                    listing_description += "\n• " + "\n• ".join(listing_details)
-
-                listings.append(f"{listing_title}\n{listing_description}")
+                listings.append(
+                    self.format_listing(item, pp=pp, amount_owned=amount_owned)
+                )
 
             embed.description = "\n\n".join(listings)
             embed.set_footer(
@@ -230,6 +241,14 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
     async def buy_command(
         self, ctx: commands.SlashContext[utils.Bot], item: str, amount: int
     ) -> None:
+        if amount < 1:
+            raise commands.CheckFailure("You can't buy less than one of an item!")
+
+        if amount > 10**4:
+            raise commands.CheckFailure(
+                f"You can't buy more than {utils.format_int(amount)} of an item!"
+            )
+
         async with self.bot.database() as db, db.transaction():
             try:
                 pp = await utils.Pp.fetch(
@@ -246,11 +265,11 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 item not in utils.ItemManager.items
                 and item not in utils.ItemManager.items_by_name
             ):
-                embed = utils.Embed(include_tip=False)
+                embed = utils.Embed()
                 embed.colour = utils.RED
                 embed.title = "Purchase failed: Unknown item"
                 embed.description = (
-                    f"The item {item!r} doesn't exist!"
+                    f"The item {utils.clean(item)!r} doesn't exist!"
                     " Make sure you select one of the options or spell the item's name correctly."
                 )
 
@@ -318,15 +337,27 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 components = discord.ui.MessageComponents(
                     discord.ui.ActionRow(*buttons)
                 )
+
                 await ctx.interaction.response.send_message(
                     embed=embed,
                     components=components,
                 )
-                component_interaction = await self.bot.wait_for(
-                    "component_interaction",
-                    check=lambda i: i.user == ctx.author and i.custom_id.startswith(interaction_id),
-                    timeout=60,
-                )
+
+                try:
+                    component_interaction = await self.bot.wait_for(
+                        "component_interaction",
+                        check=lambda i: i.user == ctx.author
+                        and i.custom_id.startswith(interaction_id),
+                        # timeout=60,
+                        timeout=10,
+                    )
+                except asyncio.TimeoutError:
+                    await ctx.interaction.edit_original_message(
+                        embed=utils.Embed.as_timeout("Purchase failed"),
+                        components=components.disable_components(),
+                    )
+                    return
+
                 _, action = component_interaction.custom_id.split("_", 1)
 
                 if action == "CANCEL":
@@ -353,33 +384,95 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 price = item_object.price * amount
                 gain = None
 
-            embed = utils.Embed(include_tip=True)
+            embed = utils.Embed()
+
+            if price > pp.size.value:
+                embed.colour = utils.RED
+                embed.title = f"Purchase failed - ur broke"
+                embed.description = (
+                    f"You need {pp.format_growth(price - pp.size.value)}"
+                    f" more to afford {item_object.format_amount(amount)}"
+                )
+                embed.add_tip()
+
+                await responder(embed=embed, components=None, content=None)
+                return
+
             embed.colour = utils.BLUE
             embed.title = f"Buying {item_object.format_amount(amount, markdown=None)}"
             embed.description = (
                 f"Are you sure that you want to buy {item_object.format_amount(amount)}"
                 f" for {pp.format_growth(price)}?"
+                f"\n\n{self.format_listing(item_object, pp=pp)}"
+            )
+
+            components = discord.ui.MessageComponents(
+                discord.ui.ActionRow(
+                    discord.ui.Button(
+                        label="Yes",
+                        custom_id=f"{interaction_id}_YES",
+                        style=discord.ButtonStyle.green,
+                    ),
+                    discord.ui.Button(
+                        label="No",
+                        custom_id=f"{interaction_id}_NO",
+                        style=discord.ButtonStyle.red,
+                    ),
+                )
             )
 
             await responder(
-                content=(
-                    f"{amount!r} {pp.format_growth(price)} {item_object!r} :: gain {gain!r}"
-                ),
                 embed=embed,
-                components=discord.ui.MessageComponents(
-                    discord.ui.ActionRow(
-                        discord.ui.Button(
-                            label="Yes",
-                            custom_id=f"{interaction_id}_YES",
-                            style=discord.ButtonStyle.green,
-                        ),
-                        discord.ui.Button(
-                            label="No",
-                            custom_id=f"{interaction_id}_NO",
-                            style=discord.ButtonStyle.red,
-                        ),
-                    )
-                ),
+                components=components,
+            )
+
+            try:
+                component_interaction = await self.bot.wait_for(
+                    "component_interaction",
+                    check=lambda i: i.user == ctx.author
+                    and i.custom_id.startswith(interaction_id),
+                    # timeout=60,
+                    timeout=10,
+                )
+            except asyncio.TimeoutError:
+                await ctx.interaction.edit_original_message(
+                    embed=utils.Embed.as_timeout("Purchase failed"),
+                    components=components.disable_components(),
+                )
+                return
+
+            _, action = component_interaction.custom_id.split("_", 1)
+
+            if action == "NO":
+                embed.colour = utils.RED
+                embed.title = "Purchase cancelled"
+                embed.description = (
+                    f"You've cancelled your purchase of {item_object.format_amount(amount)}"
+                    f" for {pp.format_growth(price)}"
+                )
+                await component_interaction.response.edit_message(
+                    embed=embed, components=None
+                )
+                return
+
+            pp.size.value -= price
+
+            embed.colour = utils.GREEN
+            embed.title = "Purchase successful"
+
+            if gain is not None:
+                pp.multiplier.value += gain
+                embed.description = (
+                    f"*You take the {item_object.format_amount(amount)} and feel a sudden surge of"
+                    " power coursing through your pp's veins."
+                    f" You gain an additional **+{utils.format_int(gain)}** multiplier!*"
+                )
+            else:
+                pass
+
+            await pp.update(db.conn)
+            await component_interaction.response.edit_message(
+                embed=embed, components=None
             )
 
     @buy_command.autocomplete  # type: ignore
