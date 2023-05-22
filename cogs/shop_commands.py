@@ -465,7 +465,8 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 embed.description = (
                     f"*You take the {item_object.format_amount(amount)} and feel a sudden surge of"
                     " power coursing through your pp's veins."
-                    f" You gain an additional **+{utils.format_int(gain)}** multiplier!*"
+                    f" You gain an additional **+{utils.format_int(gain)}** multiplier.*"
+                    f" You now have a **{utils.format_int(pp.multiplier.value)}x** multiplier!*"
                 )
             else:
                 pass
