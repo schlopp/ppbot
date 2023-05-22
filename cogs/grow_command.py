@@ -29,16 +29,12 @@ class GrowCommandCog(vbu.Cog[utils.Bot]):
             pp.grow(random.randint(1, 15000))
             await pp.update(db.conn)
 
-            with utils.Embed(include_tip=True) as embed:
-                embed.colour = utils.GREEN
-                embed.description = (
-                    f"{ctx.author.mention}, ur pp grew {pp.format_growth()}"
-                )
+            embed = utils.Embed()
+            embed.colour = utils.GREEN
+            embed.description = f"{ctx.author.mention}, ur pp grew {pp.format_growth(markdown=utils.MarkdownFormat.BOLD_BLUE)}"
+            embed.add_tip()
 
-            if ctx.interaction.response.is_done():
-                await ctx.interaction.followup.send(embed=embed)
-            else:
-                await ctx.interaction.response.send_message(embed=embed)
+            await ctx.interaction.response.send_message(embed=embed)
 
 
 def setup(bot: utils.Bot):

@@ -18,6 +18,7 @@ class NewCommandCog(vbu.Cog[utils.Bot]):
         """
         async with self.bot.database() as db:
             embed = utils.Embed()
+
             try:
                 await utils.Pp.fetch(
                     db.conn,
@@ -30,6 +31,8 @@ class NewCommandCog(vbu.Cog[utils.Bot]):
             else:
                 embed.colour = utils.RED
                 embed.description = f"{ctx.author.mention}, you already have a pp!"
+
+            embed.add_tip()
 
             await ctx.interaction.response.send_message(embed=embed)
 
