@@ -37,7 +37,7 @@ class CasinoSession(utils.Object):
         self.id = uuid.uuid4().hex
         self._stakes = max(min(pp.size.value, self.MAX_STAKES, 1000), self.MIN_STAKES)
         self.pp = pp
-        self.game_embed = utils.Embed(include_tip=False)
+        self.game_embed = utils.Embed()
         self.game_components = discord.ui.MessageComponents()
         self.state = CasinoState.MENU
         self.last_interaction: datetime | None = datetime.now()
@@ -134,16 +134,19 @@ class CasinoSession(utils.Object):
                 return casino_session, interaction_id
 
     def generate_embed(self, *, entrance: bool = False) -> utils.Embed:
-        with utils.Embed(include_tip=False) as embed:
-            embed.colour = utils.BLUE
-            if entrance:
-                embed.title = "Welcome to the casino!"
-            else:
-                embed.title = "Welcome back to the menu!"
-            embed.description = (
-                f"Hello, **{self.ctx.author.display_name}**! Please select an option.\n\n"
-                + self.generate_stat_description(note_invalid_stakes=True)
-            )
+        embed = utils.Embed()
+        embed.colour = utils.BLUE
+
+        if entrance:
+            embed.title = "Welcome to the casino!"
+        else:
+            embed.title = "Welcome back to the menu!"
+
+        embed.description = (
+            f"Hello, **{utils.clean(self.ctx.author.display_name)}**! Please select an option.\n\n"
+            + self.generate_stat_description(note_invalid_stakes=True)
+        )
+
         return embed
 
     async def change_stakes(self, interaction: discord.ModalInteraction):
@@ -235,12 +238,12 @@ class CasinoSession(utils.Object):
         response: discord.InteractionResponse | None = None,
     ) -> None:
         self.cache.pop(self.ctx)
-        embed = utils.Embed(include_tip=False)
+        embed = utils.Embed()
         embed.title = "Casino closed"
         embed.colour = utils.RED
 
         if error is None:
-            embed.description = f"Thank you for visiting the casino, **{self.ctx.author.display_name}**!"
+            embed.description = f"Thank you for visiting the casino, **{utils.clean(self.ctx.author.display_name)}**!"
             embed.colour = utils.GREEN
         elif isinstance(error, asyncio.TimeoutError):
             embed.title += " - You took too long"
@@ -284,9 +287,9 @@ class CasinoSession(utils.Object):
         self.last_interaction = None
 
         while True:
-            self.game_embed = utils.Embed(include_tip=False)
+            self.game_embed = utils.Embed()
             self.game_embed.title = (
-                f"{self.ctx.author.display_name} decides to roll a d12..."
+                f"{utils.clean(self.ctx.author.display_name)} decides to roll a d12..."
             )
 
             roll = random.randint(1, 12)
@@ -316,7 +319,8 @@ class CasinoSession(utils.Object):
             )
 
             self.game_embed.add_field(
-                name=self.ctx.author.display_name, value=f"Landed on `{roll}`"
+                name=utils.clean(self.ctx.author.display_name),
+                value=f"Landed on `{roll}`",
             )
 
             self.game_embed.add_field(name="pp bot", value=f"Landed on `{bot_roll}`")
