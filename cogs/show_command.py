@@ -45,51 +45,48 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
             for inventory_record in inventory_records
         }
 
-        with utils.Embed(include_tip=False) as embed:
-            embed.colour = utils.BLUE
-            embed.title = utils.limit_text(
-                f"{pp.name.value} ({ctx.author.display_name}'s pp)", 256
+        embed = utils.Embed()
+        embed.colour = utils.BLUE
+        embed.title = utils.limit_text(
+            f"{pp.name.value} ({utils.clean(ctx.author.display_name)}'s pp)", 256
+        )
+        embed.description = f"8{'=' * min(pp.size.value // 50, 1000)}D"
+
+        embed.add_field(
+            name="stats",
+            value="- "
+            + "\n- ".join(
+                [
+                    f"**{utils.format_int(pp.size.value)}** inches",
+                    f"**{utils.format_int(pp.multiplier.value)}**x multiplier",
+                ]
+            ),
+        )
+
+        embed.add_field(
+            name="inventory",
+            value="\n".join(
+                [
+                    f"{utils.ItemManager.get(item_id).name} - **{utils.format_int(amount)}**"
+                    for item_id, amount in inventory.items()
+                ]
             )
-            embed.description = f"8{'=' * min(pp.size.value // 50, 1000)}D"
+            or "You got no items l",
+        )
 
-            embed.add_field(
-                name="stats",
-                value="- "
-                + "\n- ".join(
-                    [
-                        f"**{utils.format_int(pp.size.value)}** inches",
-                        f"**{utils.format_int(pp.multiplier.value)}**x multiplier",
-                    ]
-                ),
-            )
+        match utils.find_nearest_number(self.REAL_LIFE_COMPARISONS, pp.size.value):
+            case nearest_number, -1:
+                comparison_text = f"{utils.format_int(pp.size.value - nearest_number)} inches bigger than"
+            case nearest_number, 0:
+                comparison_text = f"the same size as"
+            case nearest_number, _:
+                comparison_text = f"{utils.format_int(nearest_number - pp.size.value)} inches smaller than"
 
-            embed.add_field(
-                name="inventory",
-                value="\n".join(
-                    [
-                        f"{utils.ItemManager.get(item_id).name} - **{utils.format_int(amount)}**"
-                        for item_id, amount in inventory.items()
-                    ]
-                )
-                or "You got no items l",
-            )
+        embed.set_footer(
+            text=f"Your pp is {comparison_text} {self.REAL_LIFE_COMPARISONS[nearest_number]}"
+        )
 
-            match utils.find_nearest_number(self.REAL_LIFE_COMPARISONS, pp.size.value):
-                case nearest_number, -1:
-                    comparison_text = f"{utils.format_int(pp.size.value - nearest_number)} inches bigger than"
-                case nearest_number, 0:
-                    comparison_text = f"the same size as"
-                case nearest_number, _:
-                    comparison_text = f"{utils.format_int(nearest_number - pp.size.value)} inches smaller than"
-
-            embed.set_footer(
-                text=f"Your pp is {comparison_text} {self.REAL_LIFE_COMPARISONS[nearest_number]}"
-            )
-
-        if ctx.interaction.response.is_done():
-            await ctx.interaction.followup.send(embed=embed)
-        else:
-            await ctx.interaction.response.send_message(embed=embed)
+        await ctx.interaction.response.send_message(embed=embed)
 
 
 def setup(bot: utils.Bot):
