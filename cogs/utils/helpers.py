@@ -152,20 +152,42 @@ def format_time(value: float, smallest_unit: str | None = "second") -> str:
     return last_duration
 
 
+def clean(text: str) -> str:
+    markdown_replacements: dict[str, str] = {
+        "*": "",
+        "~": "",
+        "_": "",
+        "`": "",
+        "\\": "",
+        "[": "(",
+        "]": ")",
+        "https://": "",
+        "http://": "",
+    }
+
+    for character in markdown_replacements:
+        text = text.replace(character, "")
+
+    return text.strip()
+
+
 class Embed(discord.Embed):
     TIPS = ["There is no tip, take off your clothes."]
 
-    def __init__(self, *args, include_tip: bool = True, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.include_tip = include_tip
 
-    def __enter__(self) -> Embed:
-        return self
+    def add_tip(self) -> None:
+        if not random.randint(0, 5):
+            self.add_field(name="TIP:", value=random.choice(self.TIPS), inline=False)
 
-    def __exit__(self, *_) -> None:
-        if not self.include_tip or random.randrange(0, 5):
-            return
-        self.add_field(name="TIP:", value=random.choice(self.TIPS), inline=False)
+    @classmethod
+    def as_timeout(cls, action: str):
+        return cls(
+            colour=RED,
+            title=f"{action} - you took too long",
+            description="Next time, click the buttons faster and don't go AFK",
+        )
 
 
 class Object:
