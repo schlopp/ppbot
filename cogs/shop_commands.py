@@ -456,20 +456,38 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 return
 
             pp.size.value -= price
-
             embed.colour = utils.GREEN
             embed.title = "Purchase successful"
 
             if gain is not None:
                 pp.multiplier.value += gain
                 embed.description = (
-                    f"*You take the {item_object.format_amount(amount)} and feel a sudden surge of"
-                    " power coursing through your pp's veins."
+                    f"*You take the {item_object.format_amount(amount)} for {pp.format_growth(price)}"
+                    " and feel a sudden surge of power coursing through your pp's veins."
                     f" You gain an additional **+{utils.format_int(gain)}** multiplier.*"
-                    f" You now have a **{utils.format_int(pp.multiplier.value)}x** multiplier!*"
+                    f" You now have {pp.format_growth(price)}"
+                    f" and a **{utils.format_int(pp.multiplier.value)}x** multiplier!*"
                 )
             else:
-                pass
+                try:
+                    inventory_item = await utils.InventoryItem.fetch(
+                        db.conn,
+                        {"user_id": ctx.author.id, "id": item_object.id},
+                        lock=utils.RowLevelLockMode.FOR_UPDATE,
+                    )
+                except utils.RecordNotFoundError:
+                    inventory_item = utils.InventoryItem(
+                        ctx.author.id, item_object.id, 0
+                    )
+
+                inventory_item.amount.value += amount
+                await inventory_item.update(db.conn)
+
+                embed.description = (
+                    f"You've successfully purchased {item_object.format_amount(amount)}"
+                    f" for {pp.format_growth(price)}. You now have {pp.format_growth(pp.size.value)}"
+                    f" and {item_object.format_amount(amount)}!"
+                )
 
             await pp.update(db.conn)
             await component_interaction.response.edit_message(
