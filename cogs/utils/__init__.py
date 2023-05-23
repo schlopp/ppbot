@@ -1,3 +1,4 @@
+from .command_settings import command_settings as command_settings
 from .helpers import (
     MEME_URL as MEME_URL,
     RED as RED,
