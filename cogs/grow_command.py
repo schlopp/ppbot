@@ -32,7 +32,7 @@ class GrowCommandCog(vbu.Cog[utils.Bot]):
             embed.colour = utils.GREEN
             embed.description = (
                 f"{ctx.author.mention},"
-                f" ur pp grew {pp.format_growth(markdown=utils.MarkdownFormat.BOLD_BLUE)}"
+                f" ur pp grew {pp.format_growth(markdown=utils.MarkdownFormat.BOLD_BLUE)}!"
             )
             embed.add_tip()
 

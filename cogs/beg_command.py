@@ -80,11 +80,16 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
             donator = random.choice(list(self.DONATORS))
             embed = utils.Embed()
 
-            if not random.randint(0, 5):
+            if random.randint(0, 5):
                 pp.grow(random.randint(1, 15))
                 embed.colour = utils.GREEN
-                embed.description = f"**{donator}** donated {pp.format_growth()} inches to {ctx.author.mention}"
+                embed.description = (
+                    f"**{donator}** donated"
+                    f" {pp.format_growth(markdown=utils.MarkdownFormat.BOLD_BLUE)} inches"
+                    f" to {ctx.author.mention}"
+                )
             else:
+                embed.colour = utils.BLUE
                 response = self.DONATORS[donator]
 
                 if isinstance(response, list):

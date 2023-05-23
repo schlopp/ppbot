@@ -62,5 +62,5 @@ class Pp(DatabaseWrapperObject):
 
         return (
             prefix
-            + f"**[{format_int(growth)}]({MEME_URL}) inch{'' if growth == 1 else 'es'}!**"
+            + f"**[{format_int(growth)}]({MEME_URL}) inch{'' if growth == 1 else 'es'}**"
         )
