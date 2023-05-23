@@ -1,4 +1,3 @@
-import discord
 import random
 from discord.ext import commands, vbu
 from . import utils
@@ -12,7 +11,7 @@ class GrowCommandCog(vbu.Cog[utils.Bot]):
     )
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.is_slash_command()
-    async def grow_command(self, ctx: vbu.SlashContext[discord.Guild | None]) -> None:
+    async def grow_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
         """
         Grow your pp to get more inches!
         """

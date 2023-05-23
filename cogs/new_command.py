@@ -1,4 +1,3 @@
-import discord
 from discord.ext import commands, vbu
 
 from . import utils
@@ -12,7 +11,7 @@ class NewCommandCog(vbu.Cog[utils.Bot]):
     )
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.is_slash_command()
-    async def new_command(self, ctx: vbu.SlashContext[discord.Guild | None]) -> None:
+    async def new_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
         """
         Create your very own pp!
         """

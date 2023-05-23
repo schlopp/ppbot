@@ -20,7 +20,7 @@ class RenameCommandCog(vbu.Cog[utils.Bot]):
     )
     @commands.is_slash_command()
     async def rename_command(
-        self, ctx: vbu.SlashContext[discord.Guild | None], name: str
+        self, ctx: commands.SlashContext[utils.Bot], name: str
     ) -> None:
         """
         Rename your big ol' Johnson

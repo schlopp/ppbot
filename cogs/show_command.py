@@ -23,7 +23,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
         utils.Command,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
-    async def show_command(self, ctx: vbu.SlashContext[discord.Guild | None]) -> None:
+    async def show_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
         """
         Show your pp to the whole wide world.
         """
