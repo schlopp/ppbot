@@ -70,7 +70,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                     for item_id, amount in inventory.items()
                 ]
             )
-            or "You got no items l",
+            or "You got no items LLL check out the **/shop** to buy some",
         )
 
         match utils.find_nearest_number(self.REAL_LIFE_COMPARISONS, pp.size.value):
