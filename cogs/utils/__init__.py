@@ -22,7 +22,7 @@ from .helpers import (
     IntegerHolder as IntegerHolder,
 )
 from .cards import Rank as Rank, Suit as Suit, Deck as Deck, Hand as Hand
-from .bot import Bot as Bot
+from .bot import DatabaseWrapper as DatabaseWrapper, Bot as Bot
 from .command import RedisCooldownMapping as RedisCooldownMapping, Command as Command
 from .items import (
     UnknownItemError as UnknownItemError,
@@ -36,3 +36,7 @@ from .items import (
 )
 from .pps import Pp as Pp
 from .paginator import PaginatorActions as PaginatorActions, Paginator as Paginator
+from .reply_manager import (
+    DuplicateReplyListenerError as DuplicateReplyListenerError,
+    ReplyManager as ReplyManager,
+)

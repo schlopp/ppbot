@@ -372,7 +372,7 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
         """
         Visit the casino and gamble your shit away
         """
-        async with self.bot.database() as db, db.conn.transaction():
+        async with utils.DatabaseWrapper() as db, db.conn.transaction():
             try:
                 pp = await utils.Pp.fetch(
                     db.conn,

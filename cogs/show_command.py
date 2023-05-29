@@ -26,7 +26,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
         """
         Show your pp to the whole wide world.
         """
-        async with self.bot.database() as db:
+        async with utils.DatabaseWrapper() as db:
             try:
                 pp = await utils.Pp.fetch(db.conn, {"user_id": ctx.author.id})
             except utils.RecordNotFoundError:

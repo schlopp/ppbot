@@ -158,7 +158,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
         Check out what tools, multipliers, buffs, and other items are for sale!
         """
 
-        async with self.bot.database() as db:
+        async with utils.DatabaseWrapper() as db:
             try:
                 pp = await utils.Pp.fetch(
                     db.conn,
@@ -249,7 +249,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 f"You can't buy more than {utils.format_int(amount)} of an item!"
             )
 
-        async with self.bot.database() as db, db.transaction():
+        async with utils.DatabaseWrapper() as db, db.transaction():
             try:
                 pp = await utils.Pp.fetch(
                     db.conn,

@@ -25,7 +25,7 @@ class RenameCommandCog(vbu.Cog[utils.Bot]):
         """
         Rename your big ol' Johnson
         """
-        async with self.bot.database() as db, db.conn.transaction():
+        async with utils.DatabaseWrapper() as db, db.conn.transaction():
             try:
                 pp = await utils.Pp.fetch(
                     db.conn,

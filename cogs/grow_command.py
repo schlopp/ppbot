@@ -15,7 +15,7 @@ class GrowCommandCog(vbu.Cog[utils.Bot]):
         """
         Grow your pp to get more inches!
         """
-        async with self.bot.database() as db, db.conn.transaction():
+        async with utils.DatabaseWrapper() as db, db.conn.transaction():
             try:
                 pp = await utils.Pp.fetch(
                     db.conn,

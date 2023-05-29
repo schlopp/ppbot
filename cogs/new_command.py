@@ -15,7 +15,7 @@ class NewCommandCog(vbu.Cog[utils.Bot]):
         """
         Create your very own pp!
         """
-        async with self.bot.database() as db:
+        async with utils.DatabaseWrapper() as db:
             embed = utils.Embed()
 
             try:
