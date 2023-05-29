@@ -182,23 +182,29 @@ class InventoryItem(DatabaseWrapperObject):
         return ItemManager.get(self.id)
 
     async def update(
-        self, connection: asyncpg.Connection, ensure_difference: bool = True
+        self,
+        connection: asyncpg.Connection,
+        *,
+        ensure_difference: bool = True,
+        additional: bool = False,
     ):
         if ensure_difference and self.amount.difference is None:
             return
-        if not self.amount.value:
+
+        if not self.amount.value and not additional:
             await connection.execute(
                 "DELETE FROM inventories WHERE user_id=$1 AND item_id=$2",
                 self.user_id,
                 self.id,
             )
             return
+
         await connection.execute(
-            """
+            f"""
             INSERT INTO inventories
             VALUES ($1, $2, $3)
             ON CONFLICT (user_id, item_id)
-            DO UPDATE SET item_amount=$3
+            DO UPDATE SET item_amount={'inventories.item_amount+' if additional else ''}$3
             """,
             self.user_id,
             self.id,
