@@ -53,8 +53,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
 
         embed.add_field(
             name="stats",
-            value="- "
-            + "\n- ".join(
+            value=utils.format_iterable(
                 [
                     f"**{utils.format_int(pp.size.value)}** inches",
                     f"**{utils.format_int(pp.multiplier.value)}**x multiplier",
