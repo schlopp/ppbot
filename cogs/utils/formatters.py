@@ -1,7 +1,7 @@
 import enum
 import math
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, Literal
 
 
 _UNITS = [
@@ -48,12 +48,14 @@ class MarkdownFormat(enum.Enum):
     BOLD = enum.auto()
 
 
-def format_int(value: int, format_type: IntFormatType = IntFormatType.FULL_UNIT) -> str:
-    if format_type == IntFormatType.FULL or -(10**6) < value < 10**6:
-        return f"{value:,}"
+def format_int(
+    __int: int, /, format_type: IntFormatType = IntFormatType.FULL_UNIT
+) -> str:
+    if format_type == IntFormatType.FULL or -(10**6) < __int < 10**6:
+        return f"{__int:,}"
     else:
-        unit = math.floor(math.log10(value + 1 if not value else abs(value))) // 3
-        unit_value = math.floor(value / 10 ** (unit * 3) * 100) / 100
+        unit = math.floor(math.log10(__int + 1 if not __int else abs(__int))) // 3
+        unit_value = math.floor(__int / 10 ** (unit * 3) * 100) / 100
 
         if unit_value.is_integer():
             unit_value = math.floor(unit_value)
@@ -64,18 +66,25 @@ def format_int(value: int, format_type: IntFormatType = IntFormatType.FULL_UNIT)
         return f"{unit_value}{_UNITS[unit - 2][0].upper()}"
 
 
-def format_time(value: float, smallest_unit: str | None = "second") -> str:
+def format_time(
+    __seconds: float,
+    /,
+    smallest_unit: Literal[
+        "year", "week", "day", "hour", "minute", "second", "millisecond"
+    ]
+    | None = "second",
+) -> str:
     durations: list[str] = []
 
     for time_unit, time_unit_value in _TIME_UNITS.items():
-        if value // time_unit_value:
-            plural = "s" if value // time_unit_value != 1 else ""
-            durations.append(f"{int(value // time_unit_value)} {time_unit}{plural}")
+        if __seconds // time_unit_value:
+            suffix = "s" if __seconds // time_unit_value != 1 else ""
+            durations.append(f"{int(__seconds // time_unit_value)} {time_unit}{suffix}")
 
         if time_unit == smallest_unit:
             break
 
-        value -= value // time_unit_value * time_unit_value
+        __seconds -= __seconds // time_unit_value * time_unit_value
 
     try:
         last_duration = durations.pop()
@@ -88,8 +97,8 @@ def format_time(value: float, smallest_unit: str | None = "second") -> str:
     return last_duration
 
 
-def format_iterable(value: Iterable[Any], *, inline: bool = False) -> str:
-    values = [str(i) for i in value] or ["nothing"]
+def format_iterable(__iterable: Iterable[Any], /, *, inline: bool = False) -> str:
+    values = [str(i) for i in __iterable] or ["nothing"]
 
     if not inline:
         return "• " + "\n• ".join(values)
