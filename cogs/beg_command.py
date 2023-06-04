@@ -1,12 +1,16 @@
+import asyncio
 import enum
 import itertools
 import random
 import uuid
-from typing import TypedDict
+from typing import TypedDict, Literal
 
 import asyncpg
 import discord
+import toml
 from discord.ext import commands, vbu
+
+from cogs.utils.bot import Bot
 
 from . import utils
 
@@ -16,6 +20,12 @@ class Activity(enum.Enum):
     REJECTION = 0.15
     # FILL_IN_THE_BLANK_MINIGAME = .05
     FILL_IN_THE_BLANK_MINIGAME = 100
+
+    @classmethod
+    def random(cls):
+        return random.choices(
+            list(Activity), weights=list(activity.value for activity in Activity)
+        )[0]
 
 
 class Minigame(utils.Object):
@@ -75,7 +85,7 @@ class FillInTheBlankContextDict(TypedDict):
     situation: str
     reason: str
     prompt: str
-    word: str
+    answer: str
     fail: str
 
 
@@ -84,7 +94,7 @@ class FillInTheBlankMinigame(Minigame):
     Format:
     {situation} **Use /reply to fill in the blank and {reason}!**
 
-    **{person}:** \\`{prompt with word}\\`
+    **{person}:** \\`{prompt with answer}\\`
 
     Failure format:
     **WRONG!!!!** You fucking loser. You can't do anything right! {fail}
@@ -105,11 +115,14 @@ class FillInTheBlankMinigame(Minigame):
         embed.title = "MINIGAME - FILL IN THE BLANK"
 
         # This looks cursed as fuck
-        # Should output something along the lines of "`Go `[`fuck`](...)`` yourself!`"
+        # Should output something along the lines of "`Go `[`fuck`](...)` yourself!`"
         prompt = (
             "`"
-            + f"`[`{('_ ' * len(self.context['word'])).rstrip()}`]({utils.MEME_URL})`".join(
-                self.context["prompt"].split("{}")
+            + self.context["prompt"].format(
+                "` `".join(
+                    f"`[`{' '.join(['_'] * len(word))}`]({utils.MEME_URL})`"
+                    for word in self.context["answer"].split()
+                )
             )
             + "`"
         )
@@ -124,23 +137,37 @@ class FillInTheBlankMinigame(Minigame):
         await interaction.response.send_message(embed=embed)
 
         assert isinstance(interaction.channel, discord.TextChannel)
-        reply_context, reply = await utils.ReplyManager.wait_for_reply(
-            interaction.channel
-        )
 
         embed = utils.Embed()
+        embed.title = "MINIGAME - FILL IN THE BLANK"
 
-        if reply != self.context["word"]:
+        try:
+            reply_context, reply = await utils.ReplyManager.wait_for_reply(
+                interaction.channel
+            )
+        except asyncio.TimeoutError:
+            embed.colour = utils.RED
+            embed.description = (
+                "**You're slow as fuck!**  Next time, use **/reply** within"
+                f" {utils.format_time(utils.ReplyManager.DEFAULT_TIMEOUT)}."
+                f" {self.context['fail']} You win **nothing.**"
+            )
+            embed.add_tip()
+            await interaction.edit_original_message(embed=embed)
+            return
+
+        if reply != self.context["answer"]:
             embed.colour = utils.RED
             embed.description = (
                 f"**WRONG!!!!** You fucking loser."
-                f" The correct word was `{self.context['word']}`. You can't do anything right!"
+                f" The correct answer was `{self.context['answer']}`. You can't do anything right!"
                 f" {self.context['fail']} You win **nothing.**"
             )
         else:
             embed.colour = utils.GREEN
             embed.description = f"**GGS!** you win {await self.give_random_reward()}"
 
+        embed.add_tip()
         await reply_context.interaction.response.send_message(
             f"**{utils.clean(reply_context.author.display_name)}:** {reply}",
             embed=embed,
@@ -199,11 +226,38 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
         "catdotjs": "Meow",
     }
 
-    @staticmethod
-    def get_random_activity() -> Activity:
-        return random.choices(
-            list(Activity), weights=list(activity.value for activity in Activity)
-        )[0]
+    def __init__(self, bot: Bot, logger_name: str | None = None):
+        super().__init__(bot, logger_name)
+        self.minigame_config = toml.load("config/minigames.toml")
+
+    async def start_minigame(
+        self,
+        minigame_activity: Literal[Activity.FILL_IN_THE_BLANK_MINIGAME],
+        *,
+        connection: asyncpg.Connection,
+        pp: utils.Pp,
+        interaction: discord.Interaction,
+    ):
+        if minigame_activity == Activity.FILL_IN_THE_BLANK_MINIGAME:
+            minigame_dialogue: dict = random.choice(
+                self.minigame_config["FILL_IN_THE_BLANK"]
+            )
+
+            prompt, answer = random.choice(minigame_dialogue["prompts"])
+            minigame = FillInTheBlankMinigame(
+                connection,
+                pp,
+                {
+                    "person": minigame_dialogue["person"],
+                    "situation": random.choice(minigame_dialogue["situations"]),
+                    "reason": random.choice(minigame_dialogue["reasons"]),
+                    "prompt": prompt,
+                    "answer": answer,
+                    "fail": random.choice(minigame_dialogue["fails"]),
+                },
+            )
+            await minigame.start(interaction)
+            return
 
     @commands.command(
         "beg",
@@ -227,35 +281,12 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
             except utils.RecordNotFoundError:
                 raise commands.CheckFailure("You don't have a pp!")
 
-            activity = self.get_random_activity()
+            activity = Activity.random()
 
-            if activity == activity.FILL_IN_THE_BLANK_MINIGAME:
-                prompt, word = random.choice(
-                    [
-                        ("Go {} yourself!", "fuck"),
-                        ("You should {} yourself. NOW!", "kill"),
-                    ]
+            if activity in (activity.FILL_IN_THE_BLANK_MINIGAME,):
+                await self.start_minigame(
+                    activity, connection=db.conn, pp=pp, interaction=ctx.interaction
                 )
-                minigame = FillInTheBlankMinigame(
-                    db.conn,
-                    pp,
-                    {
-                        "person": "local crackhead",
-                        "situation": "Some local crackhead points at you and starts yelling.",
-                        "reason": "avoid the crackhead",
-                        "prompt": prompt,
-                        "word": word,
-                        "fail": random.choice(
-                            [
-                                "The crackhead pulls a broken glass bottle out of his bootyhole and stabs you with it.",
-                                "You're suddenly surrounded by crackjunkies who start pissing on you.",
-                                "The crackhead walks away unsatisfied.",
-                                "The crackhead suddenly dies from a heart attack. Who could've seen that coming?",
-                            ]
-                        ),
-                    },
-                )
-                await minigame.start(ctx.interaction)
                 return
 
             donator = random.choice(list(self.DONATORS))

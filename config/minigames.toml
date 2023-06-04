@@ -1,0 +1,52 @@
+#.  FILL_IN_THE_BLANK Format:
+#.  {random(situations)} **Use /reply to fill in the blank and {random(reasons)}!**
+#.
+#.  **{person}:** \\`{random(prompt with word)}\\`
+#.  
+#.  Failure format:
+#.  **WRONG!!!!** You fucking loser. You can't do anything right! {random(fails)}
+[[FILL_IN_THE_BLANK]]
+person = "local crackhead"
+situations = [
+    "A local crackhead points at you and starts yelling.",
+    "Some crackhead sees you and starts sprinting towards you.",
+]
+reasons = [
+    "avoid the crackhead",
+    "get a sweet reward from him",
+]
+prompts = [
+    ["Got any {} for me to smoke?", "crack"],
+    ["I need a new {}, my old one broke.", "crack pipe"],
+    ["Jesse, we need to {}.", "cook"]
+]
+fails = [
+    "The crackhead pulls a broken glass bottle out of his bootyhole and stabs you with it.",
+    "You're suddenly surrounded by crackjunkies who start pissing on you.",
+    "The crackhead walks away unsatisfied.",
+    "The crackhead suddenly dies from a heart attack. Who could've seen that coming?",
+]
+
+[[FILL_IN_THE_BLANK]]
+person = "LowTierGod"
+situations = [
+    "LowTierGod spots you in his chat and decides you're not worthy of living.",
+]
+reasons = [
+    "avoid getting bullied to death",
+]
+prompts = [
+    [
+        "You're gonna stay on my {0} until you die. You serve no purpose in life. Your purpose in life is to be on my stream sucking on my {0} daily. Your purpose in life is to be in that chat blowing the {0} daily.",
+        "dick"
+    ],
+    ["Your life is {}, you serve zero purpose", "nothing"],
+    ["You should {} yourself, NOW!", "kill"],
+    [
+        "Let's go to the 99-cent store, let's pick out a {} together. I'm gonna give you an assisted suicide.",
+        "rope"
+    ]
+]
+fails = [
+    "LowTierGod convinces you to end it all.",
+]
