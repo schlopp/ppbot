@@ -14,7 +14,7 @@ class DuplicateReplyListenerError(Exception):
 class ReplyManager:
     """See further implementation in /cogs/reply_command.py"""
 
-    DEFAULT_TIMEOUT = 15
+    DEFAULT_TIMEOUT = 30
 
     active_listeners: dict[
         discord.TextChannel,
