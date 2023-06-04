@@ -40,6 +40,8 @@ class ReplyManager:
         ] = asyncio.Future()
         cls.active_listeners[channel] = (future, check)
 
-        result = await asyncio.wait_for(future, timeout=timeout)
-        cls.active_listeners.pop(channel)
-        return result
+        try:
+            result = await asyncio.wait_for(future, timeout=timeout)
+            return result
+        finally:
+            cls.active_listeners.pop(channel)
