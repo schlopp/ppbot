@@ -14,6 +14,8 @@ class DuplicateReplyListenerError(Exception):
 class ReplyManager:
     """See further implementation in /cogs/reply_command.py"""
 
+    DEFAULT_TIMEOUT = 15
+
     active_listeners: dict[
         discord.TextChannel,
         tuple[
@@ -28,10 +30,10 @@ class ReplyManager:
         channel: discord.TextChannel,
         *,
         check: Callable[[commands.SlashContext[Bot], str], bool] = lambda _, _1: True,
-        timeout: float = 15
+        timeout: float = DEFAULT_TIMEOUT
     ) -> tuple[commands.SlashContext[Bot], str]:
         if channel in cls.active_listeners:
-            raise DuplicateReplyListenerError(channel)
+            raise DuplicateReplyListenerError(repr(channel))
 
         future: asyncio.Future[
             tuple[commands.SlashContext[Bot], str]
