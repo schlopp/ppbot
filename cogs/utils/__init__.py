@@ -1,4 +1,4 @@
-from  .formatters import (
+from .formatters import (
     IntFormatType as IntFormatType,
     MarkdownFormat as MarkdownFormat,
     format_int as format_int,
