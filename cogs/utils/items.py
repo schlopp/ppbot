@@ -1,6 +1,7 @@
 from __future__ import annotations
 import asyncpg
 from datetime import timedelta
+from functools import cached_property
 from typing import Any
 
 import toml
@@ -177,9 +178,14 @@ class InventoryItem(DatabaseWrapperObject):
         self.id = id
         self.amount = DifferenceTracker(amount, column="item_amount")
 
-    @property
+    @cached_property
     def item(self) -> Item:
         return ItemManager.get(self.id)
+
+    def format_item(
+        self, *, markdown: MarkdownFormat | None = MarkdownFormat.BOLD
+    ) -> str:
+        return self.item.format_amount(self.amount.value)
 
     async def update(
         self,
