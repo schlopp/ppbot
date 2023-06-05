@@ -38,7 +38,7 @@ class Minigame(utils.Object):
     async def give_random_reward(self) -> str:
         reward_messages: list[str] = []
 
-        self.pp.grow(random.randint(100, 150))
+        self.pp.grow(random.randint(40, 80))
         await self.pp.update(self.connection)
         reward_messages.append(self.pp.format_growth())
 
