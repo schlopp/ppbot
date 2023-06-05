@@ -18,8 +18,7 @@ from . import utils
 class Activity(enum.Enum):
     DONATION = 0.8
     REJECTION = 0.15
-    # FILL_IN_THE_BLANK_MINIGAME = .05
-    FILL_IN_THE_BLANK_MINIGAME = 100
+    FILL_IN_THE_BLANK_MINIGAME = .05
 
     @classmethod
     def random(cls):
@@ -39,7 +38,7 @@ class Minigame(utils.Object):
     async def give_random_reward(self) -> str:
         reward_messages: list[str] = []
 
-        self.pp.grow(random.randint(10, 20))
+        self.pp.grow(random.randint(100, 150))
         await self.pp.update(self.connection)
         reward_messages.append(self.pp.format_growth())
 
