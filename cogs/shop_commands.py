@@ -253,11 +253,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             ctx.author.id, "You're still busy buying an item!"
         ):
             try:
-                pp = await utils.Pp.fetch(
-                    db.conn,
-                    {"user_id": ctx.author.id},
-                    lock=utils.RowLevelLockMode.FOR_UPDATE,
-                )
+                pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
             except utils.RecordNotFoundError:
                 raise commands.CheckFailure("You don't have a pp!")
 

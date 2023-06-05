@@ -27,10 +27,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
         Show your pp to the whole wide world.
         """
         async with utils.DatabaseWrapper() as db:
-            try:
-                pp = await utils.Pp.fetch(db.conn, {"user_id": ctx.author.id})
-            except utils.RecordNotFoundError:
-                raise commands.CheckFailure("You don't have a pp!")
+            pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id)
 
             inventory_records = await utils.InventoryItem.fetch_record(
                 db.conn,

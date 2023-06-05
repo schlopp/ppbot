@@ -1,9 +1,18 @@
+import asyncio
+from typing import Self
+
+import asyncpg
+from discord.ext import commands
+
 from . import (
     DatabaseWrapperObject,
     DifferenceTracker,
     format_int,
     MEME_URL,
     MarkdownFormat,
+    RowLevelLockMode,
+    RecordNotFoundError,
+    DatabaseTimeoutManager,
 )
 
 
@@ -26,6 +35,29 @@ class Pp(DatabaseWrapperObject):
         self.multiplier = DifferenceTracker(multiplier, column="pp_multiplier")
         self.size = DifferenceTracker(size, column="pp_size")
         self.name = DifferenceTracker(name, column="pp_name")
+
+    @classmethod
+    async def fetch_from_user(
+        cls,
+        connection: asyncpg.Connection,
+        user_id: int,
+        *,
+        edit: bool = False,
+        timeout: float | None = 2,
+    ) -> Self:
+        try:
+            return await cls.fetch(
+                connection,
+                {"user_id": user_id},
+                lock=RowLevelLockMode.FOR_UPDATE if edit else None,
+                timeout=timeout,
+            )
+        except RecordNotFoundError:
+            raise commands.CheckFailure("You don't have an account!")
+        except asyncio.TimeoutError:
+            raise commands.CheckFailure(
+                DatabaseTimeoutManager.get_notification(user_id)
+            )
 
     def grow(self, growth: int, *, include_multipliers: bool = True) -> int:
         if include_multipliers:

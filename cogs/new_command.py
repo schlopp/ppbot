@@ -19,10 +19,7 @@ class NewCommandCog(vbu.Cog[utils.Bot]):
             embed = utils.Embed()
 
             try:
-                await utils.Pp.fetch(
-                    db.conn,
-                    {"user_id": ctx.author.id},
-                )
+                await utils.Pp.fetch_from_user(db.conn, ctx.author.id)
             except utils.RecordNotFoundError:
                 await db("INSERT INTO pps VALUES ($1)", ctx.author.id)
                 embed.colour = utils.GREEN

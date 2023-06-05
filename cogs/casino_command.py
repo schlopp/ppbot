@@ -376,14 +376,7 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
             ctx.author.id,
             "You're still in the casino, and can't do anything else untill you leave!",
         ):
-            try:
-                pp = await utils.Pp.fetch(
-                    db.conn,
-                    {"user_id": ctx.author.id},
-                    lock=utils.RowLevelLockMode.FOR_UPDATE,
-                )
-            except utils.RecordNotFoundError:
-                raise commands.CheckFailure("You don't have a pp!")
+            pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
 
             casino_session = CasinoSession(ctx, pp)
             await casino_session.send()

@@ -37,10 +37,10 @@ from .items import (
     InventoryItem as InventoryItem,
     ItemManager as ItemManager,
 )
-from .pps import Pp as Pp
-from .paginator import PaginatorActions as PaginatorActions, Paginator as Paginator
 from .managers import (
     DuplicateReplyListenerError as DuplicateReplyListenerError,
     ReplyManager as ReplyManager,
     DatabaseTimeoutManager as DatabaseTimeoutManager,
 )
+from .pps import Pp as Pp
+from .paginator import PaginatorActions as PaginatorActions, Paginator as Paginator
