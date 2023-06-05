@@ -39,7 +39,7 @@ from .items import (
 )
 from .pps import Pp as Pp
 from .paginator import PaginatorActions as PaginatorActions, Paginator as Paginator
-from .reply_manager import (
+from .managers import (
     DuplicateReplyListenerError as DuplicateReplyListenerError,
     ReplyManager as ReplyManager,
 )
