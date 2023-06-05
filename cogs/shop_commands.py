@@ -348,8 +348,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                         "component_interaction",
                         check=lambda i: i.user == ctx.author
                         and i.custom_id.startswith(interaction_id),
-                        # timeout=60,
-                        timeout=10,
+                        timeout=60,
                     )
                 except asyncio.TimeoutError:
                     await ctx.interaction.edit_original_message(
@@ -431,8 +430,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                     "component_interaction",
                     check=lambda i: i.user == ctx.author
                     and i.custom_id.startswith(interaction_id),
-                    # timeout=60,
-                    timeout=10,
+                    timeout=60,
                 )
             except asyncio.TimeoutError:
                 await ctx.interaction.edit_original_message(
