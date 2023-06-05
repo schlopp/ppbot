@@ -119,7 +119,7 @@ class FillInTheBlankMinigame(Minigame):
         prompt = (
             "`"
             + self.context["prompt"].format(
-                "` `".join(
+                " ".join(
                     f"`[`{' '.join(['_'] * len(word))}`]({utils.MEME_URL})`"
                     for word in self.context["answer"].split()
                 )
