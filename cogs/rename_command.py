@@ -1,6 +1,9 @@
-import discord
 import random
+import asyncio
+
+import discord
 from discord.ext import commands, vbu
+
 from . import utils
 
 
@@ -25,7 +28,9 @@ class RenameCommandCog(vbu.Cog[utils.Bot]):
         """
         Rename your big ol' Johnson
         """
-        async with utils.DatabaseWrapper() as db, db.conn.transaction():
+        async with utils.DatabaseWrapper() as db, db.conn.transaction(), utils.DatabaseTimeoutManager.notify(
+            ctx.author.id, "You're still busy renaming your pp!"
+        ):
             try:
                 pp = await utils.Pp.fetch(
                     db.conn,
@@ -34,6 +39,10 @@ class RenameCommandCog(vbu.Cog[utils.Bot]):
                 )
             except utils.RecordNotFoundError:
                 raise commands.CheckFailure("You don't have a pp!")
+            except asyncio.TimeoutError:
+                raise commands.CheckFailure(
+                    utils.DatabaseTimeoutManager.get_notification(ctx.author.id)
+                )
 
             name = utils.clean(name)
 

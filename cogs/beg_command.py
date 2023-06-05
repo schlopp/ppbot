@@ -279,7 +279,9 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
         Beg for some inches
         """
 
-        async with utils.DatabaseWrapper() as db, db.conn.transaction():
+        async with utils.DatabaseWrapper() as db, db.conn.transaction(), utils.DatabaseTimeoutManager.notify(
+            ctx.author.id, "You're still busy begging!"
+        ):
             try:
                 pp = await utils.Pp.fetch(
                     db.conn,
@@ -291,7 +293,7 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
                 raise commands.CheckFailure("You don't have a pp!")
             except asyncio.TimeoutError:
                 raise commands.CheckFailure(
-                    "You're still busy with another command! Try again later."
+                    utils.DatabaseTimeoutManager.get_notification(ctx.author.id)
                 )
 
             activity = Activity.random()

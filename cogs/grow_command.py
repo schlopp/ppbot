@@ -17,7 +17,9 @@ class GrowCommandCog(vbu.Cog[utils.Bot]):
         """
         Grow your pp to get more inches!
         """
-        async with utils.DatabaseWrapper() as db, db.conn.transaction():
+        async with utils.DatabaseWrapper() as db, db.conn.transaction(), utils.DatabaseTimeoutManager.notify(
+            ctx.author.id, "You're still busy with the grow command!"
+        ):
             try:
                 pp = await utils.Pp.fetch(
                     db.conn,
@@ -29,10 +31,10 @@ class GrowCommandCog(vbu.Cog[utils.Bot]):
                 raise commands.CheckFailure("You don't have a pp!")
             except asyncio.TimeoutError:
                 raise commands.CheckFailure(
-                    "You're still busy with another command! Try again later."
+                    utils.DatabaseTimeoutManager.get_notification(ctx.author.id)
                 )
 
-            pp.grow(random.randint(1, 5))
+            pp.grow(random.randint(1, 15))
             await pp.update(db.conn)
 
             embed = utils.Embed()

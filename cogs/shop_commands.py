@@ -249,7 +249,9 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 f"You can't buy more than {utils.format_int(amount)} of an item!"
             )
 
-        async with utils.DatabaseWrapper() as db, db.transaction():
+        async with utils.DatabaseWrapper() as db, db.transaction(), utils.DatabaseTimeoutManager.notify(
+            ctx.author.id, "You're still busy buying an item!"
+        ):
             try:
                 pp = await utils.Pp.fetch(
                     db.conn,
