@@ -37,7 +37,7 @@ reasons = [
 ]
 prompts = [
     [
-        "You're gonna stay on my {0} until you die. You serve no purpose in life. Your purpose in life is to be on my stream sucking on my {0} daily. Your purpose in life is to be in that chat blowing the {0} daily.",
+        "You're gonna stay on my {0} until you die. You serve no purpose in life.",
         "dick"
     ],
     ["Your life is {}, you serve zero purpose", "nothing"],
