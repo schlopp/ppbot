@@ -42,36 +42,45 @@ class Minigame(utils.Object):
         await self.pp.update(self.connection)
         reward_messages.append(self.pp.format_growth())
 
-        try:
-            reward_item = utils.InventoryItem(
-                self.pp.user_id,
-                random.choice(
-                    [
-                        item_id
-                        for item_id, item in itertools.chain(
-                            utils.ItemManager.tools.items(),
-                            utils.ItemManager.useless.items(),
-                        )
-                        if item.price
-                        < self.MAXIMUM_ITEM_REWARD_PRICE * self.pp.multiplier.value
-                    ]
-                ),
-                0,
-            )
-        except IndexError:
-            pass
-        else:
-            reward_item.amount.value += random.randint(
-                1,
-                self.MAXIMUM_ITEM_REWARD_PRICE
-                * self.pp.multiplier.value
-                // reward_item.item.price
-                * 3,
-            )
-            await reward_item.update(self.connection, additional=True)
-            reward_messages.append(
-                f"{reward_item.format_item()} ({reward_item.item.category.lower()})"
-            )
+        reward_item_ids: list[str] = []
+        while True:
+            # 50% 1 item, ~33% 2 items, ~12.5% 3 items, ~4% 4 or more items
+            if reward_item_ids and random.randint(0, len(reward_item_ids)):
+                break
+            try:
+                reward_item = utils.InventoryItem(
+                    self.pp.user_id,
+                    random.choice(
+                        [
+                            item_id
+                            for item_id, item in itertools.chain(
+                                utils.ItemManager.tools.items(),
+                                utils.ItemManager.useless.items(),
+                                utils.ItemManager.buffs.items(),
+                            )
+                            if item.price
+                            < self.MAXIMUM_ITEM_REWARD_PRICE * self.pp.multiplier.value
+                        ]
+                    ),
+                    0,
+                )
+            except IndexError:
+                break
+            else:
+                if reward_item.id in reward_item_ids:
+                    break
+                reward_item.amount.value += random.randint(
+                    1,
+                    self.MAXIMUM_ITEM_REWARD_PRICE
+                    * self.pp.multiplier.value
+                    // reward_item.item.price
+                    * 3,
+                )
+                await reward_item.update(self.connection, additional=True)
+                reward_item_ids.append(reward_item.id)
+                reward_messages.append(
+                    f"{reward_item.format_item()} ({reward_item.item.category.lower()})"
+                )
 
         return f"{utils.format_iterable(reward_messages, inline=True)}"
 
