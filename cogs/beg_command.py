@@ -18,7 +18,7 @@ from . import utils
 class Activity(enum.Enum):
     DONATION = 0.8
     REJECTION = 0.15
-    FILL_IN_THE_BLANK_MINIGAME = .05
+    FILL_IN_THE_BLANK_MINIGAME = 0.05
 
     @classmethod
     def random(cls):
@@ -285,9 +285,14 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
                     db.conn,
                     {"user_id": ctx.author.id},
                     lock=utils.RowLevelLockMode.FOR_UPDATE,
+                    timeout=2,
                 )
             except utils.RecordNotFoundError:
                 raise commands.CheckFailure("You don't have a pp!")
+            except asyncio.TimeoutError:
+                raise commands.CheckFailure(
+                    "You're still busy with another command! Try again later."
+                )
 
             activity = Activity.random()
 

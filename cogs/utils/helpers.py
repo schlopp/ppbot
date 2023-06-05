@@ -238,6 +238,7 @@ class DatabaseWrapperObject(Object):
         *,
         lock: Literal[None] = None,
         fetch_multiple_rows: Literal[True],
+        timeout: float | None = None,
     ) -> list[Record]:
         ...
 
@@ -251,6 +252,7 @@ class DatabaseWrapperObject(Object):
         *,
         lock: RowLevelLockMode | None = None,
         fetch_multiple_rows: Literal[False] = False,
+        timeout: float | None = None,
     ) -> Record:
         ...
 
@@ -263,6 +265,7 @@ class DatabaseWrapperObject(Object):
         *,
         lock: RowLevelLockMode | None = None,
         fetch_multiple_rows: bool = False,
+        timeout: float | None = None,
     ) -> Record | list[Record]:
         where_query, where_query_arguments, _ = cls._generate_cls_pgsql_where_query(
             required_values
@@ -273,9 +276,12 @@ class DatabaseWrapperObject(Object):
             query += f" FOR {lock.value}"
 
         if fetch_multiple_rows:
-            return await connection.fetch(query, *where_query_arguments)
+            return await connection.fetch(
+                query, *where_query_arguments, timeout=timeout
+            )
         record = cast(
-            Record | None, await connection.fetchrow(query, *where_query_arguments)
+            Record | None,
+            await connection.fetchrow(query, *where_query_arguments, timeout=timeout),
         )
         if record is not None:
             return record
@@ -293,6 +299,7 @@ class DatabaseWrapperObject(Object):
         *,
         lock: Literal[None] = None,
         fetch_multiple_rows: Literal[True],
+        timeout: float | None = None,
     ) -> list[Self]:
         ...
 
@@ -305,6 +312,7 @@ class DatabaseWrapperObject(Object):
         *,
         lock: RowLevelLockMode | None = None,
         fetch_multiple_rows: Literal[False] = False,
+        timeout: float | None = None,
     ) -> Self:
         ...
 
@@ -316,18 +324,20 @@ class DatabaseWrapperObject(Object):
         *,
         lock: RowLevelLockMode | None = None,
         fetch_multiple_rows: bool = False,
+        timeout: float | None = None,
     ) -> Self | list[Self]:
         if fetch_multiple_rows:
             return [
                 cls.from_record(record)
                 for record in await cls.fetch_record(
-                    connection, required_values, fetch_multiple_rows=True
+                    connection,
+                    required_values,
+                    fetch_multiple_rows=True,
+                    timeout=timeout,
                 )
             ]
         record = await cls.fetch_record(
-            connection,
-            required_values,
-            lock=lock,
+            connection, required_values, lock=lock, timeout=timeout
         )
 
         return cls.from_record(record)

@@ -1,4 +1,6 @@
+import asyncio
 import random
+
 from discord.ext import commands, vbu
 from . import utils
 
@@ -21,9 +23,14 @@ class GrowCommandCog(vbu.Cog[utils.Bot]):
                     db.conn,
                     {"user_id": ctx.author.id},
                     lock=utils.RowLevelLockMode.FOR_UPDATE,
+                    timeout=2,
                 )
             except utils.RecordNotFoundError:
                 raise commands.CheckFailure("You don't have a pp!")
+            except asyncio.TimeoutError:
+                raise commands.CheckFailure(
+                    "You're still busy with another command! Try again later."
+                )
 
             pp.grow(random.randint(1, 5))
             await pp.update(db.conn)
