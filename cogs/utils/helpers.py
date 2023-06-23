@@ -407,5 +407,5 @@ class IntegerHolder(int, Object):
     def __mod__(self, other: int):
         return self.value % other
 
-    def __pow__(self, other: int):
-        return self.value**other
+    def __pow__(self, other: int):  # type: ignore
+        return self.value ** other
