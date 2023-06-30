@@ -3,7 +3,8 @@ import enum
 import itertools
 import random
 import uuid
-from typing import TypedDict, Literal
+from typing import TypedDict, Literal, Generic, TypeVar, cast
+from string import ascii_letters, digits
 
 import asyncpg
 import discord
@@ -15,10 +16,15 @@ from cogs.utils.bot import Bot
 from . import utils
 
 
+_MinigameContextDictT = TypeVar("_MinigameContextDictT", bound=TypedDict)
+
+
 class Activity(enum.Enum):
-    DONATION = 0.8
-    REJECTION = 0.15
-    FILL_IN_THE_BLANK_MINIGAME = 0.05
+    DONATION = 0.7
+    REJECTION = 0.1
+    FILL_IN_THE_BLANK_MINIGAME = 0.2 / 3
+    REVERSE_MINIGAME = 0.2 / 3
+    REPEAT_MINIGAME = 0.2 / 3
 
     @classmethod
     def random(cls):
@@ -27,18 +33,31 @@ class Activity(enum.Enum):
         )[0]
 
 
-class Minigame(utils.Object):
-    MAXIMUM_ITEM_REWARD_PRICE = 50
+MinigameActivity = Literal[
+    Activity.FILL_IN_THE_BLANK_MINIGAME,
+    Activity.REVERSE_MINIGAME,
+    Activity.REPEAT_MINIGAME,
+]
 
-    def __init__(self, connection: asyncpg.Connection, pp: utils.Pp) -> None:
+
+class Minigame(Generic[_MinigameContextDictT], utils.Object):
+    MAXIMUM_ITEM_REWARD_PRICE = 45
+
+    def __init__(
+        self,
+        connection: asyncpg.Connection,
+        pp: utils.Pp,
+        context: _MinigameContextDictT,
+    ) -> None:
         self.connection = connection
         self.pp = pp
         self._id = uuid.uuid4().hex
+        self.context = context
 
     async def give_random_reward(self) -> str:
         reward_messages: list[str] = []
 
-        self.pp.grow(random.randint(40, 80))
+        self.pp.grow(random.randint(30, 60))
         await self.pp.update(self.connection)
         reward_messages.append(self.pp.format_growth())
 
@@ -84,6 +103,14 @@ class Minigame(utils.Object):
 
         return f"{utils.format_iterable(reward_messages, inline=True)}"
 
+    @staticmethod
+    def clean_sentence(sentence: str):
+        return "".join(
+            character
+            for character in sentence.lower()
+            if character in ascii_letters + digits
+        )
+
     async def start(self, interaction: discord.Interaction) -> None:
         raise NotImplementedError
 
@@ -95,28 +122,171 @@ class FillInTheBlankContextDict(TypedDict):
     prompt: str
     answer: str
     fail: str
+    win: str
+
+
+class ReverseContextDict(TypedDict):
+    person: str
+    situation: str
+    reason: str
+    phrase: str
+    fail: str
+    win: str
+
+
+class RepeatContextDict(TypedDict):
+    person: str
+    situation: str
+    reason: str
+    sentence: str
+    fail: str
+    win: str
+
+
+class ReverseMinigame(Minigame[ReverseContextDict]):
+    async def start(self, interaction: discord.Interaction) -> None:
+        embed = utils.Embed()
+        embed.colour = utils.PINK
+        embed.title = "MINIGAME - REVERSE"
+
+        embed.description = (
+            f"{self.context['situation']}"
+            f" **Use /reply and enter the phrase in reverse to {self.context['reason']}!**"
+            f" \n\n**{self.context['person']}:** {self.context['phrase']}"
+        )
+
+        embed.set_footer(
+            text=(
+                "use /reply to respond to this minigame!"
+                " - not case sensitive, only letters and numbers are looked at"
+            )
+        )
+
+        await interaction.response.send_message(embed=embed)
+
+        embed = utils.Embed()
+        embed.title = "MINIGAME - REVERSE"
+
+        try:
+            assert isinstance(interaction.channel, discord.TextChannel)
+            reply_context, reply = await utils.ReplyManager.wait_for_reply(
+                interaction.channel
+            )
+        except asyncio.TimeoutError:
+            embed.colour = utils.RED
+            embed.description = (
+                "**You're slow as fuck!**  Next time, use **/reply** within"
+                f" {utils.format_time(utils.ReplyManager.DEFAULT_TIMEOUT)}."
+                f" {self.context['fail']} You win **nothing.**"
+            )
+            embed.add_tip()
+            await interaction.edit_original_message(embed=embed)
+            return
+
+        reverse_phrase = "".join(reversed(self.context["phrase"]))
+
+        if self.clean_sentence(reply) != self.clean_sentence(reverse_phrase):
+            embed.colour = utils.RED
+            embed.description = (
+                f"**WRONG!!!!** You fucking loser."
+                f" The correct answer was `{reverse_phrase}`. You can't do anything right!"
+                f" {self.context['fail']} You win **nothing.**"
+            )
+        else:
+            embed.colour = utils.GREEN
+            reward = await self.give_random_reward()
+
+            if "{}" in self.context["win"]:
+                win_dialogue = self.context["win"].format(reward)
+            else:
+                win_dialogue = f"{self.context['win']} You win {reward}"
+
+            embed.description = f"**GGS!** {win_dialogue}"
+
+        embed.add_tip()
+        await reply_context.interaction.response.send_message(
+            f"**{utils.clean(reply_context.author.display_name)}:** {reply}",
+            embed=embed,
+        )
+
+
+class RepeatMinigame(Minigame[RepeatContextDict]):
+    async def start(self, interaction: discord.Interaction) -> None:
+        embed = utils.Embed()
+        embed.colour = utils.PINK
+        embed.title = "MINIGAME - REPEAT"
+
+        zero_width_character = "​"
+        obscured_sentence = zero_width_character.join(self.context["sentence"])
+
+        embed.description = (
+            f"{self.context['situation']}"
+            f" **Use /reply and enter the sentence to {self.context['reason']}!**"
+            f" \n\n**{self.context['person']}:** {obscured_sentence}"
+        )
+
+        embed.set_footer(
+            text=(
+                "use /reply to respond to this minigame!"
+                " - not case sensitive, only letters and numbers are looked at"
+            )
+        )
+
+        await interaction.response.send_message(embed=embed)
+
+        embed = utils.Embed()
+        embed.title = "MINIGAME - REPEAT"
+
+        try:
+            assert isinstance(interaction.channel, discord.TextChannel)
+            reply_context, reply = await utils.ReplyManager.wait_for_reply(
+                interaction.channel
+            )
+        except asyncio.TimeoutError:
+            embed.colour = utils.RED
+            embed.description = (
+                "**You're slow as fuck!**  Next time, use **/reply** within"
+                f" {utils.format_time(utils.ReplyManager.DEFAULT_TIMEOUT)}."
+                f" {self.context['fail']} You win **nothing.**"
+            )
+            embed.add_tip()
+            await interaction.edit_original_message(embed=embed)
+            return
+
+        if zero_width_character in reply:
+            embed.colour = utils.RED
+            embed.description = (
+                "Did you really think I wouldn't notice you copy-pasting the sentence?"
+                f"I know everything about you. {self.context['fail']}"
+                "You win **nothing.**"
+            )
+
+        if self.clean_sentence(reply) != self.clean_sentence(self.context["sentence"]):
+            embed.colour = utils.RED
+            embed.description = (
+                f"**WRONG!!!!** You fucking loser."
+                f" The correct answer was `{self.context['sentence']}`. You can't do anything right!"
+                f" {self.context['fail']} You win **nothing.**"
+            )
+        else:
+            embed.colour = utils.GREEN
+            reward = await self.give_random_reward()
+
+            if "{}" in self.context["win"]:
+                win_dialogue = self.context["win"].format(reward)
+            else:
+                win_dialogue = f"{self.context['win']} You win {reward}"
+
+            embed.description = f"**GGS!** {win_dialogue}"
+
+        embed.add_tip()
+        await reply_context.interaction.response.send_message(
+            f"**{utils.clean(reply_context.author.display_name)}:** {reply}",
+            embed=embed,
+        )
 
 
 class FillInTheBlankMinigame(Minigame):
-    """
-    Format:
-    {situation} **Use /reply to fill in the blank and {reason}!**
-
-    **{person}:** \\`{prompt with answer}\\`
-
-    Failure format:
-    **WRONG!!!!** You fucking loser. You can't do anything right! {fail}
-    """
-
-    def __init__(
-        self,
-        connection: asyncpg.Connection,
-        pp: utils.Pp,
-        context: FillInTheBlankContextDict,
-    ) -> None:
-        super().__init__(connection, pp)
-        self.context = context
-
     async def start(self, interaction: discord.Interaction) -> None:
         embed = utils.Embed()
         embed.colour = utils.PINK
@@ -136,11 +306,16 @@ class FillInTheBlankMinigame(Minigame):
         )
         embed.description = (
             f"{self.context['situation']}"
-            f" **Use /reply to fill in the blank and {self.context['reason']}!**"
+            f" **Use /reply and fill in the blank to {self.context['reason']}!**"
             f" \n\n**{self.context['person']}:** {prompt}"
         )
 
-        embed.set_footer(text="use /reply to respond to this minigame!")
+        embed.set_footer(
+            text=(
+                "use /reply to respond to this minigame!"
+                " - not case sensitive, only letters and numbers are looked at"
+            )
+        )
 
         await interaction.response.send_message(embed=embed)
 
@@ -164,7 +339,7 @@ class FillInTheBlankMinigame(Minigame):
             await interaction.edit_original_message(embed=embed)
             return
 
-        if reply != self.context["answer"]:
+        if self.clean_sentence(reply) != self.clean_sentence(self.context["answer"]):
             embed.colour = utils.RED
             embed.description = (
                 f"**WRONG!!!!** You fucking loser."
@@ -173,7 +348,14 @@ class FillInTheBlankMinigame(Minigame):
             )
         else:
             embed.colour = utils.GREEN
-            embed.description = f"**GGS!** you win {await self.give_random_reward()}"
+            reward = await self.give_random_reward()
+
+            if "{}" in self.context["win"]:
+                win_dialogue = self.context["win"].format(reward)
+            else:
+                win_dialogue = f"{self.context['win']} You win {reward}"
+
+            embed.description = f"**GGS!** {win_dialogue}"
 
         embed.add_tip()
         await reply_context.interaction.response.send_message(
@@ -240,17 +422,19 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
 
     async def start_minigame(
         self,
-        minigame_activity: Literal[Activity.FILL_IN_THE_BLANK_MINIGAME],
+        minigame_activity: MinigameActivity,
         *,
         connection: asyncpg.Connection,
         pp: utils.Pp,
         interaction: discord.Interaction,
     ):
-        if minigame_activity == Activity.FILL_IN_THE_BLANK_MINIGAME:
-            minigame_dialogue: dict = random.choice(
-                self.minigame_config["FILL_IN_THE_BLANK"]
-            )
+        minigame_category = minigame_activity.name.rsplit("_", 1)[0]
+        minigame_dialogue: dict = random.choice(
+            self.minigame_config.get(minigame_category, [])
+            + self.minigame_config.get("beg", {}).get(minigame_category, [])
+        )
 
+        if minigame_activity == Activity.FILL_IN_THE_BLANK_MINIGAME:
             prompt, answer = random.choice(minigame_dialogue["prompts"])
             minigame = FillInTheBlankMinigame(
                 connection,
@@ -262,10 +446,37 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
                     "prompt": prompt,
                     "answer": answer,
                     "fail": random.choice(minigame_dialogue["fails"]),
+                    "win": random.choice(minigame_dialogue["wins"]),
                 },
             )
-            await minigame.start(interaction)
-            return
+        elif minigame_activity == Activity.REVERSE_MINIGAME:
+            minigame = ReverseMinigame(
+                connection,
+                pp,
+                {
+                    "person": minigame_dialogue["person"],
+                    "situation": random.choice(minigame_dialogue["situations"]),
+                    "reason": random.choice(minigame_dialogue["reasons"]),
+                    "phrase": random.choice(minigame_dialogue["phrases"]),
+                    "fail": random.choice(minigame_dialogue["fails"]),
+                    "win": random.choice(minigame_dialogue["wins"]),
+                },
+            )
+        else:
+            minigame = RepeatMinigame(
+                connection,
+                pp,
+                {
+                    "person": minigame_dialogue["person"],
+                    "situation": random.choice(minigame_dialogue["situations"]),
+                    "reason": random.choice(minigame_dialogue["reasons"]),
+                    "sentence": random.choice(minigame_dialogue["sentences"]),
+                    "fail": random.choice(minigame_dialogue["fails"]),
+                    "win": random.choice(minigame_dialogue["wins"]),
+                },
+            )
+
+        await minigame.start(interaction)
 
     @commands.command(
         "beg",
@@ -286,7 +497,8 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
 
             activity = Activity.random()
 
-            if activity in (activity.FILL_IN_THE_BLANK_MINIGAME,):
+            if activity.name.endswith("_MINIGAME"):
+                activity = cast(MinigameActivity, activity)
                 await self.start_minigame(
                     activity, connection=db.conn, pp=pp, interaction=ctx.interaction
                 )
