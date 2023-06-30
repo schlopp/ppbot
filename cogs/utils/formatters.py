@@ -73,12 +73,14 @@ def format_time(
         "year", "week", "day", "hour", "minute", "second", "millisecond"
     ]
     | None = "second",
+    *,
+    adjective: bool = False,
 ) -> str:
     durations: list[str] = []
 
     for time_unit, time_unit_value in _TIME_UNITS.items():
         if __seconds // time_unit_value:
-            suffix = "s" if __seconds // time_unit_value != 1 else ""
+            suffix = "s" if __seconds // time_unit_value != 1 and not adjective else ""
             durations.append(f"{int(__seconds // time_unit_value)} {time_unit}{suffix}")
 
         if time_unit == smallest_unit:
