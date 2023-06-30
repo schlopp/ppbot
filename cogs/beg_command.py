@@ -222,7 +222,7 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
         embed.description = (
             f"{self.context['situation']}"
             f" **Use /reply and enter the sentence to {self.context['reason']}!**"
-            f" \n\n**{self.context['person']}:** {obscured_sentence}"
+            f" \n\n**{self.context['person']}:** `{obscured_sentence}`"
         )
 
         embed.set_footer(
@@ -257,11 +257,12 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
             embed.colour = utils.RED
             embed.description = (
                 "Did you really think I wouldn't notice you copy-pasting the sentence?"
-                f"I know everything about you. {self.context['fail']}"
-                "You win **nothing.**"
+                f" I know everything about you. {self.context['fail']}"
+                " You win **nothing.**"
             )
-
-        if self.clean_sentence(reply) != self.clean_sentence(self.context["sentence"]):
+        elif self.clean_sentence(reply) != self.clean_sentence(
+            self.context["sentence"]
+        ):
             embed.colour = utils.RED
             embed.description = (
                 f"**WRONG!!!!** You fucking loser."
