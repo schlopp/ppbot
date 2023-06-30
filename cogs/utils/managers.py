@@ -30,7 +30,9 @@ class ReplyManager:
         cls,
         channel: discord.TextChannel,
         *,
-        check: Callable[[commands.SlashContext[Bot], str], bool] = lambda _, _1: True,
+        check: Callable[
+            [commands.SlashContext[Bot], str], bool
+        ] = lambda ctx, bot: True,
         timeout: float = DEFAULT_TIMEOUT,
     ) -> tuple[commands.SlashContext[Bot], str]:
         if channel in cls.active_listeners:
