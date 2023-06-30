@@ -205,7 +205,10 @@ class ReverseMinigame(Minigame[ReverseContextDict]):
 
         embed.add_tip()
         await reply_context.interaction.response.send_message(
-            f"**{utils.clean(reply_context.author.display_name)}:** {reply}",
+            utils.limit_text(
+                f"**{utils.clean(reply_context.author.display_name)}:** {reply}",
+                256,
+            ),
             embed=embed,
         )
 
@@ -282,7 +285,10 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
 
         embed.add_tip()
         await reply_context.interaction.response.send_message(
-            f"**{utils.clean(reply_context.author.display_name)}:** {reply}",
+            utils.limit_text(
+                f"**{utils.clean(reply_context.author.display_name)}:** {reply}",
+                256,
+            ),
             embed=embed,
         )
 
@@ -360,7 +366,10 @@ class FillInTheBlankMinigame(Minigame):
 
         embed.add_tip()
         await reply_context.interaction.response.send_message(
-            f"**{utils.clean(reply_context.author.display_name)}:** {reply}",
+            utils.limit_text(
+                f"**{utils.clean(reply_context.author.display_name)}:** {reply}",
+                256,
+            ),
             embed=embed,
         )
 
