@@ -408,4 +408,4 @@ class IntegerHolder(int, Object):
         return self.value % other
 
     def __pow__(self, other: int):  # type: ignore
-        return self.value ** other
+        return self.value**other
