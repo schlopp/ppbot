@@ -68,11 +68,12 @@ class DatabaseTimeoutManager:
             cls.NOTIFICATIONS[user_id].append(notification)
         except KeyError:
             cls.NOTIFICATIONS[user_id] = [notification]
+        print(cls.NOTIFICATIONS.get(user_id))
 
     @classmethod
-    def clear_notification(cls, user_id: int) -> None:
+    def clear_notification(cls, user_id: int, *, index: int = 0) -> None:
         try:
-            cls.NOTIFICATIONS[user_id].pop(0)
+            cls.NOTIFICATIONS[user_id].pop(index)
         except KeyError:
             pass
 
@@ -92,11 +93,14 @@ class NotificationContextManager(Object):
     def __enter__(self) -> None:
         DatabaseTimeoutManager.add_notification(self.user_id, self.notification)
 
-    def __exit__(self, *_):
-        DatabaseTimeoutManager.clear_notification(self.user_id)
+    def __exit__(self, exc_type: type[BaseException] | None, *_):
+        if exc_type is None or not issubclass(exc_type, commands.CheckFailure):
+            DatabaseTimeoutManager.clear_notification(self.user_id)
+            return
+        DatabaseTimeoutManager.clear_notification(self.user_id, index=-1)
 
     async def __aenter__(self) -> None:
         return self.__enter__()
 
-    async def __aexit__(self, *_) -> None:
-        return self.__exit__()
+    async def __aexit__(self, *args, **kwargs) -> None:
+        return self.__exit__(*args, **kwargs)
