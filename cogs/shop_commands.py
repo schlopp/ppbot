@@ -130,7 +130,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             if item.cooldown is not None:
                 listing_details.append(
                     cooldown_message
-                    + f" with a **{utils.format_time(item.cooldown.total_seconds())}** cooldown"
+                    + f" with **{utils.format_time(item.cooldown.total_seconds(), adjective=True)}** cooldown"
                 )
             else:
                 listing_details.append(cooldown_message)
