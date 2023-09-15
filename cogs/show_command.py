@@ -76,13 +76,13 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
 
     async def handle_tabs(
         self,
-        ctx,
+        ctx: commands.SlashContext[utils.Bot],
         interaction_id: str,
+        components: discord.ui.MessageComponents,
         pp: utils.Pp | None = None,
         inventory: list[utils.InventoryItem] | None = None,
     ) -> None:
         embed = None
-        components = None
         while True:
             try:
                 (
@@ -92,6 +92,8 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                     self.bot, interaction_id, users=[ctx.author], timeout=60
                 )
             except asyncio.TimeoutError:
+                components.disable_components()
+                await ctx.interaction.edit_original_message(components=components)
                 break
 
             start = datetime.now()
@@ -152,7 +154,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
         interaction_id, components = self._component_factory(current_page_id="SHOW")
         await ctx.interaction.response.send_message(embed=embed, components=components)
 
-        await self.handle_tabs(ctx, interaction_id, pp=pp)
+        await self.handle_tabs(ctx, interaction_id, components=components, pp=pp)
 
     @commands.command(
         "inventory",
@@ -164,14 +166,20 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
         Check out what items are in your inventory.
         """
         async with utils.DatabaseWrapper() as db:
-            inventory = await utils.InventoryItem.fetch(db.conn, {"user_id": ctx.author.id}, fetch_multiple_rows=True)
+            inventory = await utils.InventoryItem.fetch(
+                db.conn, {"user_id": ctx.author.id}, fetch_multiple_rows=True
+            )
 
         embed = self._inventory_embed_factory(ctx, inventory)
 
-        interaction_id, components = self._component_factory(current_page_id="INVENTORY")
+        interaction_id, components = self._component_factory(
+            current_page_id="INVENTORY"
+        )
         await ctx.interaction.response.send_message(embed=embed, components=components)
 
-        await self.handle_tabs(ctx, interaction_id, inventory=inventory)
+        await self.handle_tabs(
+            ctx, interaction_id, components=components, inventory=inventory
+        )
 
 
 def setup(bot: utils.Bot):
