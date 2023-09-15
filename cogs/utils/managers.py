@@ -104,3 +104,42 @@ class NotificationContextManager(Object):
 
     async def __aexit__(self, *args, **kwargs) -> None:
         return self.__exit__(*args, **kwargs)
+
+
+async def wait_for_component_interaction(
+    bot: Bot,
+    interaction_id: str,
+    *,
+    users: list[discord.User | discord.Member] | None = None,
+    actions: list[str] | None = None,
+    timeout: float = 30,
+) -> tuple[discord.ComponentInteraction, str]:
+    def component_interaction_check(
+        component_interaction: discord.ComponentInteraction,
+    ) -> bool:
+        try:
+            found_interaction_id, found_action = component_interaction.custom_id.split(
+                "_", 1
+            )
+        except ValueError:
+            return False
+
+        if found_interaction_id != interaction_id:
+            return False
+
+        if users and component_interaction.user not in users:
+            return False
+
+        if actions and found_action not in actions:
+            return False
+
+        return True
+
+    component_interaction = await bot.wait_for(
+        "component_interaction",
+        check=component_interaction_check,
+        timeout=timeout,
+    )
+
+    found_action = component_interaction.custom_id.split("_", 1)[1]
+    return component_interaction, found_action
