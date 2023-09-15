@@ -438,7 +438,7 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
         pp: utils.Pp,
         interaction: discord.Interaction,
     ):
-        minigame_category = minigame_activity.name.rsplit("_", 1)[0]
+        minigame_category = minigame_activity.name.split("_", 1)[0]
         minigame_dialogue: dict = random.choice(
             self.minigame_config.get(minigame_category, [])
             + self.minigame_config.get("beg", {}).get(minigame_category, [])

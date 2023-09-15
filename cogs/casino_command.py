@@ -273,7 +273,7 @@ class CasinoSession(utils.Object):
         interaction = await self.ctx.bot.wait_for(
             "component_interaction", check=check, timeout=timeout
         )
-        interaction_id = interaction.custom_id.split("_", 1)[1]
+        interaction_id = interaction.custom_id.split("_", 1)[0]
         if interaction_id not in interaction_ids:
             raise InvalidInteractionID
 
