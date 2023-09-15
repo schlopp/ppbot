@@ -1,4 +1,11 @@
+import asyncio
+import uuid
+from datetime import datetime
+from typing import Literal
+
+import discord
 from discord.ext import commands, vbu
+
 from . import utils
 
 
@@ -17,30 +24,25 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
         5_984_252_000_000: "the distance from the earth to THE SUN",
     }
 
-    @commands.command(
-        "show",
-        utils.Command,
-        application_command_meta=commands.ApplicationCommandMeta(),
-    )
-    async def show_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
-        """
-        Show your pp to the whole wide world.
-        """
-        async with utils.DatabaseWrapper() as db:
-            pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id)
-
-            inventory_records = await utils.InventoryItem.fetch_record(
-                db.conn,
-                {"user_id": ctx.author.id},
-                ["item_id", "item_amount"],
-                fetch_multiple_rows=True,
-            )
-
-        inventory: dict[str, int] = {
-            inventory_record["item_id"]: inventory_record["item_amount"]
-            for inventory_record in inventory_records
+    def _component_factory(
+        self, *, current_page_id: Literal["SHOW", "INVENTORY"]
+    ) -> tuple[str, discord.ui.MessageComponents]:
+        interaction_id = uuid.uuid4().hex
+        buttons: dict[str, discord.ui.Button] = {
+            "SHOW": discord.ui.Button(label="Show", custom_id=f"{interaction_id}_SHOW"),
+            "INVENTORY": discord.ui.Button(
+                label="Inventory", custom_id=f"{interaction_id}_INVENTORY"
+            ),
         }
+        buttons[current_page_id].style = discord.ButtonStyle.blurple
+        buttons[current_page_id].disabled = True
+        return interaction_id, discord.ui.MessageComponents(
+            discord.ui.ActionRow(*buttons.values())
+        )
 
+    def _show_embed_factory(
+        self, ctx: commands.SlashContext[utils.Bot], pp: utils.Pp
+    ) -> utils.Embed:
         embed = utils.Embed()
         embed.colour = utils.BLUE
         embed.title = utils.limit_text(
@@ -58,17 +60,6 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
             ),
         )
 
-        embed.add_field(
-            name="inventory",
-            value="\n".join(
-                [
-                    f"{utils.ItemManager.get(item_id).name} - **{utils.format_int(amount)}**"
-                    for item_id, amount in inventory.items()
-                ]
-            )
-            or "You got no items LLL\ncheck out the **/shop** to buy some",
-        )
-
         match utils.find_nearest_number(self.REAL_LIFE_COMPARISONS, pp.size.value):
             case nearest_number, -1:
                 comparison_text = f"{utils.format_int(pp.size.value - nearest_number)} inches bigger than"
@@ -81,7 +72,106 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
             text=f"Your pp is {comparison_text} {self.REAL_LIFE_COMPARISONS[nearest_number]}"
         )
 
-        await ctx.interaction.response.send_message(embed=embed)
+        return embed
+
+    async def handle_tabs(
+        self,
+        ctx,
+        interaction_id: str,
+        pp: utils.Pp | None = None,
+        inventory: list[utils.InventoryItem] | None = None,
+    ) -> None:
+        embed = None
+        components = None
+        while True:
+            try:
+                (
+                    component_interaction,
+                    action,
+                ) = await utils.wait_for_component_interaction(
+                    self.bot, interaction_id, users=[ctx.author], timeout=60
+                )
+            except asyncio.TimeoutError:
+                break
+
+            start = datetime.now()
+
+            if action == "INVENTORY":
+                if inventory is None:
+                    async with utils.DatabaseWrapper() as db:
+                        inventory = await utils.InventoryItem.fetch(
+                            db.conn,
+                            {"user_id": ctx.author.id},
+                            fetch_multiple_rows=True,
+                        )
+                embed = self._inventory_embed_factory(ctx, inventory)
+                interaction_id, components = self._component_factory(
+                    current_page_id="INVENTORY"
+                )
+            elif action == "SHOW":
+                if pp is None:
+                    async with utils.DatabaseWrapper() as db:
+                        pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id)
+                embed = self._show_embed_factory(ctx, pp)
+                interaction_id, components = self._component_factory(
+                    current_page_id="SHOW"
+                )
+
+            print(datetime.now() - start)
+            await component_interaction.response.edit_message(
+                embed=embed, components=components
+            )
+            print(datetime.now() - start)
+            print("---")
+
+    def _inventory_embed_factory(
+        self,
+        ctx: commands.SlashContext[utils.Bot],
+        inventory: list[utils.InventoryItem],
+    ) -> utils.Embed:
+        embed = utils.Embed()
+        embed.colour = utils.BLUE
+        embed.title = f"{utils.clean(ctx.author.display_name)}'s inventory"
+        embed.description = str(inventory)
+        return embed
+
+    @commands.command(
+        "show",
+        utils.Command,
+        application_command_meta=commands.ApplicationCommandMeta(),
+    )
+    async def show_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
+        """
+        Show your pp to the whole wide world.
+        """
+        async with utils.DatabaseWrapper() as db:
+            pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id)
+
+        embed = self._show_embed_factory(ctx, pp)
+
+        interaction_id, components = self._component_factory(current_page_id="SHOW")
+        await ctx.interaction.response.send_message(embed=embed, components=components)
+
+        await self.handle_tabs(ctx, interaction_id, pp=pp)
+
+    @commands.command(
+        "inventory",
+        utils.Command,
+        application_command_meta=commands.ApplicationCommandMeta(),
+    )
+    async def inventory_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
+        """
+        Check out what items are in your inventory.
+        """
+        async with utils.DatabaseWrapper() as db:
+            inventory = await utils.InventoryItem.fetch(db.conn, {"user_id": ctx.author.id}, fetch_multiple_rows=True)
+
+        embed = self._inventory_embed_factory(ctx, inventory)
+
+        interaction_id, components = self._component_factory(current_page_id="INVENTORY")
+        await ctx.interaction.response.send_message(embed=embed, components=components)
+
+        await self.handle_tabs(ctx, interaction_id, inventory=inventory)
 
 
 def setup(bot: utils.Bot):
