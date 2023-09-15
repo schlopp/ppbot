@@ -21,7 +21,7 @@ class ShopPaginator(utils.Paginator[utils.Item, ShopPaginatorActions]):
         bot: utils.Bot,
         items: Iterable[utils.Item],
         *,
-        loader: Callable[[Self, tuple[utils.Item]], Awaitable[utils.Embed]],
+        loader: Callable[[Self, tuple[utils.Item, ...]], Awaitable[utils.Embed]],
         per_page: int = 5,
     ) -> None:
         self.categories: set[str] = {
@@ -84,7 +84,7 @@ class ShopPaginator(utils.Paginator[utils.Item, ShopPaginatorActions]):
         return super().handle_interaction(interaction, action)
 
     @property
-    def items(self) -> tuple[utils.Item]:
+    def items(self) -> tuple[utils.Item, ...]:
         return tuple(item for item in self._items if item.category in self.categories)
 
 
@@ -180,7 +180,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
         embed.color = utils.BLUE
 
         async def paginator_loader(
-            paginator: ShopPaginator, items: tuple[utils.Item]
+            paginator: ShopPaginator, items: tuple[utils.Item, ...]
         ) -> utils.Embed:
             embed.title = f"SHOP ({pp.format_growth(pp.size.value)})"
             if paginator.categories != {

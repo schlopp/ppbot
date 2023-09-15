@@ -19,7 +19,7 @@ class Paginator(Object, Generic[_ItemT, _ActionsT]):
         bot: Bot,
         items: Iterable[_ItemT],
         *,
-        loader: Callable[[Self, tuple[_ItemT]], Awaitable[Embed]],
+        loader: Callable[[Self, tuple[_ItemT, ...]], Awaitable[Embed]],
         per_page: int = 5,
     ) -> None:
         self.bot = bot
@@ -50,8 +50,8 @@ class Paginator(Object, Generic[_ItemT, _ActionsT]):
         self._components = discord.ui.MessageComponents(self._paginator_action_row)
 
     @property
-    def items(self) -> tuple[_ItemT]:
-        return tuple(self.items)
+    def items(self) -> tuple[_ItemT, ...]:
+        return tuple(self._items)
 
     def _update_components(self, *, disable_all: bool = False) -> None:
         if disable_all:
@@ -77,7 +77,7 @@ class Paginator(Object, Generic[_ItemT, _ActionsT]):
             next_button.disable()
             end_button.disable()
 
-    def _get_current_items(self) -> tuple[_ItemT]:
+    def _get_current_items(self) -> tuple[_ItemT, ...]:
         return self.items[
             self.current_page * self.per_page : (self.current_page + 1) * self.per_page
         ]
@@ -96,7 +96,9 @@ class Paginator(Object, Generic[_ItemT, _ActionsT]):
         )
 
     def handle_interaction(
-        self, interaction: discord.ComponentInteraction, action: _ActionsT
+        self,
+        interaction: discord.ComponentInteraction,  # keep for subclass customisability
+        action: _ActionsT,
     ):
         if action == "START":
             self.current_page = 0
