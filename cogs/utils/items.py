@@ -1,6 +1,7 @@
 from __future__ import annotations
 import asyncpg
 from datetime import timedelta
+from decimal import Decimal
 from functools import cached_property
 from typing import Any
 
@@ -81,9 +82,9 @@ class MultiplierItem(UselessItem):
     def get_scaled_values(self, amount: int, *, multiplier: int) -> tuple[int, int]:
         price = 0
         gain = 0
-        for _ in range(amount):
-            price += int(self.price * (multiplier + gain) ** 1.3)
-            gain += self.gain
+        exponent = Decimal("1.3")  # to avoid OverflowError's with big ass floats
+        price = int(self.price * (1 - exponent ** (multiplier + amount)) / (1 - exponent))
+        gain = self.gain * amount
         return price, gain
 
 
