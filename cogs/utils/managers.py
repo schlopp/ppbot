@@ -68,7 +68,6 @@ class DatabaseTimeoutManager:
             cls.NOTIFICATIONS[user_id].append(notification)
         except KeyError:
             cls.NOTIFICATIONS[user_id] = [notification]
-        print(cls.NOTIFICATIONS.get(user_id))
 
     @classmethod
     def clear_notification(cls, user_id: int, *, index: int = 0) -> None:
