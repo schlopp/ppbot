@@ -33,7 +33,7 @@ class ReplyCommandCog(vbu.Cog[utils.Bot]):
             future, check = utils.ReplyManager.active_listeners[ctx.channel]
         except KeyError:
             await ctx.interaction.response.send_message(
-                f"There's nothing to reply to! If you've randomly stumbled across this command, don't worry. The /reply command is only meant to be used when the bot tells you to, i.e., during a random event.",
+                f"There's nothing to reply to! If you've randomly stumbled across this command, don't worry. The {utils.format_slash_command('reply')} command is only meant to be used when the bot tells you to, i.e., during a random event.",
                 ephemeral=True,
             )
             return

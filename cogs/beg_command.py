@@ -151,13 +151,13 @@ class ReverseMinigame(Minigame[ReverseContextDict]):
 
         embed.description = (
             f"{self.context['situation']}"
-            f" **Use /reply and enter the phrase in reverse to {self.context['reason']}!**"
+            f" **Use {utils.format_slash_command('reply')} and enter the phrase in reverse to {self.context['reason']}!**"
             f" \n\n**{self.context['person']}:** {self.context['phrase']}"
         )
 
         embed.set_footer(
             text=(
-                "use /reply to respond to this minigame!"
+                f"use /reply to respond to this minigame!"
                 " - not case sensitive, only letters and numbers are looked at"
             )
         )
@@ -175,7 +175,7 @@ class ReverseMinigame(Minigame[ReverseContextDict]):
         except asyncio.TimeoutError:
             embed.colour = utils.RED
             embed.description = (
-                "**You're slow as fuck!**  Next time, use **/reply** within"
+                f"**You're slow as fuck!**  Next time, use **{utils.format_slash_command('reply')}** within"
                 f" {utils.format_time(utils.ReplyManager.DEFAULT_TIMEOUT)}."
                 f" {self.context['fail']} You win **nothing.**"
             )
@@ -224,7 +224,7 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
 
         embed.description = (
             f"{self.context['situation']}"
-            f" **Use /reply and enter the sentence to {self.context['reason']}!**"
+            f" **Use {utils.format_slash_command('reply')} and enter the sentence to {self.context['reason']}!**"
             f" \n\n**{self.context['person']}:** `{obscured_sentence}`"
         )
 
@@ -248,7 +248,7 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
         except asyncio.TimeoutError:
             embed.colour = utils.RED
             embed.description = (
-                "**You're slow as fuck!**  Next time, use **/reply** within"
+                f"**You're slow as fuck!**  Next time, use {utils.format_slash_command('reply')} within"
                 f" {utils.format_time(utils.ReplyManager.DEFAULT_TIMEOUT)}."
                 f" {self.context['fail']} You win **nothing.**"
             )
@@ -313,7 +313,7 @@ class FillInTheBlankMinigame(Minigame):
         )
         embed.description = (
             f"{self.context['situation']}"
-            f" **Use /reply and fill in the blank to {self.context['reason']}!**"
+            f" **Use {utils.format_slash_command('reply')} and fill in the blank to {self.context['reason']}!**"
             f" \n\n**{self.context['person']}:** {prompt}"
         )
 
@@ -338,7 +338,7 @@ class FillInTheBlankMinigame(Minigame):
         except asyncio.TimeoutError:
             embed.colour = utils.RED
             embed.description = (
-                "**You're slow as fuck!**  Next time, use **/reply** within"
+                f"**You're slow as fuck!**  Next time, use {utils.format_slash_command('reply')} within"
                 f" {utils.format_time(utils.ReplyManager.DEFAULT_TIMEOUT)}."
                 f" {self.context['fail']} You win **nothing.**"
             )
