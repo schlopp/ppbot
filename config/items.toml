@@ -26,7 +26,7 @@
     description = "An apple a day keeps the doctor away!"
     price = 1000
     duration = 0.5
-    specified_details = ["Gives all **/hospital** surgeries a **100% success rate**"]
+    specified_details = ["Gives all </hospital> surgeries a **100% success rate**"]
 
 [tools]
     [tools.FISHING_ROD]

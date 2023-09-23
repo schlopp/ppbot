@@ -1,5 +1,6 @@
 from __future__ import annotations
 import asyncpg
+import re
 from datetime import timedelta
 from decimal import Decimal
 from functools import cached_property
@@ -14,6 +15,7 @@ from . import (
     MarkdownFormat,
     format_int,
     MEME_URL,
+    format_slash_command,
 )
 
 
@@ -163,6 +165,10 @@ class ToolItem(UselessItem):
         self.price = price
         self.associated_command_name = associated_command_name
 
+    @property
+    def associated_command_link(self) -> str:
+        return format_slash_command(self.associated_command_name)
+
 
 Item = UselessItem | MultiplierItem | BuffItem | ToolItem
 
@@ -251,6 +257,7 @@ class ItemManager:
     tools: dict[str, ToolItem] = {}
     useless: dict[str, UselessItem] = {}
     items_by_name: dict[str, Item] = {}
+    _MATCH_SLASH_COMMANDS_PATTERN = re.compile(r"<\/[A-z](?:[A-z]|[0-9]|-|\s)*>")
 
     @classmethod
     def get(cls, item_key: str) -> Item:
@@ -313,6 +320,17 @@ class ItemManager:
             new_items.append(MultiplierItem(item_id, **item))
 
         for item_id, item in item_data["buffs"].items():
+            specified_details: list[str] | None = item.get("specified_details")
+            if specified_details is not None:
+                for index, detail in enumerate(specified_details):
+                    for slash_command in re.findall(
+                        cls._MATCH_SLASH_COMMANDS_PATTERN, detail
+                    ):
+                        detail = detail.replace(
+                            slash_command, format_slash_command(slash_command[2:-1])
+                        )
+                    specified_details[index] = detail
+
             new_items.append(
                 BuffItem(
                     item_id,
@@ -325,7 +343,7 @@ class ItemManager:
                     if item.get("cooldown") is not None
                     else None,
                     multiplier=item.get("multiplier"),
-                    specified_details=item.get("specified_details"),
+                    specified_details=specified_details,
                 )
             )
 
