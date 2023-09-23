@@ -47,7 +47,8 @@ class ShopPaginator(utils.Paginator[utils.Item, ShopPaginatorActions]):
                 ]
             ],
             placeholder="Categories",
-            max_values=4,
+            # max_values=4,
+            max_values=3,
         )
 
         self._components.components.insert(
