@@ -88,7 +88,7 @@ class Paginator(Object, Generic[_ItemT, _ActionsT]):
         component_interaction = await self.bot.wait_for(
             "component_interaction",
             check=lambda i: i.user == user and i.custom_id.startswith(self.id),
-            timeout=60,
+            timeout=180,
         )
         return component_interaction, cast(
             _ActionsT,

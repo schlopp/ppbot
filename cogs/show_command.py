@@ -158,7 +158,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                     component_interaction,
                     action,
                 ) = await utils.wait_for_component_interaction(
-                    self.bot, interaction_id, users=[ctx.author], timeout=60
+                    self.bot, interaction_id, users=[ctx.author], timeout=180
                 )
             except asyncio.TimeoutError:
                 components.disable_components()
