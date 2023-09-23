@@ -33,6 +33,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
             "INVENTORY": discord.ui.Button(
                 label="Inventory", custom_id=f"{interaction_id}_INVENTORY"
             ),
+            "BUFFS": discord.ui.Button(label="Buffs (COMING SOON)", disabled=True),
         }
         buttons[current_page_id].style = discord.ButtonStyle.blurple
         buttons[current_page_id].disabled = True
@@ -96,7 +97,6 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                 await ctx.interaction.edit_original_message(components=components)
                 break
 
-            start = datetime.now()
 
             if action == "INVENTORY":
                 if inventory is None:
@@ -119,12 +119,9 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                     current_page_id="SHOW"
                 )
 
-            print(datetime.now() - start)
             await component_interaction.response.edit_message(
                 embed=embed, components=components
             )
-            print(datetime.now() - start)
-            print("---")
 
     def _inventory_embed_factory(
         self,
