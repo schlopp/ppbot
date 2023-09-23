@@ -35,23 +35,16 @@ class ShopPaginator(utils.Paginator[utils.Item, ShopPaginatorActions]):
             custom_id=f"{self.id}_SELECT_CATEGORY",
             options=[
                 discord.ui.SelectOption(
-                    label="Multipliers",
-                    value=utils.MultiplierItem.category,
+                    label=ItemClass.category_name,
+                    value=ItemClass.category,
                     default=True,
-                ),
-                discord.ui.SelectOption(
-                    label="Buffs", value=utils.BuffItem.category, default=True
-                ),
-                discord.ui.SelectOption(
-                    label="Tools",
-                    value=utils.ToolItem.category,
-                    default=True,
-                ),
-                discord.ui.SelectOption(
-                    label="Useless Items",
-                    value=utils.UselessItem.category,
-                    default=True,
-                ),
+                )
+                for ItemClass in [
+                    utils.MultiplierItem,
+                    utils.BuffItem,
+                    utils.ToolItem,
+                    utils.UselessItem,
+                ]
             ],
             placeholder="Categories",
             max_values=4,

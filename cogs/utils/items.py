@@ -24,6 +24,7 @@ class UselessItem(Object):
     __slots__ = ("id", "name", "plural", "description", "price")
     _repr_attributes = __slots__
     category = "USELESS"
+    category_name = "Useless Items"
 
     def __init__(
         self,
@@ -58,6 +59,7 @@ class MultiplierItem(UselessItem):
     __slots__ = ("id", "name", "plural", "description", "price", "gain")
     _repr_attributes = __slots__
     category = "MUTLIPLIER"
+    category_name = "Multipliers"
 
     def __init__(
         self,
@@ -98,6 +100,7 @@ class BuffItem(UselessItem):
     )
     _repr_attributes = __slots__
     category = "BUFF"
+    category_name = "Buffs"
 
     def __init__(
         self,
@@ -138,6 +141,7 @@ class ToolItem(UselessItem):
     )
     _repr_attributes = __slots__
     category = "TOOL"
+    category_name = "Tools"
 
     def __init__(
         self,
