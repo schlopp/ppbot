@@ -83,7 +83,9 @@ class MultiplierItem(UselessItem):
         price = 0
         gain = 0
         exponent = Decimal("1.3")  # to avoid OverflowError's with big ass floats
-        price = int(self.price * (1 - exponent ** (multiplier + amount)) / (1 - exponent))
+        price = int(
+            self.price * (1 - exponent ** (multiplier + amount)) / (1 - exponent)
+        )
         gain = self.gain * amount
         return price, gain
 

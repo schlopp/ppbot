@@ -366,7 +366,20 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                     kwargs = {k: v for k, v in kwargs.items() if v is not None}
                     await ctx.interaction.response.send_message(**kwargs)
 
+            embed = utils.Embed()
             if isinstance(item_object, utils.MultiplierItem):
+                if amount > self.MAX_MULTIPLIER_PURCHASE_AMOUNT:
+                    embed.colour = utils.RED
+                    embed.title = f"Purchase failed - buying too much shit at once"
+                    embed.description = (
+                        f"You can't buy more than {utils.format_int(self.MAX_MULTIPLIER_PURCHASE_AMOUNT)}"
+                        f" multipliers at once, sorry!"
+                    )
+                    embed.add_tip()
+
+                    await responder(embed=embed, components=None, content=None)
+                    return
+
                 price, gain = item_object.get_scaled_values(
                     amount, multiplier=pp.multiplier.value
                 )
