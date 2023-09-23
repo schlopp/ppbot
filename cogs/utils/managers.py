@@ -32,7 +32,7 @@ class ReplyManager:
         *,
         check: Callable[
             [commands.SlashContext[Bot], str], bool
-        ] = lambda ctx, bot: True,
+        ] = lambda ctx, reply: True,
         timeout: float = DEFAULT_TIMEOUT,
     ) -> tuple[commands.SlashContext[Bot], str]:
         if channel in cls.active_listeners:
