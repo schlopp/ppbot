@@ -137,7 +137,9 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
         comment = self.ITEM_COUNT_COMMENTS[
             utils.find_nearest_number(self.ITEM_COUNT_COMMENTS, item_count)[0]
         ]
-        embed.set_footer(text=f"{utils.format_int(item_count)} items in total. {comment}")
+        embed.set_footer(
+            text=f"{utils.format_int(item_count)} items in total. {comment}"
+        )
 
         return embed
 
