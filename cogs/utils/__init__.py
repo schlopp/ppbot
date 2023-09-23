@@ -5,6 +5,7 @@ from .formatters import (
     format_time as format_time,
     format_iterable as format_iterable,
     clean as clean,
+    format_slash_command as format_slash_command,
 )
 from .helpers import (
     MEME_URL as MEME_URL,
@@ -42,6 +43,7 @@ from .managers import (
     ReplyManager as ReplyManager,
     DatabaseTimeoutManager as DatabaseTimeoutManager,
     wait_for_component_interaction as wait_for_component_interaction,
+    SlashCommandMappingManager as SlashCommandMappingManager,
 )
 from .pps import Pp as Pp
 from .paginator import PaginatorActions as PaginatorActions, Paginator as Paginator

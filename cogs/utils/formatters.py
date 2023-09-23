@@ -2,6 +2,7 @@ import enum
 import math
 from collections.abc import Iterable
 from typing import Any, Literal
+from . import SlashCommandMappingManager
 
 
 _UNITS = {
@@ -135,3 +136,7 @@ def clean(text: str) -> str:
         text = text.replace(character, "")
 
     return text.strip()
+
+
+def format_slash_command(command_name: str) -> str:
+    return SlashCommandMappingManager.format_slash_command(command_name)
