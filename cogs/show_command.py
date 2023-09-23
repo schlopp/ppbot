@@ -32,7 +32,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
             "INVENTORY": discord.ui.Button(
                 label="Inventory", custom_id=f"{interaction_id}_INVENTORY"
             ),
-            "BUFFS": discord.ui.Button(label="Buffs (COMING SOON)", disabled=True),
+            "BUFFS": discord.ui.Button(label="Active Buffs (COMING SOON)", disabled=True),
         }
         buttons[current_page_id].style = discord.ButtonStyle.blurple
         buttons[current_page_id].disabled = True
