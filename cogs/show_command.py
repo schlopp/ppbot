@@ -32,7 +32,9 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
             "INVENTORY": discord.ui.Button(
                 label="Inventory", custom_id=f"{interaction_id}_INVENTORY"
             ),
-            "BUFFS": discord.ui.Button(label="Active Buffs (COMING SOON)", disabled=True),
+            "BUFFS": discord.ui.Button(
+                label="Active Buffs (COMING SOON)", disabled=True
+            ),
         }
         buttons[current_page_id].style = discord.ButtonStyle.blurple
         buttons[current_page_id].disabled = True
@@ -74,6 +76,47 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
 
         return embed
 
+    def _inventory_embed_factory(
+        self,
+        ctx: commands.SlashContext[utils.Bot],
+        inventory: list[utils.InventoryItem],
+    ) -> utils.Embed:
+        embed = utils.Embed()
+        embed.colour = utils.BLUE
+        embed.title = f"{utils.clean(ctx.author.display_name)}'s inventory"
+
+        categories: dict[str, list[utils.InventoryItem]] = {
+            utils.ToolItem.category_name: [],
+            utils.BuffItem.category_name: [],
+            utils.UselessItem.category_name: [],
+        }
+        sorted_inventory = sorted(
+            inventory, key=lambda inv_item: inv_item.amount.value, reverse=True
+        )
+
+        for inv_item in sorted_inventory:
+            try:
+                categories[inv_item.item.category_name].append(inv_item)
+            except KeyError:
+                categories[inv_item.item.category_name] = [inv_item]
+
+        # Used to add a lil more space between the fields
+        zero_width_character = "​"
+        em_space_character = " "
+
+        for category_name, inv_items in categories.items():
+            embed.add_field(
+                name=category_name,
+                value="\n".join(
+                    f"**{utils.format_int(inv_item.amount.value)}**x {inv_item.item.name}"
+                    + em_space_character * 2
+                    + zero_width_character
+                    for inv_item in inv_items
+                ),
+            )
+
+        return embed
+
     async def handle_tabs(
         self,
         ctx: commands.SlashContext[utils.Bot],
@@ -95,7 +138,6 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                 components.disable_components()
                 await ctx.interaction.edit_original_message(components=components)
                 break
-
 
             if action == "INVENTORY":
                 if inventory is None:
@@ -121,17 +163,6 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
             await component_interaction.response.edit_message(
                 embed=embed, components=components
             )
-
-    def _inventory_embed_factory(
-        self,
-        ctx: commands.SlashContext[utils.Bot],
-        inventory: list[utils.InventoryItem],
-    ) -> utils.Embed:
-        embed = utils.Embed()
-        embed.colour = utils.BLUE
-        embed.title = f"{utils.clean(ctx.author.display_name)}'s inventory"
-        embed.description = str(inventory)
-        return embed
 
     @commands.command(
         "show",
