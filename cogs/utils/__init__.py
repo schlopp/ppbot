@@ -5,7 +5,6 @@ from .formatters import (
     format_time as format_time,
     format_iterable as format_iterable,
     clean as clean,
-    format_slash_command as format_slash_command,
 )
 from .helpers import (
     MEME_URL as MEME_URL,
@@ -28,6 +27,14 @@ from .helpers import (
 from .cards import Rank as Rank, Suit as Suit, Deck as Deck, Hand as Hand
 from .bot import DatabaseWrapper as DatabaseWrapper, Bot as Bot
 from .command import RedisCooldownMapping as RedisCooldownMapping, Command as Command
+from .managers import (
+    DuplicateReplyListenerError as DuplicateReplyListenerError,
+    ReplyManager as ReplyManager,
+    DatabaseTimeoutManager as DatabaseTimeoutManager,
+    wait_for_component_interaction as wait_for_component_interaction,
+    SlashCommandMappingManager as SlashCommandMappingManager,
+    format_slash_command as format_slash_command,
+)
 from .items import (
     UnknownItemError as UnknownItemError,
     UselessItem as UselessItem,
@@ -37,13 +44,6 @@ from .items import (
     Item as Item,
     InventoryItem as InventoryItem,
     ItemManager as ItemManager,
-)
-from .managers import (
-    DuplicateReplyListenerError as DuplicateReplyListenerError,
-    ReplyManager as ReplyManager,
-    DatabaseTimeoutManager as DatabaseTimeoutManager,
-    wait_for_component_interaction as wait_for_component_interaction,
-    SlashCommandMappingManager as SlashCommandMappingManager,
 )
 from .pps import Pp as Pp
 from .paginator import PaginatorActions as PaginatorActions, Paginator as Paginator
