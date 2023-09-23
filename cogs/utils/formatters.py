@@ -4,28 +4,29 @@ from collections.abc import Iterable
 from typing import Any, Literal
 
 
-_UNITS = [
-    "million",
-    "billion",
-    "trillion",
-    "quadrillion",
-    "quintillion",
-    "sextillion",
-    "septillion",
-    "octillion",
-    "nonillion",
-    "decillion",
-    "undecillion",
-    "duodecillion",
-    "tredicillion",
-    "quattuordecillion",
-    "quindecillion",
-    "sexdecillion",
-    "septendecillion",
-    "octodecillion",
-    "novemdecillion",
-    "vigintillion",
-]
+_UNITS = {
+    "million": "m",
+    "billion": "b",
+    "trillion": "t",
+    "quadrillion": "q",
+    "quintillion": " qt",
+    "sextillion": " sext.",
+    "septillion": " sept.",
+    "octillion": " oct.",
+    "nonillion": " non.",
+    "decillion": " dec.",
+    "undecillion": " und.",
+    "duodecillion": " duo.",
+    "tredicillion": " tre.",
+    "quattuordecillion": " qua.",
+    "quindecillion": " qui.",
+    "sexdecillion": " sexd.",
+    "septendecillion": "s epte.",
+    "octodecillion": " octo.",
+    "novemdecillion": " nov.",
+    "vigintillion": " vig.",
+    "infinity": " inf.",
+}
 _TIME_UNITS: dict[str, float] = {
     "year": 60 * 60 * 24 * 365,
     "week": 60 * 60 * 24 * 7,
@@ -60,10 +61,15 @@ def format_int(
         if unit_value.is_integer():
             unit_value = math.floor(unit_value)
 
-        if format_type == IntFormatType.FULL_UNIT:
-            return f"{unit_value} {_UNITS[unit - 2]}"
+        try:
+            unit = list(_UNITS)[unit - 2]
+        except IndexError:
+            unit = "infinity"
 
-        return f"{unit_value}{_UNITS[unit - 2][0].upper()}"
+        if format_type == IntFormatType.FULL_UNIT:
+            return f"{unit_value} {unit}"
+
+        return f"{unit_value}{_UNITS[unit].upper()}"
 
 
 def format_time(
