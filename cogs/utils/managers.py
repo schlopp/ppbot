@@ -167,3 +167,7 @@ class SlashCommandMappingManager:
             return f"</{command_name}:{cls.slash_command_ids[command_base]}>"
         except KeyError:
             return f"/{command_name}"
+
+
+def format_slash_command(command_name: str) -> str:
+    return SlashCommandMappingManager.format_slash_command(command_name)
