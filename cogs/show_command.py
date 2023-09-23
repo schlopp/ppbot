@@ -1,6 +1,5 @@
 import asyncio
 import uuid
-from datetime import datetime
 from typing import Literal
 
 import discord
