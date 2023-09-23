@@ -22,6 +22,22 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
         15_157_486_080: "the distance from the earth to the moon",
         5_984_252_000_000: "the distance from the earth to THE SUN",
     }
+    ITEM_COUNT_COMMENTS = {
+        0: "r u poor?",
+        1: "Not much bro",
+        5: "You must be new here",
+        10: "You're getting there",
+        20: "Not bad",
+        100: "That's pretty good",
+        200: "You're either rich, or don't know how to spend your inches wisely",
+        500: "God DAMN",
+        1000: "You must be a collector or sum",
+        5000: "Jesus fucking christ man",
+        10_000: "You use this bot way too fucking much",
+        20_000: "Are you mentally OK? Do u need a hug??",
+        100_000: "Dude just give up this is too much",
+        1_000_000: "Okay. You win. I give up. I fucking quit. You win the game. Fuck you.",
+    }
 
     def _component_factory(
         self, *, current_page_id: Literal["SHOW", "INVENTORY"]
@@ -94,7 +110,10 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
             inventory, key=lambda inv_item: inv_item.amount.value, reverse=True
         )
 
+        item_count = 0
+
         for inv_item in sorted_inventory:
+            item_count += inv_item.amount.value
             try:
                 categories[inv_item.item.category_name].append(inv_item)
             except KeyError:
@@ -114,6 +133,11 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                     for inv_item in inv_items
                 ),
             )
+
+        comment = self.ITEM_COUNT_COMMENTS[
+            utils.find_nearest_number(self.ITEM_COUNT_COMMENTS, item_count)[0]
+        ]
+        embed.set_footer(text=f"{utils.format_int(item_count)} items in total. {comment}")
 
         return embed
 
