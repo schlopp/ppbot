@@ -237,9 +237,9 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
         if amount < 1:
             raise commands.CheckFailure("You can't buy less than one of an item!")
 
-        if amount > 10**4:
+        if amount > 10 ** 4:
             raise commands.CheckFailure(
-                f"You can't buy more than {utils.format_int(amount)} of an item!"
+                f"You can't buy more than {utils.format_int(10 ** 4)} of an item at once!"
             )
 
         async with utils.DatabaseWrapper() as db, db.transaction(), utils.DatabaseTimeoutManager.notify(
