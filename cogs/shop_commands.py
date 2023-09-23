@@ -41,7 +41,7 @@ class ShopPaginator(utils.Paginator[utils.Item, ShopPaginatorActions]):
                 )
                 for ItemClass in [
                     utils.MultiplierItem,
-                    utils.BuffItem,
+                    # utils.BuffItem,
                     utils.ToolItem,
                     utils.UselessItem,
                 ]
@@ -82,6 +82,8 @@ class ShopPaginator(utils.Paginator[utils.Item, ShopPaginatorActions]):
 
 
 class ShopCommandCog(vbu.Cog[utils.Bot]):
+    MAX_MULTIPLIER_PURCHASE_AMOUNT = 10**6
+
     def format_listing(
         self, item: utils.Item, *, pp: utils.Pp, amount_owned: int | None = None
     ) -> str:
@@ -207,7 +209,13 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             return embed
 
         paginator = ShopPaginator(
-            self.bot, utils.ItemManager.items.values(), loader=paginator_loader
+            self.bot,
+            [
+                item
+                for item in utils.ItemManager.items.values()
+                if not isinstance(item, utils.BuffItem)
+            ],
+            loader=paginator_loader,
         )
         await paginator.start(ctx.interaction)
 
@@ -236,11 +244,6 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
     ) -> None:
         if amount < 1:
             raise commands.CheckFailure("You can't buy less than one of an item!")
-
-        if amount > 10 ** 4:
-            raise commands.CheckFailure(
-                f"You can't buy more than {utils.format_int(10 ** 4)} of an item at once!"
-            )
 
         async with utils.DatabaseWrapper() as db, db.transaction(), utils.DatabaseTimeoutManager.notify(
             ctx.author.id, "You're still busy buying an item!"
@@ -386,8 +389,6 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             else:
                 price = item_object.price * amount
                 gain = None
-
-            embed = utils.Embed()
 
             if price > pp.size.value:
                 embed.colour = utils.RED
