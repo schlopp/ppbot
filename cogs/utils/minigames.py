@@ -380,7 +380,8 @@ class MinigameDialogueManager:
 
     @classmethod
     def load(cls) -> None:
-        cls.dialogue = toml.loads("config/minigames.toml")
+        cls.dialogue.clear()
+        cls.dialogue.update(toml.loads("config/minigames.toml"))
 
     @classmethod
     def get_random_dialogue(
@@ -438,5 +439,6 @@ class MinigameDialogueManager:
             return cast(_MinigameContextDictT, repeat_dialogue)
 
         raise ValueError(f"No handling for minigame {minigame_type!r} available")
+
 
 MinigameDialogueManager.load()
