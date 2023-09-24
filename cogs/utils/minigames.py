@@ -381,7 +381,7 @@ class MinigameDialogueManager:
     @classmethod
     def load(cls) -> None:
         cls.dialogue.clear()
-        cls.dialogue.update(toml.loads("config/minigames.toml"))
+        cls.dialogue.update(toml.load("config/minigames.toml"))
 
     @classmethod
     def get_random_dialogue(
