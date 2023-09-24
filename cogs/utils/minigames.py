@@ -211,7 +211,7 @@ class ReverseMinigame(Minigame[ReverseContextDict]):
 
 
 class RepeatMinigame(Minigame[RepeatContextDict]):
-    ID = "REVERSE"
+    ID = "REPEAT"
 
     async def start(self, interaction: discord.Interaction) -> None:
         embed = Embed()
