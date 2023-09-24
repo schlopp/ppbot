@@ -152,13 +152,6 @@ class ReverseMinigame(Minigame[ReverseContextDict]):
             f" \n\n**{self.context['person']}:** {self.context['phrase']}"
         )
 
-        embed.set_footer(
-            text=(
-                f"use /reply to respond to this minigame!"
-                " - not case sensitive, only letters and numbers are looked at"
-            )
-        )
-
         await interaction.response.send_message(embed=embed)
 
         embed = Embed()
@@ -225,13 +218,6 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
             f"{self.context['situation']}"
             f" **Use {format_slash_command('reply')} and enter the sentence to {self.context['reason']}!**"
             f" \n\n**{self.context['person']}:** `{obscured_sentence}`"
-        )
-
-        embed.set_footer(
-            text=(
-                "use /reply to respond to this minigame!"
-                " - not case sensitive, only letters and numbers are looked at"
-            )
         )
 
         await interaction.response.send_message(embed=embed)
@@ -316,13 +302,6 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
             f"{self.context['situation']}"
             f" **Use {format_slash_command('reply')} and fill in the blank to {self.context['reason']}!**"
             f" \n\n**{self.context['person']}:** {prompt}"
-        )
-
-        embed.set_footer(
-            text=(
-                "use /reply to respond to this minigame!"
-                " - not case sensitive, only letters and numbers are looked at"
-            )
         )
 
         await interaction.response.send_message(embed=embed)
