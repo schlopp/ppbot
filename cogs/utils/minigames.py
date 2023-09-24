@@ -183,7 +183,7 @@ class ReverseMinigame(Minigame[ReverseContextDict]):
                 f" {self.context['fail']} You win **nothing.**"
             )
         else:
-            embed.colour = GREEN
+            embed.colour = PINK
             reward = await self.give_random_reward()
 
             if "{}" in self.context["win"]:
@@ -258,7 +258,7 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
                 f" {self.context['fail']} You win **nothing.**"
             )
         else:
-            embed.colour = GREEN
+            embed.colour = PINK
             reward = await self.give_random_reward()
 
             if "{}" in self.context["win"]:
@@ -334,7 +334,7 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
                 f" {self.context['fail']} You win **nothing.**"
             )
         else:
-            embed.colour = GREEN
+            embed.colour = PINK
             reward = await self.give_random_reward()
 
             if "{}" in self.context["win"]:
