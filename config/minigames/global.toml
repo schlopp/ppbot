@@ -1,0 +1,32 @@
+[chance_weights]
+    FILL_IN_THE_BLANK = 1
+
+
+[[FILL_IN_THE_BLANK]]
+    person = "LowTierGod"
+    situations = [
+        "LowTierGod spots you in his chat and decides you're not worthy of living.",
+    ]
+    reasons = [
+        "avoid getting bullied to death",
+        "stand up to him"
+    ]
+    prompts = [
+        [
+            "You're gonna stay on my {0} until you die. Your purpose in life is to be on my stream sucking on my {0} daily.",
+            "dick"
+        ],
+        ["Your life is worth {}, you serve zero purpose", "nothing"],
+        ["You should {} yourself, NOW!", "kill"],
+        [
+            "Let's go to the 99-cent store, let's pick out a {} together. I'm gonna give you an assisted suicide.",
+            "rope"
+        ]
+    ]
+    fails = [
+        "LowTierGod convinces you to end it all.",
+    ]
+    wins = [
+        "LowTierGod backs off from you and decides to bully a little kid with autism instead. The kid was brutally beat to death, but atleast you're okay!",
+        "LowTierGod gets distracted and starts bullying others instead. You're safe for now.",
+    ]

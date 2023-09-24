@@ -103,7 +103,7 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
 
         minigame_type = minigame_types[minigame_activity]
         minigame = minigame_type(
-            connection, pp, minigame_type.get_random_dialogue("beg")
+            connection, pp, minigame_type.generate_random_dialogue("beg")
         )
 
         await minigame.start(interaction)

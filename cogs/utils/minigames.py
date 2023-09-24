@@ -1,5 +1,7 @@
 import asyncio
 import itertools
+import os
+import logging
 import random
 import uuid
 from string import ascii_letters, digits
@@ -22,7 +24,6 @@ from . import (
     limit_text,
     clean,
     RED,
-    GREEN,
     PINK,
     MEME_URL,
 )
@@ -46,8 +47,8 @@ class Minigame(Generic[_MinigameContextDictT], Object):
         self.context = context
 
     @classmethod
-    def get_random_dialogue(cls, section: str | None = None) -> _MinigameContextDictT:
-        return MinigameDialogueManager.get_random_dialogue(cls, section)
+    def generate_random_dialogue(cls, section: str = "global") -> _MinigameContextDictT:
+        return MinigameDialogueManager.generate_random_dialogue(cls, section)
 
     async def give_random_reward(self) -> str:
         reward_messages: list[str] = []
@@ -355,26 +356,37 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
 
 
 class MinigameDialogueManager:
-    dialogue: dict[str, list[dict] | dict[str, list[dict]]] = {}
+    DIALOGUE_DIRECTORY = "config/minigames"
+    dialogue: dict[str, dict[str, list[dict]]] = {}
+    _logger = logging.getLogger("vbu.bot.cog.utils.MinigameDialogueManager")
 
     @classmethod
     def load(cls) -> None:
         cls.dialogue.clear()
-        cls.dialogue.update(toml.load("config/minigames.toml"))
+        for subpath in os.listdir(cls.DIALOGUE_DIRECTORY):
+            assert subpath.endswith(".toml"), (
+                f"Loading minigame dialogue failed: Dialogue directory {cls.DIALOGUE_DIRECTORY!r}"
+                " contains non-TOML files."
+            )
+            cls.dialogue.update(
+                {
+                    subpath.rsplit(".")[0]: toml.load(
+                        f"{cls.DIALOGUE_DIRECTORY}/{subpath}"
+                    )
+                }
+            )
+            cls._logger.info(
+                f" * Added dialogue from {cls.DIALOGUE_DIRECTORY}/{subpath}"
+            )
 
     @classmethod
-    def get_random_dialogue(
+    def generate_random_dialogue(
         cls,
         minigame_type: type[Minigame[_MinigameContextDictT]],
-        section: str | None = None,
+        section: str = "global",
     ) -> _MinigameContextDictT:
-        if section is not None:
-            section_dialogue = cast(
-                dict[str, list[dict]], cls.dialogue.get(section, {})
-            )
-            dialogue_options = section_dialogue.get(minigame_type.ID, [])
-        else:
-            dialogue_options = cast(list[dict], cls.dialogue.get(minigame_type.ID, []))
+        section_dialogue = cls.dialogue.get(section, {})
+        dialogue_options = section_dialogue.get(minigame_type.ID, [])
 
         if not dialogue_options:
             raise ValueError(
@@ -383,41 +395,53 @@ class MinigameDialogueManager:
             )
 
         dialogue_option = random.choice(dialogue_options)
-        if minigame_type == FillInTheBlankMinigame:
-            prompt, answer = random.choice(dialogue_option["prompts"])
-            fill_in_the_blank_dialogue: FillInTheBlankContextDict = {
-                "person": dialogue_option["person"],
-                "situation": random.choice(dialogue_option["situations"]),
-                "reason": random.choice(dialogue_option["reasons"]),
-                "prompt": prompt,
-                "answer": answer,
-                "fail": random.choice(dialogue_option["fails"]),
-                "win": random.choice(dialogue_option["wins"]),
-            }
+        try:
+            if minigame_type == FillInTheBlankMinigame:
+                prompt, answer = random.choice(dialogue_option["prompts"])
+                fill_in_the_blank_dialogue: FillInTheBlankContextDict = {
+                    "person": dialogue_option["person"],
+                    "situation": random.choice(dialogue_option["situations"]),
+                    "reason": random.choice(dialogue_option["reasons"]),
+                    "prompt": prompt,
+                    "answer": answer,
+                    "fail": random.choice(dialogue_option["fails"]),
+                    "win": random.choice(dialogue_option["wins"]),
+                }
 
-            return cast(_MinigameContextDictT, fill_in_the_blank_dialogue)
-        elif minigame_type == ReverseMinigame:
-            reverse_dialogue: ReverseContextDict = {
-                "person": dialogue_option["person"],
-                "situation": random.choice(dialogue_option["situations"]),
-                "reason": random.choice(dialogue_option["reasons"]),
-                "phrase": random.choice(dialogue_option["phrases"]),
-                "fail": random.choice(dialogue_option["fails"]),
-                "win": random.choice(dialogue_option["wins"]),
-            }
-            return cast(_MinigameContextDictT, reverse_dialogue)
-        elif minigame_type == RepeatMinigame:
-            repeat_dialogue: RepeatContextDict = {
-                "person": dialogue_option["person"],
-                "situation": random.choice(dialogue_option["situations"]),
-                "reason": random.choice(dialogue_option["reasons"]),
-                "sentence": random.choice(dialogue_option["sentences"]),
-                "fail": random.choice(dialogue_option["fails"]),
-                "win": random.choice(dialogue_option["wins"]),
-            }
-            return cast(_MinigameContextDictT, repeat_dialogue)
+                return cast(_MinigameContextDictT, fill_in_the_blank_dialogue)
 
-        raise ValueError(f"No handling for minigame {minigame_type!r} available")
+            elif minigame_type == ReverseMinigame:
+                reverse_dialogue: ReverseContextDict = {
+                    "person": dialogue_option["person"],
+                    "situation": random.choice(dialogue_option["situations"]),
+                    "reason": random.choice(dialogue_option["reasons"]),
+                    "phrase": random.choice(dialogue_option["phrases"]),
+                    "fail": random.choice(dialogue_option["fails"]),
+                    "win": random.choice(dialogue_option["wins"]),
+                }
+                return cast(_MinigameContextDictT, reverse_dialogue)
 
+            elif minigame_type == RepeatMinigame:
+                repeat_dialogue: RepeatContextDict = {
+                    "person": dialogue_option["person"],
+                    "situation": random.choice(dialogue_option["situations"]),
+                    "reason": random.choice(dialogue_option["reasons"]),
+                    "sentence": random.choice(dialogue_option["sentences"]),
+                    "fail": random.choice(dialogue_option["fails"]),
+                    "win": random.choice(dialogue_option["wins"]),
+                }
+                return cast(_MinigameContextDictT, repeat_dialogue)
+        except KeyError as exc:
+            raise ValueError(
+                f"Can't generate minigame dialogue: Element of section {section!r}, minigame"
+                f" {minigame_type.ID!r} missing required key {exc.args[0]!r}"
+            )
+        except IndexError as exc:
+            raise ValueError(
+                f"Can't generate minigame dialogue: Element of section {section!r}, minigame"
+                f" {minigame_type.ID!r} contains empty dialogue array"
+            )
 
-MinigameDialogueManager.load()
+        raise ValueError(
+            f"Can't generate minigame dialogue: No handling for minigame {minigame_type!r} available"
+        )

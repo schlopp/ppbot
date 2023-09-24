@@ -1,5 +1,6 @@
 from __future__ import annotations
 import asyncpg
+import logging
 import re
 from datetime import timedelta
 from decimal import Decimal
@@ -258,6 +259,7 @@ class ItemManager:
     useless: dict[str, UselessItem] = {}
     items_by_name: dict[str, Item] = {}
     _MATCH_SLASH_COMMANDS_PATTERN = re.compile(r"<\/[A-z](?:[A-z]|[0-9]|-|\s)*>")
+    _logger = logging.getLogger("vbu.bot.cog.utils.ItemManager")
 
     @classmethod
     def get(cls, item_key: str) -> Item:
@@ -317,7 +319,9 @@ class ItemManager:
         new_items: list[Item] = []
 
         for item_id, item in item_data["multipliers"].items():
-            new_items.append(MultiplierItem(item_id, **item))
+            new_item = MultiplierItem(item_id, **item)
+            new_items.append(new_item)
+            cls._logger.info(f" * Loaded multiplier item {new_item.id!r}")
 
         for item_id, item in item_data["buffs"].items():
             specified_details: list[str] | None = item.get("specified_details")
@@ -331,30 +335,32 @@ class ItemManager:
                         )
                     specified_details[index] = detail
 
-            new_items.append(
-                BuffItem(
-                    item_id,
-                    name=item["name"],
-                    plural=item.get("plural"),
-                    description=item["description"],
-                    price=item["price"],
-                    duration=timedelta(hours=item["duration"]),
-                    cooldown=timedelta(hours=item["cooldown"])
-                    if item.get("cooldown") is not None
-                    else None,
-                    multiplier=item.get("multiplier"),
-                    specified_details=specified_details,
-                )
+            new_item = BuffItem(
+                item_id,
+                name=item["name"],
+                plural=item.get("plural"),
+                description=item["description"],
+                price=item["price"],
+                duration=timedelta(hours=item["duration"]),
+                cooldown=timedelta(hours=item["cooldown"])
+                if item.get("cooldown") is not None
+                else None,
+                multiplier=item.get("multiplier"),
+                specified_details=specified_details,
             )
 
+            new_items.append(new_item)
+            cls._logger.info(f" * Loaded buff item {new_item.id!r}")
+
         for item_id, item in item_data["tools"].items():
-            new_items.append(ToolItem(item_id, **item))
+            new_item = ToolItem(item_id, **item)
+            new_items.append(new_item)
+            cls._logger.info(f" * Loaded tool item {new_item.id!r}")
 
         for item_id, item in item_data["useless"].items():
-            new_items.append(UselessItem(item_id, **item))
+            new_item = UselessItem(item_id, **item)
+            new_items.append(new_item)
+            cls._logger.info(f" * Loaded useless item {new_item.id!r}")
 
         cls.items.clear()
         cls.add(*new_items)
-
-
-ItemManager.load()

@@ -1,0 +1,72 @@
+[chance_weights]
+    FILL_IN_THE_BLANK = 1
+    REVERSE = 1
+    REPEAT = 1
+
+
+[[FILL_IN_THE_BLANK]]
+    person = "local crackhead"
+    situations = [
+        "A local crackhead points at you while you're begging and starts yelling.",
+        "Some crackhead sees you begging and starts sprinting towards you.",
+    ]
+    reasons = [
+        "avoid the crackhead",
+        "get a sweet reward from him",
+        "beat him up and take his shit",
+    ]
+    prompts = [
+        ["Got any {} for me to smoke?", "crack"],
+        ["I need a new {}, my old one broke.", "crack pipe"],
+        ["Jesse, we need to {}.", "cook"],
+    ]
+    fails = [
+        "The crackhead pulls a broken glass bottle out of his bootyhole and stabs you with it.",
+        "You're suddenly surrounded by crack junkies who start pissing on you.",
+        "The crackhead walks away unsatisfied.",
+    ]
+    wins = [
+        "The crackhead suddenly dies from a heart attack. Who could've seen that coming? You start looting his dead body and find {}",
+        "You catch the crackhead off guard and knock him out in one swift punch. You steal {} from his bleeding corpse. Are you happy now?",
+    ]
+
+[[REVERSE]]
+    person = "rich guy"
+    situations = [
+        "You ask a rich guy for some inches while begging, but he doesn't wanna give them to you.",
+    ]
+    reasons = [
+        "steal all his inches",
+        "take his inches non-consentually",
+    ]
+    phrases = [
+        "ew no",
+        "get away from me",
+        "hell nah",
+        "broke ass mf",
+    ]
+    fails = [
+        "The rich guy calls the police and has you arrested.",
+        "You attempted to rob him but he shot you 12 times.",
+    ]
+    wins = [
+        "You fuck up the rich guy and take {} off his unconscious body.",
+    ]
+
+[[REPEAT]]
+    person = "tiktok guy"
+    situations = [
+        "A random tiktokker sees you begging and decides to put his phone up in your face.",
+        "Some guy from tiktok making interview videos comes up to you and decides to annoy you.",
+    ]
+    reasons = ["get a donation from him"]
+    sentences = [
+        "gay son or thot daughter?",
+        "kiss or slap?",
+    ]
+    fails = [
+        "The tiktokker didn't find you entertaining enough and left.",
+    ]
+    wins = [
+        "The tiktokker gave you a mystery gift, containing {}.",
+    ]
