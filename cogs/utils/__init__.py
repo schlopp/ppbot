@@ -47,3 +47,10 @@ from .items import (
 )
 from .pps import Pp as Pp
 from .paginator import PaginatorActions as PaginatorActions, Paginator as Paginator
+from .minigames import (
+    Minigame as Minigame,
+    ReverseMinigame as ReverseMinigame,
+    RepeatMinigame as RepeatMinigame,
+    FillInTheBlankMinigame as FillInTheBlankMinigame,
+    MinigameDialogueManager as MinigameDialogueManager,
+)
