@@ -24,7 +24,7 @@ fails = [
 ]
 wins = [
     "LowTierGod backs off from you and decides to bully a little kid with autism instead. The kid was brutally beat to death, but atleast you're okay!",
-    "LowTierGod gets distracted and starts bullying others instead. You're safe for now."
+    "LowTierGod gets distracted and starts bullying others instead. You're safe for now.",
 ]
 
 [[beg.FILL_IN_THE_BLANK]]
@@ -36,12 +36,12 @@ situations = [
 reasons = [
     "avoid the crackhead",
     "get a sweet reward from him",
-    "beat him up and take his shit"
+    "beat him up and take his shit",
 ]
 prompts = [
     ["Got any {} for me to smoke?", "crack"],
     ["I need a new {}, my old one broke.", "crack pipe"],
-    ["Jesse, we need to {}.", "cook"]
+    ["Jesse, we need to {}.", "cook"],
 ]
 fails = [
     "The crackhead pulls a broken glass bottle out of his bootyhole and stabs you with it.",
@@ -50,7 +50,7 @@ fails = [
 ]
 wins = [
     "The crackhead suddenly dies from a heart attack. Who could've seen that coming? You start looting his dead body and find {}",
-    "You catch the crackhead off guard and knock him out in one swift punch. You steal {} from his bleeding corpse. Are you happy now?"
+    "You catch the crackhead off guard and knock him out in one swift punch. You steal {} from his bleeding corpse. Are you happy now?",
 ]
 
 [[beg.REVERSE]]
@@ -80,7 +80,7 @@ wins = [
 person = "tiktok guy"
 situations = [
     "A random tiktokker sees you begging and decides to put his phone up in your face.",
-    "Some guy from tiktok making interview videos comes up to you and decides to annoy you."
+    "Some guy from tiktok making interview videos comes up to you and decides to annoy you.",
 ]
 reasons = ["get a donation from him"]
 sentences = [
@@ -88,8 +88,8 @@ sentences = [
     "kiss or slap?",
 ]
 fails = [
-    "The tiktokker didn't find you entertaining enough and left."
+    "The tiktokker didn't find you entertaining enough and left.",
 ]
 wins = [
-    "The tiktokker gave you a mystery gift, containing {}."
+    "The tiktokker gave you a mystery gift, containing {}.",
 ]
