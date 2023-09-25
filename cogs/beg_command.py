@@ -91,6 +91,7 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
         self,
         minigame_activity: MinigameActivity,
         *,
+        bot: utils.Bot,
         connection: asyncpg.Connection,
         pp: utils.Pp,
         interaction: discord.Interaction,
@@ -103,7 +104,10 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
 
         minigame_type = minigame_types[minigame_activity]
         minigame = minigame_type(
-            connection, pp, minigame_type.generate_random_dialogue("beg")
+            bot=bot,
+            connection=connection,
+            pp=pp,
+            context=minigame_type.generate_random_dialogue("beg"),
         )
 
         await minigame.start(interaction)
@@ -130,7 +134,11 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
             if activity.name.endswith("_MINIGAME"):
                 activity = cast(MinigameActivity, activity)
                 await self.start_minigame(
-                    activity, connection=db.conn, pp=pp, interaction=ctx.interaction
+                    activity,
+                    bot=self.bot,
+                    connection=db.conn,
+                    pp=pp,
+                    interaction=ctx.interaction,
                 )
                 return
 

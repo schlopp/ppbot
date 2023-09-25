@@ -37,10 +37,13 @@ class Minigame(Generic[_MinigameContextDictT], Object):
 
     def __init__(
         self,
+        *,
+        bot: Bot,
         connection: asyncpg.Connection,
         pp: Pp,
         context: _MinigameContextDictT,
     ) -> None:
+        self.bot = bot
         self.connection = connection
         self.pp = pp
         self._id = uuid.uuid4().hex
