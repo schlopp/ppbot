@@ -32,6 +32,9 @@ from . import (
 _MinigameContextDictT = TypeVar("_MinigameContextDictT", bound=TypedDict)
 
 
+ZERO_WIDTH_CHARACTER = "​"
+
+
 class Minigame(Generic[_MinigameContextDictT], Object):
     MAXIMUM_ITEM_REWARD_PRICE = 45
     ID: str
