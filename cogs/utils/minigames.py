@@ -12,6 +12,7 @@ import discord
 import toml
 
 from . import (
+    Bot,
     Object,
     Pp,
     Embed,
