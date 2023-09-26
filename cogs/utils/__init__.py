@@ -52,5 +52,6 @@ from .minigames import (
     ReverseMinigame as ReverseMinigame,
     RepeatMinigame as RepeatMinigame,
     FillInTheBlankMinigame as FillInTheBlankMinigame,
+    ClickThatButtonMinigame as ClickThatButtonMinigame,
     MinigameDialogueManager as MinigameDialogueManager,
 )

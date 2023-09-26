@@ -143,6 +143,16 @@ class RepeatContextDict(TypedDict):
     win: str
 
 
+class ClickThatButtonContextDict(TypedDict):
+    object: str
+    target: str
+    fail: str
+    win: str
+    foreground_style: discord.ui.ButtonStyle
+    background_style: discord.ui.ButtonStyle
+    background_label: str
+
+
 class ReverseMinigame(Minigame[ReverseContextDict]):
     ID = "REVERSE"
 
@@ -359,6 +369,10 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
         )
 
 
+class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
+    pass
+
+
 class MinigameDialogueManager:
     DIALOGUE_DIRECTORY = "config/minigames"
     dialogue: dict[str, dict[str, list[dict]]] = {}
@@ -435,6 +449,28 @@ class MinigameDialogueManager:
                     "win": random.choice(dialogue_option["wins"]),
                 }
                 return cast(_MinigameContextDictT, repeat_dialogue)
+
+            elif minigame_type == ClickThatButtonMinigame:
+                click_that_button_dialogue: ClickThatButtonContextDict = {
+                    "object": dialogue_option["object"],
+                    "target": dialogue_option["target"],
+                    "fail": random.choice(dialogue_option["fails"]),
+                    "win": random.choice(dialogue_option["wins"]),
+                    "foreground_style": getattr(
+                        discord.ButtonStyle,
+                        dialogue_option.get("foreground_style", "green"),
+                    ),
+                    "background_style": getattr(
+                        discord.ButtonStyle,
+                        dialogue_option.get("background_style", "grey"),
+                    ),
+                    "background_label": dialogue_option.get(
+                        "background_label", ZERO_WIDTH_CHARACTER
+                    ),
+                }
+
+                return cast(_MinigameContextDictT, click_that_button_dialogue)
+
         except KeyError as exc:
             raise ValueError(
                 f"Can't generate minigame dialogue: Element of section {section!r}, minigame"
@@ -444,6 +480,15 @@ class MinigameDialogueManager:
             raise ValueError(
                 f"Can't generate minigame dialogue: Element of section {section!r}, minigame"
                 f" {minigame_type.ID!r} contains empty dialogue array"
+            )
+        except AttributeError as exc:
+            if (
+                exc.obj != discord.ButtonStyle
+            ):  # pyright: ignore  # exc.obj isn't always object
+                raise
+            raise ValueError(
+                f"Can't generate minigame dialogue: Style element of section {section!r}, minigame"
+                f" {minigame_type.ID!r} contains invalid ButtonStyle {exc.name!r}"
             )
 
         raise ValueError(
