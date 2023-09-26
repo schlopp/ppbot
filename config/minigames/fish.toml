@@ -1,0 +1,12 @@
+[chance_weights]
+CLICK_THAT_BUTTON = 1
+
+
+[[CLICK_THAT_BUTTON]]
+object = "fish"
+target = "🐟"
+fails = [""]
+wins = [""]
+foreground_style = "blurple"
+background_style = "blurple"
+background_label = "🌊"
