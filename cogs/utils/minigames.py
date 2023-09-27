@@ -27,6 +27,7 @@ from . import (
     RED,
     PINK,
     MEME_URL,
+    wait_for_component_interaction,
 )
 
 _MinigameContextDictT = TypeVar("_MinigameContextDictT", bound=TypedDict)
@@ -178,12 +179,12 @@ class ReverseMinigame(Minigame[ReverseContextDict]):
         try:
             assert isinstance(interaction.channel, discord.TextChannel)
             reply_context, reply = await ReplyManager.wait_for_reply(
-                interaction.channel
+                interaction.channel, check=lambda ctx, _: ctx.author == interaction.user
             )
         except asyncio.TimeoutError:
             embed.colour = RED
             embed.description = (
-                f"**You're slow as fuck!**  Next time, use **{format_slash_command('reply')}** within"
+                f"**You're slow as fuck!** Next time, use **{format_slash_command('reply')}** within"
                 f" {format_time(ReplyManager.DEFAULT_TIMEOUT)}."
                 f" {self.context['fail']} You win **nothing.**"
             )
@@ -229,8 +230,7 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
         embed.colour = PINK
         embed.title = "MINIGAME - REPEAT"
 
-        zero_width_character = "​"
-        obscured_sentence = zero_width_character.join(self.context["sentence"])
+        obscured_sentence = ZERO_WIDTH_CHARACTER.join(self.context["sentence"])
 
         embed.description = (
             f"{self.context['situation']}"
@@ -246,12 +246,12 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
         try:
             assert isinstance(interaction.channel, discord.TextChannel)
             reply_context, reply = await ReplyManager.wait_for_reply(
-                interaction.channel
+                interaction.channel, check=lambda ctx, _: ctx.author == interaction.user
             )
         except asyncio.TimeoutError:
             embed.colour = RED
             embed.description = (
-                f"**You're slow as fuck!**  Next time, use {format_slash_command('reply')} within"
+                f"**You're slow as fuck!** Next time, use {format_slash_command('reply')} within"
                 f" {format_time(ReplyManager.DEFAULT_TIMEOUT)}."
                 f" {self.context['fail']} You win **nothing.**"
             )
@@ -259,7 +259,7 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
             await interaction.edit_original_message(embed=embed)
             return
 
-        if zero_width_character in reply:
+        if ZERO_WIDTH_CHARACTER in reply:
             embed.colour = RED
             embed.description = (
                 "Did you really think I wouldn't notice you copy-pasting the sentence?"
@@ -331,12 +331,12 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
 
         try:
             reply_context, reply = await ReplyManager.wait_for_reply(
-                interaction.channel
+                interaction.channel, check=lambda ctx, _: ctx.author == interaction.user
             )
         except asyncio.TimeoutError:
             embed.colour = RED
             embed.description = (
-                f"**You're slow as fuck!**  Next time, use {format_slash_command('reply')} within"
+                f"**You're slow as fuck!** Next time, use {format_slash_command('reply')} within"
                 f" {format_time(ReplyManager.DEFAULT_TIMEOUT)}."
                 f" {self.context['fail']} You win **nothing.**"
             )
@@ -373,7 +373,181 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
 
 
 class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
-    pass
+    ID = "CLICK_THAT_BUTTON"
+    GRID_HEIGHT = 3
+    GRID_WIDTH = 4
+    TIMEOUT = 10
+
+    def __init__(
+        self,
+        *,
+        bot: Bot,
+        connection: asyncpg.Connection,
+        pp: Pp,
+        context: ClickThatButtonContextDict,
+    ) -> None:
+        super().__init__(bot=bot, connection=connection, pp=pp, context=context)
+
+        self._components = discord.ui.MessageComponents(
+            *(
+                discord.ui.ActionRow(
+                    *(
+                        discord.ui.Button(
+                            label=self.context["background_label"],
+                            custom_id=f"{self._id}_{x}_{y}",
+                            style=self.context["background_style"],
+                        )
+                        for x in range(self.GRID_WIDTH)
+                    )
+                )
+                for y in range(self.GRID_HEIGHT)
+            )
+        )
+        self._target_coords: tuple[int, int] | None = None
+        self._interaction: discord.Interaction | None = None
+
+    def _replace_button(self, x: int, y: int, button: discord.ui.Button) -> None:
+        row = cast(discord.ui.ActionRow, self._components.components[y])
+        row.components[x] = button
+
+    def _move_target(self) -> None:
+        if self._target_coords is not None:
+            x, y = self._target_coords
+            self._replace_button(
+                x,
+                y,
+                discord.ui.Button(
+                    label=self.context["background_label"],
+                    custom_id=f"{self._id}_{x}_{y}",
+                    style=self.context["background_style"],
+                ),
+            )
+
+        self._target_coords = (random.randint(0, 2), random.randint(0, 2))
+        x, y = self._target_coords
+
+        self._replace_button(
+            x,
+            y,
+            discord.ui.Button(
+                label=self.context["target"],
+                custom_id=f"{self._id}_target",
+                style=self.context["foreground_style"],
+            ),
+        )
+
+    async def _move_target_loop(self, interaction: discord.Interaction) -> None:
+        while True:
+            await asyncio.sleep(0.5 + random.random())
+            self._move_target()
+            await interaction.edit_original_message(components=self._components)
+
+    def _disable_components(self, coords: tuple[int, int] | None = None) -> None:
+        assert self._target_coords
+
+        self._components = discord.ui.MessageComponents(
+            *(
+                discord.ui.ActionRow(
+                    *(
+                        discord.ui.Button(
+                            label=self.context["background_label"], disabled=True
+                        )
+                        for _ in range(self.GRID_WIDTH)
+                    )
+                )
+                for _ in range(self.GRID_HEIGHT)
+            )
+        )
+        target_button = discord.ui.Button(label=self.context["target"])
+        if coords == self._target_coords:
+            target_button.style = discord.ButtonStyle.green
+            self._replace_button(
+                *self._target_coords,
+                target_button,
+            )
+            return
+
+        target_button.style = discord.ButtonStyle.blurple
+        self._replace_button(*self._target_coords, target_button)
+
+        if coords is not None:
+            self._replace_button(
+                *coords,
+                discord.ui.Button(
+                    label=self.context["background_label"],
+                    style=discord.ui.ButtonStyle.red,
+                ),
+            )
+
+        self._components.disable_components()
+
+    async def start(self, interaction: discord.Interaction) -> None:
+        embed = Embed()
+        embed.colour = PINK
+        embed.title = f"MINIGAME - CLICK THAT {self.context['object'].upper()}"
+
+        self._move_target()
+
+        await interaction.response.send_message(
+            embed=embed, components=self._components
+        )
+
+        move_target_loop = self.bot.loop.create_task(
+            self._move_target_loop(interaction)
+        )
+
+        embed = Embed()
+        embed.title = f"MINIGAME - CLICK THAT {self.context['object'].upper()}"
+
+        try:
+            component_interaction, action = await wait_for_component_interaction(
+                self.bot, self._id, users=[interaction.user], timeout=self.TIMEOUT
+            )
+        except asyncio.TimeoutError:
+            move_target_loop.cancel()
+            self._disable_components()
+
+            embed.colour = RED
+            embed.description = (
+                f"**You're slow as fuck!** Should've clicked the {self.context['object']} within"
+                f" {format_time(self.TIMEOUT)}. {self.context['fail']} You win **nothing.**"
+            )
+            embed.add_tip()
+
+            await interaction.edit_original_message(
+                embed=embed, components=self._components
+            )
+            return
+
+        move_target_loop.cancel()
+        self._disable_components()
+
+        if action != "target":
+            x, y = map(int, action.split("_"))
+            self._disable_components((x, y))
+
+            embed.colour = RED
+            embed.description = (
+                f"**WRONG!!!!** You fucking loser."
+                f" Are you blind or something? Just click the {self.context['object']}"
+                f", it's not that hard bro. {self.context['fail']} You win **nothing.**"
+            )
+        else:
+            embed.colour = PINK
+            reward = await self.give_random_reward()
+
+            if "{}" in self.context["win"]:
+                win_dialogue = self.context["win"].format(reward)
+            else:
+                win_dialogue = f"{self.context['win']} You win {reward}"
+
+            embed.description = f"**GGS!** {win_dialogue}"
+
+        embed.add_tip()
+
+        await component_interaction.response.edit_message(
+            embed=embed, components=self._components
+        )
 
 
 class MinigameDialogueManager:
