@@ -1,11 +1,12 @@
 from __future__ import annotations
 import asyncio
+import random
 from collections.abc import Callable
 
 import discord
 from discord.ext import commands
 
-from . import Bot, Object
+from . import MEME_URL, Bot, Object
 
 
 class DuplicateReplyListenerError(Exception):
@@ -127,6 +128,22 @@ async def wait_for_component_interaction(
             return False
 
         if users and component_interaction.user not in users:
+            asyncio.create_task(
+                component_interaction.response.send_message(
+                    random.choice(
+                        [
+                            "This button ain't for you lil bra. Keep strolling come back tomorrow",
+                            "Don't click no random ahh buttons that aren't meant for you",
+                            "You not supposed to click that button gang",
+                            (
+                                "You got a rare reward reward for clicking random buttons!!!"
+                                f" Claim it **[here!!!!!](<{MEME_URL}>)**"
+                            ),
+                        ]
+                    ),
+                    ephemeral=True,
+                )
+            )
             return False
 
         if actions and found_action not in actions:
