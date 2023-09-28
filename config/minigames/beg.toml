@@ -47,7 +47,7 @@
     ]
     fails = [
         "The rich guy calls the police and has you arrested.",
-        "You attempted to rob him but he shot you 12 times.",
+        "You attempted to rob the rich guy but he shot you 12 times.",
     ]
     wins = [
         "You fuck up the rich guy and take {} off his unconscious body.",
