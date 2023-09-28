@@ -189,7 +189,16 @@ class ReverseMinigame(Minigame[ReverseContextDict]):
                 f" {self.context['fail']} You win **nothing.**"
             )
             embed.add_tip()
-            await interaction.edit_original_message(embed=embed)
+
+            try:
+                await interaction.edit_original_message(embed=embed)
+            except discord.HTTPException:
+                try:
+                    assert isinstance(interaction.channel, discord.abc.Messageable)
+                    await interaction.channel.send(embed=embed)
+                except discord.HTTPException:
+                    pass
+
             return
 
         reverse_phrase = "".join(reversed(self.context["phrase"]))
@@ -256,7 +265,16 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
                 f" {self.context['fail']} You win **nothing.**"
             )
             embed.add_tip()
-            await interaction.edit_original_message(embed=embed)
+
+            try:
+                await interaction.edit_original_message(embed=embed)
+            except discord.HTTPException:
+                try:
+                    assert isinstance(interaction.channel, discord.abc.Messageable)
+                    await interaction.channel.send(embed=embed)
+                except discord.HTTPException:
+                    pass
+
             return
 
         if ZERO_WIDTH_CHARACTER in reply:
@@ -341,7 +359,16 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
                 f" {self.context['fail']} You win **nothing.**"
             )
             embed.add_tip()
-            await interaction.edit_original_message(embed=embed)
+
+            try:
+                await interaction.edit_original_message(embed=embed)
+            except discord.HTTPException:
+                try:
+                    assert isinstance(interaction.channel, discord.abc.Messageable)
+                    await interaction.channel.send(embed=embed)
+                except discord.HTTPException:
+                    pass
+
             return
 
         if self.clean_sentence(reply) != self.clean_sentence(self.context["answer"]):
@@ -440,7 +467,11 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
         while True:
             await asyncio.sleep(0.5 + random.random())
             self._move_target()
-            await interaction.edit_original_message(components=self._components)
+
+            try:
+                await interaction.edit_original_message(components=self._components)
+            except discord.HTTPException:
+                break
 
     def _disable_components(self, coords: tuple[int, int] | None = None) -> None:
         assert self._target_coords
@@ -514,9 +545,19 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
             )
             embed.add_tip()
 
-            await interaction.edit_original_message(
-                embed=embed, components=self._components
-            )
+            try:
+                await interaction.edit_original_message(
+                    embed=embed, components=self._components
+                )
+            except discord.HTTPException:
+                try:
+                    assert isinstance(interaction.channel, discord.abc.Messageable)
+                    await interaction.channel.send(
+                        embed=embed, components=self._components
+                    )
+                except discord.HTTPException:
+                    pass
+
             return
 
         move_target_loop.cancel()
@@ -545,9 +586,22 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
 
         embed.add_tip()
 
-        await component_interaction.response.edit_message(
-            embed=embed, components=self._components
-        )
+        try:
+            await component_interaction.edit_original_message(
+                embed=embed, components=self._components
+            )
+        except discord.HTTPException:
+            try:
+                assert isinstance(
+                    component_interaction.channel, discord.abc.Messageable
+                )
+                await component_interaction.channel.send(
+                    embed=embed, components=self._components
+                )
+            except discord.HTTPException:
+                pass
+
+        return
 
 
 class MinigameDialogueManager:
