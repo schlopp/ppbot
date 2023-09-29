@@ -9,3 +9,4 @@ reportMissingParameterType = false
 reportMissingTypeArgument = false
 reportMissingTypeStubs = false
 reportUnknownLambdaType = false
+reportIncompatibleVariableOverride = false
