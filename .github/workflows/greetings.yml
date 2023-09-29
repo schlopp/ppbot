@@ -1,0 +1,16 @@
+name: Greetings
+
+on: [pull_request_target, issues]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+    - uses: actions/first-interaction@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        issue-message: "Hey there, thank you submitting this issue! I'll take a look at it soon. Or maybe I won't. This is an automated message. I don't owe you anything. Bitch.\n\nSorry, that was a little rude of me. I'll take a look at this issue ASAP.\n - schlopp"
+        pr-message: "Hey there, thank you submitting this PR! I'll take a look at it soon. Or maybe I won't. This is an automated message. I don't owe you anything. Bitch.\n\nSorry, that was a little rude of me. I'll take a look at this PR ASAP.\n - schlopp"
