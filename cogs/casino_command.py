@@ -493,7 +493,6 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
         cache_keys = tuple(CasinoSession.cache.keys())
 
         for cache_key in cache_keys:
-
             # ? Cache could've been modified while looping
             try:
                 casino_session = CasinoSession.cache[cache_key]
