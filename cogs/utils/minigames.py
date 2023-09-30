@@ -101,9 +101,7 @@ class Minigame(Generic[_MinigameContextDictT], Object):
                 )
                 await reward_item.update(self.connection, additional=True)
                 reward_item_ids.append(reward_item.id)
-                reward_messages.append(
-                    f"{reward_item.format_item()} ({reward_item.item.category.lower()})"
-                )
+                reward_messages.append(f"{reward_item.format_item()}")
 
         return f"{format_iterable(reward_messages, inline=True)}"
 
