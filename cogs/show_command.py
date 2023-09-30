@@ -124,6 +124,8 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
         em_space_character = " "
 
         for category_name, inv_items in categories.items():
+            if not inv_items:
+                continue
             embed.add_field(
                 name=category_name,
                 value="\n".join(
