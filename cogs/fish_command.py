@@ -98,13 +98,14 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
             ctx.author.id, "You're still busy fishing!"
         ):
             pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
-            required_item = utils.ItemManager.get("FISHING_ROD")
+            tool = utils.ItemManager.get_command_tool("fish")
+
             if not await utils.InventoryItem.user_has_item(
-                db.conn, ctx.author.id, required_item.id
+                db.conn, ctx.author.id, tool.id
             ):
                 raise commands.CheckFailure(
-                    f"You need a **{required_item.name}** for this command!"
-                    f"You can buy one in the {utils.format_slash_command('shop')}"
+                    f"You need a **{tool.name}** for this command!"
+                    f" You can buy one in the {utils.format_slash_command('shop')}"
                 )
 
             activity = Activity.random()
@@ -123,18 +124,18 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
             embed = utils.Embed()
 
             if activity == Activity.ROD_BREAK:
-                inv_item = await utils.InventoryItem.fetch(
+                inv_tool = await utils.InventoryItem.fetch(
                     db.conn,
-                    {"user_id": ctx.author.id, "id": required_item.id},
+                    {"user_id": ctx.author.id, "id": tool.id},
                     lock=utils.RowLevelLockMode.FOR_UPDATE,
                 )
-                inv_item.amount.value -= 1
-                await inv_item.update(db.conn)
+                inv_tool.amount.value -= 1
+                await inv_tool.update(db.conn)
 
                 embed.colour = utils.RED
                 embed.description = (
                     random.choice(self.ROD_BREAK_RESPONSES).format(ctx.author.mention)
-                    + f"\n\nYou now have {inv_item.format_item()} left"
+                    + f"\n\nYou now have {inv_tool.format_item()} left"
                 )
 
             elif activity == Activity.SUCCESS:
