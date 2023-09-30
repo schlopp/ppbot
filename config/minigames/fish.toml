@@ -5,8 +5,11 @@ CLICK_THAT_BUTTON = 1
 [[CLICK_THAT_BUTTON]]
 object = "fish"
 target_emoji = "🐟"
-fails = [""]
-wins = [""]
+fails = ["The fish swims away and you're left empty-handed."]
+wins = [
+    "You sell the fish and get {}",
+    "Some guy gives you {} in exchange for the fish. He intends to make love to it. That's crazy"
+]
 foreground_style = "blurple"
 background_style = "blurple"
 background_emoji = "🌊"
