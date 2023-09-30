@@ -233,22 +233,42 @@ class InventoryItem(DatabaseWrapperObject):
 
     @staticmethod
     async def user_has_item(
-        connection: asyncpg.Connection, user_id: int, item_id: str
+        connection: asyncpg.Connection, user_id: int, *item_ids: str, any: bool = True
     ) -> bool:
-        return bool(
-            await connection.fetchval(
-                """
-            SELECT 1
-            FROM inventories
-            WHERE
-                user_id = $1
-                AND item_id = $2
-                AND item_amount >= 1
-            """,
+        if not item_ids:
+            raise ValueError("No item ID(s) given")
+
+        if any:
+            return bool(
+                await connection.fetchval(
+                    f"""
+                    SELECT 1
+                    FROM inventories
+                    WHERE
+                        user_id = $1
+                        AND item_id IN ({", ".join(f"${n + 2}" for n in range(len(item_ids)))})
+                        AND item_amount > 0
+                    """,
+                    user_id,
+                    *item_ids,
+                )
+            )
+        for item_id in item_ids:
+            if await connection.fetchval(
+                f"""
+                SELECT 1
+                FROM inventories
+                WHERE
+                    user_id = $1
+                    AND item_id = $2
+                    AND item_amount > 0
+                """,
                 user_id,
                 item_id,
-            )
-        )
+            ):
+                return True
+
+        return False
 
 
 class ItemManager:
