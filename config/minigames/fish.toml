@@ -4,9 +4,9 @@ CLICK_THAT_BUTTON = 1
 
 [[CLICK_THAT_BUTTON]]
 object = "fish"
-target = "🐟"
+target_emoji = "🐟"
 fails = [""]
 wins = [""]
 foreground_style = "blurple"
 background_style = "blurple"
-background_label = "🌊"
+background_emoji = "🌊"
