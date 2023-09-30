@@ -292,6 +292,22 @@ class ItemManager:
                 raise UnknownItemError(repr(item_key))
 
     @classmethod
+    def get_command_tool(cls, command_name: str) -> ToolItem:
+        tools = [
+            tool
+            for tool in ItemManager.tools.values()
+            if command_name == tool.associated_command_name
+        ]
+
+        if len(tools) > 1:
+            raise ValueError(f"Multiple associated with command {command_name!r}")
+
+        elif not tools:
+            raise ValueError(f"No tool associated with command {command_name!r}")
+
+        return tools[0]
+
+    @classmethod
     def add(cls, *items: Item) -> None:
         for item in items:
             cls.items[item.id] = item
