@@ -430,7 +430,9 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
                 for y in range(self.GRID_HEIGHT)
             )
         )
+        self._target_coords_history: list[tuple[int, int]] = []
         self._target_coords: tuple[int, int] | None = None
+        self._last_target_coords_index: int | None = None
         self._interaction: discord.Interaction | None = None
 
     def _replace_button(self, x: int, y: int, button: discord.ui.Button) -> None:
@@ -451,6 +453,8 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
             )
 
         self._target_coords = (random.randint(0, 2), random.randint(0, 2))
+        self._target_coords_history.append(self._target_coords)
+
         x, y = self._target_coords
 
         self._replace_button(
@@ -465,7 +469,7 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
 
     async def _move_target_loop(self, interaction: discord.Interaction) -> None:
         while True:
-            await asyncio.sleep(0.5 + random.random())
+            await asyncio.sleep(1 + random.random())
             self._move_target()
 
             try:
@@ -473,8 +477,18 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
             except discord.HTTPException:
                 break
 
+            if self._last_target_coords_index is None:
+                self._last_target_coords_index = 0
+            else:
+                self._last_target_coords_index += 1
+
     def _disable_components(self, coords: tuple[int, int] | None = None) -> None:
         assert self._target_coords
+
+        if self._last_target_coords_index is None:
+            target_coords = self._target_coords
+        else:
+            target_coords = self._target_coords_history[self._last_target_coords_index]
 
         self._components = discord.ui.MessageComponents(
             *(
@@ -490,16 +504,16 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
             )
         )
         target_button = discord.ui.Button(label=self.context["target"])
-        if coords == self._target_coords:
+        if coords == target_coords:
             target_button.style = discord.ButtonStyle.green
             self._replace_button(
-                *self._target_coords,
+                *target_coords,
                 target_button,
             )
             return
 
         target_button.style = discord.ButtonStyle.blurple
-        self._replace_button(*self._target_coords, target_button)
+        self._replace_button(*target_coords, target_button)
 
         if coords is not None:
             self._replace_button(
@@ -587,21 +601,16 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
         embed.add_tip()
 
         try:
-            await component_interaction.edit_original_message(
-                embed=embed, components=self._components
-            )
+            await interaction.delete_original_message()
         except discord.HTTPException:
-            try:
-                assert isinstance(
-                    component_interaction.channel, discord.abc.Messageable
-                )
-                await component_interaction.channel.send(
-                    embed=embed, components=self._components
-                )
-            except discord.HTTPException:
-                pass
+            pass
 
-        return
+        assert isinstance(component_interaction.channel, discord.abc.Messageable)
+
+        try:
+            await interaction.followup.send(embed=embed, components=self._components)
+        except discord.HTTPException:
+            pass
 
 
 class MinigameDialogueManager:
