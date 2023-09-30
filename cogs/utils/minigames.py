@@ -723,5 +723,6 @@ class MinigameDialogueManager:
             )
 
         raise ValueError(
-            f"Can't generate minigame dialogue: No handling for minigame {minigame_type!r} available"
+            f"Can't generate minigame dialogue: No handling for minigame {minigame_type!r}"
+            " available"
         )
