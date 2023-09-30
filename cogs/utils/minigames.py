@@ -148,11 +148,13 @@ class RepeatContextDict(TypedDict):
 class ClickThatButtonContextDict(TypedDict):
     object: str
     target: str
+    target_emoji: str | None
     fail: str
     win: str
     foreground_style: discord.ui.ButtonStyle
     background_style: discord.ui.ButtonStyle
     background_label: str
+    background_emoji: str | None
 
 
 class ReverseMinigame(Minigame[ReverseContextDict]):
@@ -419,6 +421,7 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
                     *(
                         discord.ui.Button(
                             label=self.context["background_label"],
+                            emoji=self.context["background_emoji"],
                             custom_id=f"{self._id}_{x}_{y}",
                             style=self.context["background_style"],
                         )
@@ -445,10 +448,13 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
                 y,
                 discord.ui.Button(
                     label=self.context["background_label"],
+                    emoji=self.context["background_emoji"],
                     custom_id=f"{self._id}_{x}_{y}",
                     style=self.context["background_style"],
                 ),
             )
+        else:
+            self._last_target_coords_index = 0
 
         self._target_coords = (random.randint(0, 2), random.randint(0, 2))
         self._target_coords_history.append(self._target_coords)
@@ -460,7 +466,8 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
             y,
             discord.ui.Button(
                 label=self.context["target"],
-                custom_id=f"{self._id}_target",
+                emoji=self.context["target_emoji"],
+                custom_id=f"{self._id}_TARGET_{x}_{y}",
                 style=self.context["foreground_style"],
             ),
         )
@@ -475,15 +482,18 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
             except discord.HTTPException:
                 break
 
-            if self._last_target_coords_index is None:
-                self._last_target_coords_index = 0
-            else:
-                self._last_target_coords_index += 1
+            assert self._last_target_coords_index is not None
+            self._last_target_coords_index += 1
 
-    def _disable_components(self, coords: tuple[int, int] | None = None) -> None:
-        assert self._target_coords
+    def _disable_components(
+        self, coords: tuple[int, int] | None = None, *, target: bool = False
+    ) -> None:
+        assert self._target_coords is not None
 
-        if self._last_target_coords_index is None:
+        if target:
+            assert coords is not None
+            target_coords = coords
+        elif self._last_target_coords_index is None:
             target_coords = self._target_coords
         else:
             target_coords = self._target_coords_history[self._last_target_coords_index]
@@ -493,7 +503,9 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
                 discord.ui.ActionRow(
                     *(
                         discord.ui.Button(
-                            label=self.context["background_label"], disabled=True
+                            label=self.context["background_label"],
+                            emoji=self.context["background_emoji"],
+                            disabled=True,
                         )
                         for _ in range(self.GRID_WIDTH)
                     )
@@ -501,23 +513,21 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
                 for _ in range(self.GRID_HEIGHT)
             )
         )
-        target_button = discord.ui.Button(label=self.context["target"])
-        if coords == target_coords:
-            target_button.style = discord.ButtonStyle.green
-            self._replace_button(
-                *target_coords,
-                target_button,
-            )
-            return
 
-        target_button.style = discord.ButtonStyle.blurple
+        target_button = discord.ui.Button(
+            label=self.context["target"],
+            emoji=self.context["target_emoji"],
+            style=discord.ButtonStyle.green,
+        )
+        target_button.style = discord.ButtonStyle.green
         self._replace_button(*target_coords, target_button)
 
-        if coords is not None:
+        if not target and coords is not None:
             self._replace_button(
                 *coords,
                 discord.ui.Button(
                     label=self.context["background_label"],
+                    emoji=self.context["background_emoji"],
                     style=discord.ui.ButtonStyle.red,
                 ),
             )
@@ -573,9 +583,8 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
             return
 
         move_target_loop.cancel()
-        self._disable_components()
 
-        if action != "target":
+        if not action.startswith("TARGET"):
             x, y = map(int, action.split("_"))
             self._disable_components((x, y))
 
@@ -586,6 +595,8 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
                 f", it's not that hard bro. {self.context['fail']} You win **nothing.**"
             )
         else:
+            x, y = map(int, action.split("_")[1:])
+            self._disable_components((x, y), target=True)
             embed.colour = PINK
             reward = await self.give_random_reward()
 
@@ -691,7 +702,8 @@ class MinigameDialogueManager:
             elif minigame_type == ClickThatButtonMinigame:
                 click_that_button_dialogue: ClickThatButtonContextDict = {
                     "object": dialogue_option["object"],
-                    "target": dialogue_option["target"],
+                    "target": dialogue_option.get("target", ZERO_WIDTH_CHARACTER),
+                    "target_emoji": dialogue_option.get("target_emoji"),
                     "fail": random.choice(dialogue_option["fails"]),
                     "win": random.choice(dialogue_option["wins"]),
                     "foreground_style": getattr(
@@ -705,7 +717,18 @@ class MinigameDialogueManager:
                     "background_label": dialogue_option.get(
                         "background_label", ZERO_WIDTH_CHARACTER
                     ),
+                    "background_emoji": dialogue_option.get("background_emoji"),
                 }
+
+                if (
+                    click_that_button_dialogue["target"] == ZERO_WIDTH_CHARACTER
+                    and click_that_button_dialogue["target_emoji"] is None
+                ):
+                    raise ValueError(
+                        f"Can't generate minigame dialogue: Element of section {section!r}"
+                        f", minigame {minigame_type.ID!r} missing required key {'target'!r}, which"
+                        f" is only optional when key {'target_emoji'} is supplied"
+                    )
 
                 return cast(_MinigameContextDictT, click_that_button_dialogue)
 
