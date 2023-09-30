@@ -12,9 +12,9 @@ from . import utils
 
 
 class Activity(enum.Enum):
-    SUCCESS = 0.7
+    SUCCESS = 0.8
     ROD_BREAK = 0.1
-    CLICK_THAT_BUTTON_MINIGAME = 0.2
+    CLICK_THAT_BUTTON_MINIGAME = 0.1
 
     @classmethod
     def random(cls):

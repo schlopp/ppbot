@@ -12,11 +12,11 @@ from . import utils
 
 
 class Activity(enum.Enum):
-    DONATION = 0.7
+    DONATION = 0.8
     REJECTION = 0.1
-    FILL_IN_THE_BLANK_MINIGAME = 0.2 / 3
-    REVERSE_MINIGAME = 0.2 / 3
-    REPEAT_MINIGAME = 0.2 / 3
+    FILL_IN_THE_BLANK_MINIGAME = 0.1 / 3
+    REVERSE_MINIGAME = 0.1 / 3
+    REPEAT_MINIGAME = 0.1 / 3
 
     @classmethod
     def random(cls):
