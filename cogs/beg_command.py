@@ -153,7 +153,8 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
                     f" {pp.format_growth(markdown=utils.MarkdownFormat.BOLD_BLUE)} inches"
                     f" to {ctx.author.mention}"
                 )
-            else:
+
+            elif activity == Activity.REJECTION:
                 embed.colour = utils.BLUE
                 response = self.DONATORS[donator]
 
@@ -165,6 +166,12 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
                     quote = random.choice(self.RESPONSES)
 
                 embed.description = f"**{donator}:** {quote}"
+
+            else:
+                raise ValueError(
+                    f"Can't complete begging command: No handling for activity {activity!r}"
+                    " available"
+                )
 
             await pp.update(db.conn)
             embed.add_tip()
