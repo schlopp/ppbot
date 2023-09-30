@@ -147,8 +147,8 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
 
                 embed.colour = utils.GREEN
                 embed.description = (
-                    f"**{ctx.author.mention}** went fishing and caught"
-                    f" {catch} worth {pp.format_growth()}!"
+                    f"**{ctx.author.mention}** went fishing, caught"
+                    f" {catch} and sold it for {pp.format_growth()}!"
                 )
 
             else:
