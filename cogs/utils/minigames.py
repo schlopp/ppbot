@@ -184,9 +184,10 @@ class ReverseMinigame(Minigame[ReverseContextDict]):
         except asyncio.TimeoutError:
             embed.colour = RED
             embed.description = (
-                f"**You're slow as fuck!** Next time, use **{format_slash_command('reply')}** within"
-                f" {format_time(ReplyManager.DEFAULT_TIMEOUT)}."
-                f" {self.context['fail']} You win **nothing.**"
+                f"{interaction.user.mention} **You're slow as fuck!** Next time, use"
+                f" {format_slash_command('reply')} within"
+                f" {format_time(ReplyManager.DEFAULT_TIMEOUT)}. {self.context['fail']} You win"
+                " **nothing.**"
             )
             embed.add_tip()
 
@@ -219,7 +220,7 @@ class ReverseMinigame(Minigame[ReverseContextDict]):
             else:
                 win_dialogue = f"{self.context['win']} You win {reward}"
 
-            embed.description = f"**GGS!** {win_dialogue}"
+            embed.description = f"{interaction.user.mention} **GGS!** {win_dialogue}"
 
         embed.add_tip()
         await reply_context.interaction.response.send_message(
@@ -242,7 +243,7 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
         obscured_sentence = ZERO_WIDTH_CHARACTER.join(self.context["sentence"])
 
         embed.description = (
-            f"{self.context['situation']}"
+            f"{interaction.user.mention} {self.context['situation']}"
             f" **Use {format_slash_command('reply')} and enter the sentence to {self.context['reason']}!**"
             f" \n\n**{self.context['person']}:** `{obscured_sentence}`"
         )
@@ -260,9 +261,10 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
         except asyncio.TimeoutError:
             embed.colour = RED
             embed.description = (
-                f"**You're slow as fuck!** Next time, use {format_slash_command('reply')} within"
-                f" {format_time(ReplyManager.DEFAULT_TIMEOUT)}."
-                f" {self.context['fail']} You win **nothing.**"
+                f"{interaction.user.mention} **You're slow as fuck!** Next time, use"
+                f" {format_slash_command('reply')} within"
+                f" {format_time(ReplyManager.DEFAULT_TIMEOUT)}. {self.context['fail']} You win"
+                " **nothing.**"
             )
             embed.add_tip()
 
@@ -280,18 +282,18 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
         if ZERO_WIDTH_CHARACTER in reply:
             embed.colour = RED
             embed.description = (
-                "Did you really think I wouldn't notice you copy-pasting the sentence?"
-                f" I know everything about you. {self.context['fail']}"
-                " You win **nothing.**"
+                f"{interaction.user.mention} Did you really think I wouldn't notice you"
+                " copy-pasting the sentence? I know everything about you."
+                f" {self.context['fail']} You win **nothing.**"
             )
         elif self.clean_sentence(reply) != self.clean_sentence(
             self.context["sentence"]
         ):
             embed.colour = RED
             embed.description = (
-                f"**WRONG!!!!** You fucking loser."
-                f" The correct answer was `{self.context['sentence']}`. You can't do anything right!"
-                f" {self.context['fail']} You win **nothing.**"
+                f"{interaction.user.mention} **WRONG!!!!** You fucking loser."
+                f" The correct answer was `{self.context['sentence']}`. You can't do anything"
+                f" right! {self.context['fail']} You win **nothing.**"
             )
         else:
             embed.colour = PINK
@@ -302,7 +304,7 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
             else:
                 win_dialogue = f"{self.context['win']} You win {reward}"
 
-            embed.description = f"**GGS!** {win_dialogue}"
+            embed.description = f"{interaction.user.mention} **GGS!** {win_dialogue}"
 
         embed.add_tip()
         await reply_context.interaction.response.send_message(
@@ -335,9 +337,9 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
             + "`"
         )
         embed.description = (
-            f"{self.context['situation']}"
-            f" **Use {format_slash_command('reply')} and fill in the blank to {self.context['reason']}!**"
-            f" \n\n**{self.context['person']}:** {prompt}"
+            f"{interaction.user.mention} {self.context['situation']}"
+            f" **Use {format_slash_command('reply')} and fill in the blank to"
+            f" {self.context['reason']}!** \n\n**{self.context['person']}:** {prompt}"
         )
 
         await interaction.response.send_message(embed=embed)
@@ -354,9 +356,10 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
         except asyncio.TimeoutError:
             embed.colour = RED
             embed.description = (
-                f"**You're slow as fuck!** Next time, use {format_slash_command('reply')} within"
-                f" {format_time(ReplyManager.DEFAULT_TIMEOUT)}."
-                f" {self.context['fail']} You win **nothing.**"
+                f"{interaction.user.mention} **You're slow as fuck!** Next time, use"
+                f" {format_slash_command('reply')} within"
+                f" {format_time(ReplyManager.DEFAULT_TIMEOUT)}. {self.context['fail']} You win"
+                " **nothing.**"
             )
             embed.add_tip()
 
@@ -374,7 +377,7 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
         if self.clean_sentence(reply) != self.clean_sentence(self.context["answer"]):
             embed.colour = RED
             embed.description = (
-                f"**WRONG!!!!** You fucking loser."
+                f"{interaction.user.mention} **WRONG!!!!** You fucking loser."
                 f" The correct answer was `{self.context['answer']}`. You can't do anything right!"
                 f" {self.context['fail']} You win **nothing.**"
             )
@@ -387,7 +390,7 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
             else:
                 win_dialogue = f"{self.context['win']} You win {reward}"
 
-            embed.description = f"**GGS!** {win_dialogue}"
+            embed.description = f"{interaction.user.mention} **GGS!** {win_dialogue}"
 
         embed.add_tip()
         await reply_context.interaction.response.send_message(
@@ -553,7 +556,7 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
         embed.title = f"MINIGAME - CLICK THAT {self.context['object'].upper()}"
 
         try:
-            component_interaction, action = await wait_for_component_interaction(
+            _, action = await wait_for_component_interaction(
                 self.bot, self._id, users=[interaction.user], timeout=self.TIMEOUT
             )
         except asyncio.TimeoutError:
@@ -562,8 +565,9 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
 
             embed.colour = RED
             embed.description = (
-                f"**You're slow as fuck!** Should've clicked the {self.context['object']} within"
-                f" {format_time(self.TIMEOUT)}. {self.context['fail']} You win **nothing.**"
+                f"{interaction.user.mention} **You're slow as fuck!** Should've clicked the "
+                f"{self.context['object']} within {format_time(self.TIMEOUT)}."
+                f" {self.context['fail']} You win **nothing.**"
             )
             embed.add_tip()
 
@@ -590,7 +594,7 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
 
             embed.colour = RED
             embed.description = (
-                f"**WRONG!!!!** You fucking loser."
+                f"{interaction.user.mention} **WRONG!!!!** You fucking loser."
                 f" Are you blind or something? Just click the {self.context['object']}"
                 f", it's not that hard bro. {self.context['fail']} You win **nothing.**"
             )
@@ -605,7 +609,7 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
             else:
                 win_dialogue = f"{self.context['win']} You win {reward}"
 
-            embed.description = f"**GGS!** {win_dialogue}"
+            embed.description = f"{interaction.user.mention} **GGS!** {win_dialogue}"
 
         embed.add_tip()
 
@@ -614,10 +618,10 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
         except discord.HTTPException:
             pass
 
-        assert isinstance(component_interaction.channel, discord.abc.Messageable)
+        assert isinstance(interaction.channel, discord.abc.Messageable)
 
         try:
-            await interaction.followup.send(embed=embed, components=self._components)
+            await interaction.channel.send(embed=embed, components=self._components)
         except discord.HTTPException:
             pass
 
