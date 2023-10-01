@@ -1,0 +1,29 @@
+[chance_weights]
+CLICK_THAT_BUTTON = 1
+
+
+[[CLICK_THAT_BUTTON]]
+object = "homeless guy"
+action = "shoot"
+target_emoji = "🧔"
+fails = ["The homeless guy runs away and you get arrested."]
+wins = [
+    "You take {} off the homeless guy's corpse. I hope you feel good about yourself.",
+]
+foreground_style = "grey"
+background_emoji = "🗑️"
+
+
+[[CLICK_THAT_BUTTON]]
+object = "grandma"
+action = "mug"
+target_emoji = "👵"
+fails = [
+    "The grandma unleashed her hidden Kung Fu and fucking murders you.",
+    "The grandma spits in your face and says she's dissapointed. Don't you feel bad about yourself?",
+]
+wins = [
+    "You take the poor old lady's purse and find {}. But was it really worth it?",
+]
+foreground_style = "grey"
+background_emoji = "👩"
