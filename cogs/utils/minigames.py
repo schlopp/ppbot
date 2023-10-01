@@ -461,6 +461,7 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
             self._last_target_coords_index = 0
 
         self._target_coords = (
+            random.randrange(0, self.GRID_WIDTH),
             random.randrange(0, self.GRID_HEIGHT),
             random.randrange(0, 2),
         )
