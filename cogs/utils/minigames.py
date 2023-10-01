@@ -147,6 +147,7 @@ class RepeatContextDict(TypedDict):
 
 class ClickThatButtonContextDict(TypedDict):
     object: str
+    action: str
     target: str
     target_emoji: str | None
     fail: str
@@ -540,7 +541,10 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
     async def start(self, interaction: discord.Interaction) -> None:
         embed = Embed()
         embed.colour = PINK
-        embed.title = f"MINIGAME - CLICK THAT {self.context['object'].upper()}"
+        embed.title = (
+            f"MINIGAME - {self.context['action'].upper()} THAT"
+            f" {self.context['object'].upper()}"
+        )
 
         self._move_target()
 
@@ -553,7 +557,10 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
         )
 
         embed = Embed()
-        embed.title = f"MINIGAME - CLICK THAT {self.context['object'].upper()}"
+        embed.title = (
+            f"MINIGAME - {self.context['action'].upper()} THAT"
+            f" {self.context['object'].upper()}"
+        )
 
         try:
             _, action = await wait_for_component_interaction(
@@ -706,6 +713,7 @@ class MinigameDialogueManager:
             elif minigame_type == ClickThatButtonMinigame:
                 click_that_button_dialogue: ClickThatButtonContextDict = {
                     "object": dialogue_option["object"],
+                    "action": dialogue_option.get("action", "click"),
                     "target": dialogue_option.get("target", ZERO_WIDTH_CHARACTER),
                     "target_emoji": dialogue_option.get("target_emoji"),
                     "fail": random.choice(dialogue_option["fails"]),
