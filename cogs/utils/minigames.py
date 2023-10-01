@@ -405,8 +405,8 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
 
 class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
     ID = "CLICK_THAT_BUTTON"
-    GRID_HEIGHT = 3
-    GRID_WIDTH = 3
+    GRID_HEIGHT = 2
+    GRID_WIDTH = 5
     TIMEOUT = 10
 
     def __init__(
@@ -463,7 +463,6 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
         self._target_coords = (
             random.randrange(0, self.GRID_WIDTH),
             random.randrange(0, self.GRID_HEIGHT),
-            random.randrange(0, 2),
         )
         self._target_coords_history.append(self._target_coords)
 
