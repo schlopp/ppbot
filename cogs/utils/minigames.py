@@ -460,7 +460,10 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
         else:
             self._last_target_coords_index = 0
 
-        self._target_coords = (random.randint(0, 2), random.randint(0, 2))
+        self._target_coords = (
+            random.randrange(0, self.GRID_HEIGHT),
+            random.randrange(0, 2),
+        )
         self._target_coords_history.append(self._target_coords)
 
         x, y = self._target_coords
