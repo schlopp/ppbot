@@ -83,8 +83,6 @@ class MultiplierItem(UselessItem):
         self.gain = gain
 
     def get_scaled_values(self, amount: int, *, multiplier: int) -> tuple[int, int]:
-        price = 0
-        gain = 0
         exponent = Decimal("1.3")  # to avoid OverflowError's with big ass floats
         price = int(
             self.price * (1 - exponent ** (multiplier + amount)) / (1 - exponent)
