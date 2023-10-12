@@ -8,10 +8,32 @@ But you probably already know that. You're just curious about how this whole thi
 
 ## I want to run the bot on my own machine!
 
-Good for you! To get started with self-hosting pp bot, make sure you have the latest version of python installed. Then, install the packages listed in `/requirements.txt`:
+Good for you! To get started with self-hosting pp bot, there's a couple requirements you need.
+
+- PostgeSQL server
+- Redis server
+- Python (check `pyproject.toml` for version)
+- Rust/Cargo (check `Cargo.toml` for edition)
+- A local clone of this repository
+
+Also, assume any console commands shown in this tutorial are executed inside of the `ppbot` folder/repo.
+
+Your first step is creating a virtual environment. To do this, run:
+
+```sh
+$ python -m venv .venv
+```
+
+This step is not optional, as our Rust packages rely on it (More on that later.) Now that your venv is set up, install the packages listed in `/requirements.txt`:
 
 ```sh
 $ pip install -r requirements.txt
+```
+
+Next up you're gonna have to compile the internal Rust packages, using Marutin. This is already included inside of `/requirements.txt`, so if you've completed the steps until now, it should already be installed. To compile the internal Rust packages, run:
+
+```sh
+$ python -m maturin develop --release
 ```
 
 Now head on over to the `/config` folder and create a file called `config.toml`. Copy over the contents of `config.example.toml` into it and edit all the values to your liking. Some important things you should change include the bot token, PostgreSQL and Redis details. Pp bot needs both PostgreSQL and Redis to run successfully, so make sure you got those two installed as well.
