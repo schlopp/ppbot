@@ -11,7 +11,7 @@ from discord.ext import commands, vbu, tasks
 from . import utils
 
 
-class InvalidInteractionID(Exception):
+class InvalidAction(Exception):
     pass
 
 
@@ -264,7 +264,7 @@ class CasinoSession(utils.Object):
             pass
 
     async def wait_for_interaction(
-        self, *interaction_ids: str, timeout: float | None = TIMEOUT
+        self, *actions: str, timeout: float | None = TIMEOUT
     ) -> tuple[discord.ComponentInteraction, str]:
         def check(interaction: discord.ComponentInteraction) -> bool:
             interaction_data = self.from_interaction(interaction)
@@ -273,11 +273,11 @@ class CasinoSession(utils.Object):
         interaction = await self.ctx.bot.wait_for(
             "component_interaction", check=check, timeout=timeout
         )
-        interaction_id = interaction.custom_id.split("_", 1)[0]
-        if interaction_id not in interaction_ids:
-            raise InvalidInteractionID
+        action = interaction.custom_id.split("_", 1)[1]
+        if action not in actions:
+            raise InvalidAction(action)
 
-        return interaction, interaction_id
+        return interaction, action
 
     async def play_dice(
         self, interaction: discord.ComponentInteraction
@@ -347,7 +347,7 @@ class CasinoSession(utils.Object):
                 interaction, interaction_id = await self.wait_for_interaction(
                     "REROLL", "MENU"
                 )
-            except (InvalidInteractionID, asyncio.TimeoutError) as error:
+            except (InvalidAction, asyncio.TimeoutError) as error:
                 return error
             if interaction_id == "MENU":
                 return interaction
