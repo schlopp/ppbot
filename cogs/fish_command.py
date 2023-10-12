@@ -138,6 +138,9 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
                     + f"\n\nYou now have {inv_tool.format_item()} left"
                 )
 
+                if inv_tool.amount.value == 0:
+                    embed.description += " :("
+
             elif activity == Activity.SUCCESS:
                 growth = random.randint(1, 15)
                 pp.grow(growth)
