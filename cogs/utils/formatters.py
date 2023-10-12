@@ -25,7 +25,6 @@ _UNITS = {
     "octodecillion": " octo.",
     "novemdecillion": " nov.",
     "vigintillion": " vig.",
-    "infinity": " inf.",
 }
 _TIME_UNITS: dict[str, float] = {
     "year": 60 * 60 * 24 * 365,
@@ -64,7 +63,9 @@ def format_int(
         try:
             unit = list(_UNITS)[unit - 2]
         except IndexError:
-            unit = "infinity"
+            if format_type == IntFormatType.FULL_UNIT:
+                return "infinity"
+            return "inf."
 
         if format_type == IntFormatType.FULL_UNIT:
             return f"{unit_value} {unit}"
