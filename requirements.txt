@@ -2,3 +2,5 @@ git+https://github.com/schlopp/Novus.git
 git+https://github.com/schlopp/VoxelBotUtils.git
 asyncpg
 pre-commit
+maturin
+black

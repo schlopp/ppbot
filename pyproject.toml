@@ -1,3 +1,11 @@
+[build-system]
+requires = ["maturin>=1.3,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "ppbot"
+requires-python = ">=3.11"
+
 [tool.pyright]
 reportPrivateUsage = false
 reportImportCycles = false
@@ -10,3 +18,6 @@ reportMissingTypeArgument = false
 reportMissingTypeStubs = false
 reportUnknownLambdaType = false
 reportIncompatibleVariableOverride = false
+
+[tool.maturin]
+features = ["pyo3/extension-module"]

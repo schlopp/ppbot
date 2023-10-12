@@ -4,3 +4,11 @@ config/website.toml
 .vscode/
 .venv/
 .mypy_cache/
+.git/
+
+# rust
+target/
+Cargo.lock
+
+# folder for local unrelated scripts
+local_scripts/
