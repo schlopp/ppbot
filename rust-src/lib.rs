@@ -2,16 +2,16 @@
 use pyo3::prelude::*;
 
 #[pyfunction]
-fn compute_multiplier_item_cost(
+fn compute_multiplier_item_price(
     amount: usize,
     current_multiplier: usize,
-    item_cost: usize,
+    item_price: usize,
     item_gain: usize,
 ) -> (usize, usize) {
     let cost = ((current_multiplier..=amount + current_multiplier - 1)
         .map(|x| (x as f64).powf(1.3))
         .sum::<f64>()
-        * (item_cost as f64))
+        * (item_price as f64))
         .floor() as usize;
 
     let gain = item_gain * amount;
@@ -23,7 +23,7 @@ fn compute_multiplier_item_cost(
 fn compute_max_multiplier_item_purchase_amount(
     available_inches: usize,
     current_multiplier: usize,
-    item_cost: usize,
+    item_price: usize,
     item_gain: usize,
 ) -> (usize, usize, usize) {
     let mut max_reached = false;
@@ -36,7 +36,7 @@ fn compute_max_multiplier_item_purchase_amount(
         amount = min_amount + ((max_amount as f64 - min_amount as f64) / 2.0).floor() as usize;
 
         let (cost, gain) =
-            compute_multiplier_item_cost(amount, current_multiplier, item_cost, item_gain);
+            compute_multiplier_item_price(amount, current_multiplier, item_price, item_gain);
 
         if amount == old_amount {
             return (amount, cost, gain);
@@ -57,7 +57,7 @@ fn compute_max_multiplier_item_purchase_amount(
 
 #[pymodule]
 fn rust_utils(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(compute_multiplier_item_cost, m)?)
+    m.add_function(wrap_pyfunction!(compute_multiplier_item_price, m)?)
         .unwrap();
     m.add_function(wrap_pyfunction!(
         compute_max_multiplier_item_purchase_amount,
