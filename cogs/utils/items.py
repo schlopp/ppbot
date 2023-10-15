@@ -3,11 +3,11 @@ import asyncpg
 import logging
 import re
 from datetime import timedelta
-from decimal import Decimal
 from functools import cached_property
 from typing import Any
 
 import toml
+import rust_utils  # pyright: ignore[reportMissingModuleSource]
 
 from . import (
     Object,
@@ -82,13 +82,13 @@ class MultiplierItem(UselessItem):
         self.price = price
         self.gain = gain
 
-    def get_scaled_values(self, amount: int, *, multiplier: int) -> tuple[int, int]:
-        exponent = Decimal("1.3")  # to avoid OverflowError's with big ass floats
-        price = int(
-            self.price * (1 - exponent ** (multiplier + amount)) / (1 - exponent)
+    def compute_cost(
+        self, amount: int, *, current_multiplier: int = 1
+    ) -> tuple[int, int]:
+        """Returns `(cost, self.gain * amount)`"""
+        return rust_utils.compute_multiplier_item_price(
+            amount, current_multiplier, self.price, self.gain
         )
-        gain = self.gain * amount
-        return price, gain
 
 
 class BuffItem(UselessItem):

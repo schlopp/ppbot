@@ -94,7 +94,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             listing_title += f" ({amount_owned})"
 
         if isinstance(item, utils.MultiplierItem):
-            price, _ = item.get_scaled_values(1, multiplier=pp.multiplier.value)
+            price, _ = item.compute_cost(1, current_multiplier=pp.multiplier.value)
         else:
             price = item.price
 
@@ -384,8 +384,8 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                     await responder(embed=embed, components=None, content=None)
                     return
 
-                price, gain = item_object.get_scaled_values(
-                    amount, multiplier=pp.multiplier.value
+                price, gain = item_object.compute_cost(
+                    amount, current_multiplier=pp.multiplier.value
                 )
             else:
                 price = item_object.price * amount
