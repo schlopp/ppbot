@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "rust_utils"
-path = "rust_utils/lib.rs"
+path = "pyo3_rust_utils/src/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]

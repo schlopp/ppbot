@@ -4,9 +4,12 @@ Utility module written in Rust using PyO3 and Maturin. Typestubs maintained manu
 
 Type conversions for Rust (PyO3) -> Python: https://pyo3.rs/v0.19.2/conversions/tables
 """
-__all__ = []
+__all__ = [
+    "compute_multiplier_item_cost",
+    "compute_max_multiplier_item_purchase_amount",
+]
 
-def compute_multiplier_item_price(
+def compute_multiplier_item_cost(
     amount: int, current_multiplier: int, item_price: int, item_gain: int
 ) -> tuple[int, int]:
     """
