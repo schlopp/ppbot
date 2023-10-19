@@ -40,7 +40,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
     }
 
     def _component_factory(
-        self, *, current_page_id: Literal["SHOW", "INVENTORY"]
+        self, *, current_page_id: Literal["SHOW", "INVENTORY", "UNLOCKED_COMMANDS"]
     ) -> tuple[str, discord.ui.MessageComponents]:
         """Returns `(interaction_id: str, components: discord.ui.MessageComponents)`"""
         interaction_id = uuid.uuid4().hex
@@ -48,6 +48,10 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
             "SHOW": discord.ui.Button(label="Show", custom_id=f"{interaction_id}_SHOW"),
             "INVENTORY": discord.ui.Button(
                 label="Inventory", custom_id=f"{interaction_id}_INVENTORY"
+            ),
+            "UNLOCKED_COMMANDS": discord.ui.Button(
+                label="Unlocked Commands",
+                custom_id=f"{interaction_id}_UNLOCKED_COMMANDS",
             ),
             "BUFFS": discord.ui.Button(
                 label="Active Buffs (COMING SOON)", disabled=True
@@ -146,6 +150,63 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
 
         return embed
 
+    def _unlocked_commands_embed_factory(
+        self,
+        ctx: commands.SlashContext[utils.Bot],
+        inventory: list[utils.InventoryItem],
+    ) -> utils.Embed:
+        embed = utils.Embed()
+        embed.colour = utils.BLUE
+        embed.title = f"{utils.clean(ctx.author.display_name)}'s unlocked_commands"
+
+        unlocked_commands = [
+            inv_item.item
+            for inv_item in inventory
+            if isinstance(inv_item.item, utils.ToolItem)
+        ]
+
+        locked_commands = [
+            tool
+            for tool in utils.ItemManager.tools.values()
+            if tool not in unlocked_commands
+        ]
+
+        unlocked_commands.sort(key=lambda tool: tool.price)
+        locked_commands.sort(key=lambda tool: tool.price)
+
+        categories = {
+            "🔓 UNLOCKED": unlocked_commands,
+            "🔒 LOCKED": locked_commands,
+        }
+
+        progress_bar = f"[{'▮' * len(unlocked_commands)}{'▯' * len(locked_commands)}]"
+
+        embed.description = (
+            f"**`{progress_bar}"
+            f" ({len(unlocked_commands)}/{len(unlocked_commands) + len(locked_commands)}"
+            f" unlocked)`**\n\nuse {utils.format_slash_command('buy')} to unlock more items :))"
+            f"\n& check out {utils.format_slash_command('help')}  to see all the other commands!"
+        )
+
+        # Used to add a lil more space between the fields
+        zero_width_character = "​"
+        em_space_character = " "
+
+        for category, tools in categories.items():
+            if not tools:
+                continue
+            embed.add_field(
+                name=category,
+                value="\n".join(
+                    f"{tool.associated_command_link} (from **{tool.name}**)"
+                    + em_space_character * 2
+                    + zero_width_character
+                    for tool in tools
+                ),
+            )
+
+        return embed
+
     async def handle_tabs(
         self,
         ctx: commands.SlashContext[utils.Bot],
@@ -187,6 +248,18 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                 embed = self._show_embed_factory(ctx, pp)
                 interaction_id, components = self._component_factory(
                     current_page_id="SHOW"
+                )
+            elif action == "UNLOCKED_COMMANDS":
+                if inventory is None:
+                    async with utils.DatabaseWrapper() as db:
+                        inventory = await utils.InventoryItem.fetch(
+                            db.conn,
+                            {"user_id": ctx.author.id},
+                            fetch_multiple_rows=True,
+                        )
+                embed = self._unlocked_commands_embed_factory(ctx, inventory)
+                interaction_id, components = self._component_factory(
+                    current_page_id="UNLOCKED_COMMANDS"
                 )
 
             await component_interaction.response.edit_message(
@@ -230,6 +303,33 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
 
         interaction_id, components = self._component_factory(
             current_page_id="INVENTORY"
+        )
+        await ctx.interaction.response.send_message(embed=embed, components=components)
+
+        await self.handle_tabs(
+            ctx, interaction_id, components=components, inventory=inventory
+        )
+
+    @commands.command(
+        "unlocked-commands",
+        utils.Command,
+        application_command_meta=commands.ApplicationCommandMeta(),
+    )
+    async def unlocked_commands_command(
+        self, ctx: commands.SlashContext[utils.Bot]
+    ) -> None:
+        """
+        View all the commands you've unlocked.
+        """
+        async with utils.DatabaseWrapper() as db:
+            inventory = await utils.InventoryItem.fetch(
+                db.conn, {"user_id": ctx.author.id}, fetch_multiple_rows=True
+            )
+
+        embed = self._unlocked_commands_embed_factory(ctx, inventory)
+
+        interaction_id, components = self._component_factory(
+            current_page_id="UNLOCKED_COMMANDS"
         )
         await ctx.interaction.response.send_message(embed=embed, components=components)
 
