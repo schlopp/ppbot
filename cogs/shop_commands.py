@@ -205,7 +205,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
 
             embed.description = "\n\n".join(listings)
             embed.set_footer(
-                text=f"page {paginator.current_page + 1}/{paginator.max_pages} • use {utils.format_slash_command('buy')} to buy items"
+                text=f"page {paginator.current_page + 1}/{paginator.max_pages} • use /buy to buy items"
             )
 
             return embed
