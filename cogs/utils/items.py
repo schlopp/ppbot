@@ -86,8 +86,16 @@ class MultiplierItem(UselessItem):
         self, amount: int, *, current_multiplier: int = 1
     ) -> tuple[int, int]:
         """Returns `(cost: int, gain: int)`"""
-        return rust_utils.compute_multiplier_item_price(
+        return rust_utils.compute_multiplier_item_cost(
             amount, current_multiplier, self.price, self.gain
+        )
+
+    def compute_max_purchase(
+        self, *, available_inches: int, current_multiplier: int = 1
+    ) -> tuple[int, int, int]:
+        """Returns `(amount: int, cost: int, gain: int)`"""
+        return rust_utils.compute_max_multiplier_item_purchase_amount(
+            available_inches, current_multiplier, self.price, self.gain
         )
 
 
