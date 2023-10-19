@@ -79,6 +79,7 @@ class ShopPaginator(utils.Paginator[utils.Item, ShopPaginatorActions]):
 
     @property
     def items(self) -> tuple[utils.Item, ...]:
+        """Returns `(item: utils.Item, ...)`"""
         return tuple(item for item in self._items if item.category in self.categories)
 
 

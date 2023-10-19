@@ -36,6 +36,7 @@ class ReplyManager:
         ] = lambda ctx, reply: True,
         timeout: float = DEFAULT_TIMEOUT,
     ) -> tuple[commands.SlashContext[Bot], str]:
+        """Returns `(ctx: commands.SlashContext[Bot], reply: str)`"""
         if channel in cls.active_listeners:
             raise DuplicateReplyListenerError(repr(channel))
 
@@ -114,6 +115,8 @@ async def wait_for_component_interaction(
     actions: list[str] | None = None,
     timeout: float = 30,
 ) -> tuple[discord.ComponentInteraction, str]:
+    """Returns `(component_interaction: commands.ComponentInteraction, action: str)`"""
+
     def component_interaction_check(
         component_interaction: discord.ComponentInteraction,
     ) -> bool:

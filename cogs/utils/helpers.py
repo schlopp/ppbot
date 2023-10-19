@@ -45,6 +45,7 @@ def compare(x: int, y: int) -> Literal[-1, 0, 1]:
 def find_nearest_number(
     numbers: Iterable[int], number: int
 ) -> tuple[int, Literal[-1, 0, 1]]:
+    """Returns `(nearest_number: int, comparison: L[-1, 0, 1])`"""
     nearest_number: int | None = None
     for i in numbers:
         if i == number:
@@ -182,6 +183,7 @@ class DatabaseWrapperObject(Object):
     def _generate_cls_pgsql_where_query(
         cls, required_values: dict[str, Any], *, argument_position: int = 1
     ) -> tuple[str, list, int]:
+        """Returns `(query: str, query_args: int, arg_position: int)`"""
         conditional_values: list[str] = []
         query_arguments = []
 
@@ -201,6 +203,7 @@ class DatabaseWrapperObject(Object):
     def _generate_pgsql_where_query(
         self, *, argument_position: int = 1
     ) -> tuple[str, list, int]:
+        """Returns `(query: str, query_args: int, arg_position: int)`"""
         sql_conditions: list[str] = []
         query_arguments = []
 

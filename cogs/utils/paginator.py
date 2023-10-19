@@ -51,6 +51,7 @@ class Paginator(Object, Generic[_ItemT, _ActionsT]):
 
     @property
     def items(self) -> tuple[_ItemT, ...]:
+        """Returns `(item: _ItemT, ...)`"""
         return tuple(self._items)
 
     def _update_components(self, *, disable_all: bool = False) -> None:
@@ -78,6 +79,7 @@ class Paginator(Object, Generic[_ItemT, _ActionsT]):
             end_button.disable()
 
     def _get_current_items(self) -> tuple[_ItemT, ...]:
+        """Returns `(current_item: _ItemT, ...)`"""
         return self.items[
             self.current_page * self.per_page : (self.current_page + 1) * self.per_page
         ]
@@ -85,6 +87,7 @@ class Paginator(Object, Generic[_ItemT, _ActionsT]):
     async def wait_for_interaction(
         self, user: discord.User | discord.Member
     ) -> tuple[discord.ComponentInteraction, _ActionsT]:
+        """Returns `(component_interaction: discord.ComponentInteraction, action: _ActionsT)`"""
         component_interaction = await self.bot.wait_for(
             "component_interaction",
             check=lambda i: i.user == user and i.custom_id.startswith(self.id),

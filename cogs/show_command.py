@@ -42,6 +42,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
     def _component_factory(
         self, *, current_page_id: Literal["SHOW", "INVENTORY"]
     ) -> tuple[str, discord.ui.MessageComponents]:
+        """Returns `(interaction_id: str, components: discord.ui.MessageComponents)`"""
         interaction_id = uuid.uuid4().hex
         buttons: dict[str, discord.ui.Button] = {
             "SHOW": discord.ui.Button(label="Show", custom_id=f"{interaction_id}_SHOW"),

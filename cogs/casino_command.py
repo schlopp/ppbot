@@ -123,6 +123,7 @@ class CasinoSession(utils.Object):
         cls: type[Self],
         interaction: discord.ComponentInteraction | discord.ModalInteraction,
     ) -> tuple[Self, str] | None:
+        """Returns `(casino_session: Self, interaction_id: str)`"""
         try:
             casino_session_id, interaction_id = interaction.custom_id.split("_", 1)
         except ValueError:
@@ -266,6 +267,8 @@ class CasinoSession(utils.Object):
     async def wait_for_interaction(
         self, *actions: str, timeout: float | None = TIMEOUT
     ) -> tuple[discord.ComponentInteraction, str]:
+        """Returns `(interaction: discord.ComponentInteraction, action: str)`"""
+
         def check(interaction: discord.ComponentInteraction) -> bool:
             interaction_data = self.from_interaction(interaction)
             return interaction_data is not None and interaction_data[0] is self

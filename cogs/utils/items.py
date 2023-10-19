@@ -85,7 +85,7 @@ class MultiplierItem(UselessItem):
     def compute_cost(
         self, amount: int, *, current_multiplier: int = 1
     ) -> tuple[int, int]:
-        """Returns `(cost, self.gain * amount)`"""
+        """Returns `(cost: int, gain: int)`"""
         return rust_utils.compute_multiplier_item_price(
             amount, current_multiplier, self.price, self.gain
         )

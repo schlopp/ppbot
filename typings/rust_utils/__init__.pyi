@@ -11,7 +11,7 @@ def compute_multiplier_item_price(
 ) -> tuple[int, int]:
     """
     Computes the price of buying a certain amount of a multiplier item, along with the gain it'll
-    give. Returns tuple `(cost, gain)`.
+    give. Returns tuple `(cost: int, gain: int)`.
     """
     ...
 
@@ -20,6 +20,6 @@ def compute_max_multiplier_item_purchase_amount(
 ) -> tuple[int, int, int]:
     """
     Computes the maximum purchasable amount of a multiplier item, along with the cost and the gain
-    it'll give. Returns tuple `(amount, cost, gain)`.
+    it'll give. Returns tuple `(amount: int, cost: int, gain: int)`.
     """
     ...

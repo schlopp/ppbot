@@ -23,6 +23,7 @@ class RedisCooldownMapping(commands.CooldownMapping):
     async def redis_get_bucket(
         self, redis: vbu.Redis, key: str, current: float | None = None
     ) -> tuple[int, float]:
+        """Returns `(tokens: int, window: float)`"""
         assert self._cooldown is not None
 
         if current is None:
@@ -49,6 +50,7 @@ class RedisCooldownMapping(commands.CooldownMapping):
     async def redis_update_rate_limit(
         self, key: str, current: float | None = None
     ) -> tuple[commands.Cooldown, float | None]:
+        """Returns `(cooldown: Cooldown, retry_after: float | None)`"""
         assert self._cooldown is not None
         if current is None:
             current = time.time()
