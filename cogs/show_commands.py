@@ -8,7 +8,7 @@ from discord.ext import commands, vbu
 from . import utils
 
 
-class ShowCommandCog(vbu.Cog[utils.Bot]):
+class ShowCommandsCog(vbu.Cog[utils.Bot]):
     REAL_LIFE_COMPARISONS = {
         0: "your IRL pp",
         60: "the average door",
@@ -397,4 +397,4 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
 
 
 def setup(bot: utils.Bot):
-    bot.add_cog(ShowCommandCog(bot))
+    bot.add_cog(ShowCommandsCog(bot))
