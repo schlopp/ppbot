@@ -89,21 +89,23 @@ class Minigame(Generic[_MinigameContextDictT], Object):
                 )
             except IndexError:
                 break
-            else:
-                if reward_item.id in reward_item_ids:
-                    break
-                reward_item.amount.value += random.randint(
-                    1,
-                    self.MAXIMUM_ITEM_REWARD_PRICE
-                    * self.pp.multiplier.value
-                    // reward_item.item.price
-                    * 3,
-                )
-                await reward_item.update(self.connection, additional=True)
-                reward_item_ids.append(reward_item.id)
-                reward_messages.append(f"{reward_item.format_item()}")
 
-        return f"{format_iterable(reward_messages, inline=True)}"
+            if reward_item.id in reward_item_ids:
+                break
+
+            reward_item.amount.value += random.randint(
+                1,
+                self.MAXIMUM_ITEM_REWARD_PRICE
+                * self.pp.multiplier.value
+                // reward_item.item.price
+                * 3,
+            )
+
+            await reward_item.update(self.connection, additional=True)
+            reward_item_ids.append(reward_item.id)
+            reward_messages.append(reward_item.format_item())
+
+        return format_iterable(reward_messages, inline=True)
 
     @staticmethod
     def clean_sentence(sentence: str):
