@@ -64,12 +64,15 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
         )
 
     def _show_embed_factory(
-        self, ctx: commands.SlashContext[utils.Bot], pp: utils.Pp
+        self,
+        ctx: commands.SlashContext[utils.Bot],
+        member: discord.Member | discord.User,
+        pp: utils.Pp,
     ) -> utils.Embed:
         embed = utils.Embed()
         embed.colour = utils.BLUE
         embed.title = utils.limit_text(
-            f"{pp.name.value} ({utils.clean(ctx.author.display_name)}'s pp)", 256
+            f"{pp.name.value} ({utils.clean(member.display_name)}'s pp)", 256
         )
         embed.description = f"8{'=' * min(pp.size.value // 50, 1000)}D"
 
@@ -100,11 +103,12 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
     def _inventory_embed_factory(
         self,
         ctx: commands.SlashContext[utils.Bot],
+        member: discord.Member | discord.User,
         inventory: list[utils.InventoryItem],
     ) -> utils.Embed:
         embed = utils.Embed()
         embed.colour = utils.BLUE
-        embed.title = f"{utils.clean(ctx.author.display_name)}'s inventory"
+        embed.title = f"{utils.clean(member.display_name)}'s inventory"
 
         categories: dict[str, list[utils.InventoryItem]] = {
             utils.ToolItem.category_name: [],
@@ -153,11 +157,12 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
     def _unlocked_commands_embed_factory(
         self,
         ctx: commands.SlashContext[utils.Bot],
+        member: discord.Member | discord.User,
         inventory: list[utils.InventoryItem],
     ) -> utils.Embed:
         embed = utils.Embed()
         embed.colour = utils.BLUE
-        embed.title = f"{utils.clean(ctx.author.display_name)}'s unlocked_commands"
+        embed.title = f"{utils.clean(member.display_name)}'s unlocked_commands"
 
         unlocked_commands = [
             inv_item.item
@@ -210,6 +215,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
     async def handle_tabs(
         self,
         ctx: commands.SlashContext[utils.Bot],
+        member: discord.Member | discord.User,
         interaction_id: str,
         components: discord.ui.MessageComponents,
         pp: utils.Pp | None = None,
@@ -234,18 +240,26 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                     async with utils.DatabaseWrapper() as db:
                         inventory = await utils.InventoryItem.fetch(
                             db.conn,
-                            {"user_id": ctx.author.id},
+                            {"user_id": member.id},
                             fetch_multiple_rows=True,
                         )
-                embed = self._inventory_embed_factory(ctx, inventory)
+                embed = self._inventory_embed_factory(ctx, member, inventory)
                 interaction_id, components = self._component_factory(
                     current_page_id="INVENTORY"
                 )
             elif action == "SHOW":
                 if pp is None:
                     async with utils.DatabaseWrapper() as db:
-                        pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id)
-                embed = self._show_embed_factory(ctx, pp)
+                        try:
+                            pp = await utils.Pp.fetch_from_user(db.conn, member.id)
+                        except utils.NoPpCheckFailure:
+                            if member == ctx.author:
+                                raise
+                            raise utils.NoPpCheckFailure(
+                                f"{member.mention} ain't got a pp :("
+                            )
+
+                embed = self._show_embed_factory(ctx, member, pp)
                 interaction_id, components = self._component_factory(
                     current_page_id="SHOW"
                 )
@@ -257,7 +271,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                             {"user_id": ctx.author.id},
                             fetch_multiple_rows=True,
                         )
-                embed = self._unlocked_commands_embed_factory(ctx, inventory)
+                embed = self._unlocked_commands_embed_factory(ctx, member, inventory)
                 interaction_id, components = self._component_factory(
                     current_page_id="UNLOCKED_COMMANDS"
                 )
@@ -269,37 +283,72 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
     @commands.command(
         "show",
         utils.Command,
-        application_command_meta=commands.ApplicationCommandMeta(),
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    type=discord.ApplicationCommandOptionType.user,
+                    description="Whoever's pp you want to take a peek at",
+                    required=False,
+                )
+            ]
+        ),
     )
-    async def show_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
+    async def show_command(
+        self, ctx: commands.SlashContext[utils.Bot], user: discord.Member | None = None
+    ) -> None:
         """
         Show your pp to the whole wide world.
         """
-        async with utils.DatabaseWrapper() as db:
-            pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id)
 
-        embed = self._show_embed_factory(ctx, pp)
+        member = user or ctx.author
+
+        async with utils.DatabaseWrapper() as db:
+            try:
+                pp = await utils.Pp.fetch_from_user(db.conn, member.id)
+            except utils.NoPpCheckFailure:
+                if member == ctx.author:
+                    raise
+                raise utils.NoPpCheckFailure(f"{member.mention} ain't got a pp :(")
+
+        embed = self._show_embed_factory(ctx, member, pp)
 
         interaction_id, components = self._component_factory(current_page_id="SHOW")
         await ctx.interaction.response.send_message(embed=embed, components=components)
 
-        await self.handle_tabs(ctx, interaction_id, components=components, pp=pp)
+        await self.handle_tabs(
+            ctx, member, interaction_id, components=components, pp=pp
+        )
 
     @commands.command(
         "inventory",
         utils.Command,
-        application_command_meta=commands.ApplicationCommandMeta(),
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    type=discord.ApplicationCommandOptionType.user,
+                    description="Whoever's pp you want to take a peek at",
+                    required=False,
+                )
+            ]
+        ),
     )
-    async def inventory_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
+    async def inventory_command(
+        self, ctx: commands.SlashContext[utils.Bot], user: discord.Member | None = None
+    ) -> None:
         """
         Check out what items are in your inventory.
         """
+
+        member = user or ctx.author
+
         async with utils.DatabaseWrapper() as db:
             inventory = await utils.InventoryItem.fetch(
                 db.conn, {"user_id": ctx.author.id}, fetch_multiple_rows=True
             )
 
-        embed = self._inventory_embed_factory(ctx, inventory)
+        embed = self._inventory_embed_factory(ctx, member, inventory)
 
         interaction_id, components = self._component_factory(
             current_page_id="INVENTORY"
@@ -307,26 +356,38 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
         await ctx.interaction.response.send_message(embed=embed, components=components)
 
         await self.handle_tabs(
-            ctx, interaction_id, components=components, inventory=inventory
+            ctx, member, interaction_id, components=components, inventory=inventory
         )
 
     @commands.command(
         "unlocked-commands",
         utils.Command,
-        application_command_meta=commands.ApplicationCommandMeta(),
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    type=discord.ApplicationCommandOptionType.user,
+                    description="Whoever's pp you want to take a peek at",
+                    required=False,
+                )
+            ]
+        ),
     )
     async def unlocked_commands_command(
-        self, ctx: commands.SlashContext[utils.Bot]
+        self, ctx: commands.SlashContext[utils.Bot], user: discord.Member | None = None
     ) -> None:
         """
         View all the commands you've unlocked.
         """
+
+        member = user or ctx.author
+
         async with utils.DatabaseWrapper() as db:
             inventory = await utils.InventoryItem.fetch(
-                db.conn, {"user_id": ctx.author.id}, fetch_multiple_rows=True
+                db.conn, {"user_id": member.id}, fetch_multiple_rows=True
             )
 
-        embed = self._unlocked_commands_embed_factory(ctx, inventory)
+        embed = self._unlocked_commands_embed_factory(ctx, member, inventory)
 
         interaction_id, components = self._component_factory(
             current_page_id="UNLOCKED_COMMANDS"
@@ -334,7 +395,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
         await ctx.interaction.response.send_message(embed=embed, components=components)
 
         await self.handle_tabs(
-            ctx, interaction_id, components=components, inventory=inventory
+            ctx, member, interaction_id, components=components, inventory=inventory
         )
 
 

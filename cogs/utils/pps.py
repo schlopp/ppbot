@@ -13,7 +13,12 @@ from . import (
     RowLevelLockMode,
     RecordNotFoundError,
     DatabaseTimeoutManager,
+    format_slash_command,
 )
+
+
+class NoPpCheckFailure(commands.CheckFailure):
+    pass
 
 
 class Pp(DatabaseWrapperObject):
@@ -53,7 +58,10 @@ class Pp(DatabaseWrapperObject):
                 timeout=timeout,
             )
         except RecordNotFoundError:
-            raise commands.CheckFailure("You don't have an account!")
+            raise NoPpCheckFailure(
+                f"You don't have a pp! Go make one with {format_slash_command('new')} and get"
+                " started :)"
+            )
         except asyncio.TimeoutError:
             raise commands.CheckFailure(
                 DatabaseTimeoutManager.get_notification(user_id)

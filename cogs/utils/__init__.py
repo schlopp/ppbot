@@ -45,7 +45,7 @@ from .items import (
     InventoryItem as InventoryItem,
     ItemManager as ItemManager,
 )
-from .pps import Pp as Pp
+from .pps import Pp as Pp, NoPpCheckFailure as NoPpCheckFailure
 from .paginator import PaginatorActions as PaginatorActions, Paginator as Paginator
 from .minigames import (
     Minigame as Minigame,
