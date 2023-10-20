@@ -5,7 +5,8 @@ dm_uncaught_errors = false  # Whether or not to DM the owners when unhandled err
 user_agent = ""  # A custom string to populate Bot.user_agent with.
 guild_settings_prefix_column = "prefix"  # Used if multiple bots connect to the same database and need to seperate their prefixes.
 ephemeral_error_messages = true  # Whether or not error messages [from slash commands] should be ephemeral.
-owners_ignore_check_failures = false  # Whether or not owners ignore check failures on messages.
+owners_ignore_command_errors = false  # Whether or not owners ignore command errors.
+owners_ignore_check_failures = false  # Whether or not owners ignore check failures.
 
 # These are used with the on_message event. As such, they will likely soon be deprecated.
 default_prefix = "pp "  # The prefix for the bot's commands.
