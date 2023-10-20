@@ -65,7 +65,6 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
 
     def _show_embed_factory(
         self,
-        ctx: commands.SlashContext[utils.Bot],
         member: discord.Member | discord.User,
         pp: utils.Pp,
     ) -> utils.Embed:
@@ -102,7 +101,6 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
 
     def _inventory_embed_factory(
         self,
-        ctx: commands.SlashContext[utils.Bot],
         member: discord.Member | discord.User,
         inventory: list[utils.InventoryItem],
     ) -> utils.Embed:
@@ -156,7 +154,6 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
 
     def _unlocked_commands_embed_factory(
         self,
-        ctx: commands.SlashContext[utils.Bot],
         member: discord.Member | discord.User,
         inventory: list[utils.InventoryItem],
     ) -> utils.Embed:
@@ -243,7 +240,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                             {"user_id": member.id},
                             fetch_multiple_rows=True,
                         )
-                embed = self._inventory_embed_factory(ctx, member, inventory)
+                embed = self._inventory_embed_factory(member, inventory)
                 interaction_id, components = self._component_factory(
                     current_page_id="INVENTORY"
                 )
@@ -259,7 +256,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                                 f"{member.mention} ain't got a pp :("
                             )
 
-                embed = self._show_embed_factory(ctx, member, pp)
+                embed = self._show_embed_factory(member, pp)
                 interaction_id, components = self._component_factory(
                     current_page_id="SHOW"
                 )
@@ -271,7 +268,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                             {"user_id": ctx.author.id},
                             fetch_multiple_rows=True,
                         )
-                embed = self._unlocked_commands_embed_factory(ctx, member, inventory)
+                embed = self._unlocked_commands_embed_factory(member, inventory)
                 interaction_id, components = self._component_factory(
                     current_page_id="UNLOCKED_COMMANDS"
                 )
@@ -311,7 +308,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                     raise
                 raise utils.NoPpCheckFailure(f"{member.mention} ain't got a pp :(")
 
-        embed = self._show_embed_factory(ctx, member, pp)
+        embed = self._show_embed_factory(member, pp)
 
         interaction_id, components = self._component_factory(current_page_id="SHOW")
         await ctx.interaction.response.send_message(embed=embed, components=components)
@@ -348,7 +345,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                 db.conn, {"user_id": ctx.author.id}, fetch_multiple_rows=True
             )
 
-        embed = self._inventory_embed_factory(ctx, member, inventory)
+        embed = self._inventory_embed_factory(member, inventory)
 
         interaction_id, components = self._component_factory(
             current_page_id="INVENTORY"
@@ -387,7 +384,7 @@ class ShowCommandCog(vbu.Cog[utils.Bot]):
                 db.conn, {"user_id": member.id}, fetch_multiple_rows=True
             )
 
-        embed = self._unlocked_commands_embed_factory(ctx, member, inventory)
+        embed = self._unlocked_commands_embed_factory(member, inventory)
 
         interaction_id, components = self._component_factory(
             current_page_id="UNLOCKED_COMMANDS"
