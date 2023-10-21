@@ -87,7 +87,7 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
         utils.Command,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
-    # @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.is_slash_command()
     async def fish_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
         """
