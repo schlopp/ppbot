@@ -35,6 +35,7 @@ from .managers import (
     SlashCommandMappingManager as SlashCommandMappingManager,
     format_slash_command as format_slash_command,
 )
+from .streaks import Streaks as Streaks
 from .items import (
     UnknownItemError as UnknownItemError,
     UselessItem as UselessItem,

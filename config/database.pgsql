@@ -27,6 +27,12 @@ CREATE TABLE IF NOT EXISTS inventories (
 );
 
 
+CREATE TABLE IF NOT EXISTS streaks (
+    user_id BIGINT PRIMARY KEY,
+    daily_streak SMALLINT NOT NULL DEFAULT 0
+);
+
+
 -- CREATE TABLE IF NOT EXISTS role_list(
 --     guild_id BIGINT,
 --     role_id BIGINT,

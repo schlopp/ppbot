@@ -200,6 +200,29 @@ class DatabaseWrapperObject(Object):
             argument_position,
         )
 
+    @classmethod
+    def _generate_pgsql_insert_query(
+        cls, required_values: dict[str, Any], *, argument_position: int = 1
+    ) -> tuple[str, list, int]:
+        """Returns `(query: str, query_args: int, arg_position: int)`"""
+        query_insert_parts: list[str] = []
+        query_value_parts: list[str] = []
+        query_arguments = []
+
+        for required_attribute, required_value in required_values.items():
+            query_arguments.append(required_value)
+            query_insert_parts.append(cls._column_attributes[required_attribute])
+            query_value_parts.append(f"${argument_position}")
+            argument_position += 1
+
+        return (
+            f"INSERT INTO {cls._table}"
+            f" ({', '.join(query_insert_parts)})"
+            f" VALUES ({', '.join(query_value_parts)})",
+            query_arguments,
+            argument_position,
+        )
+
     def _generate_pgsql_where_query(
         self, *, argument_position: int = 1
     ) -> tuple[str, list, int]:
@@ -242,6 +265,7 @@ class DatabaseWrapperObject(Object):
         lock: Literal[None] = None,
         fetch_multiple_rows: Literal[True],
         timeout: float | None = None,
+        insert_if_not_found: bool = False,
     ) -> list[Record]:
         ...
 
@@ -256,6 +280,7 @@ class DatabaseWrapperObject(Object):
         lock: RowLevelLockMode | None = None,
         fetch_multiple_rows: Literal[False] = False,
         timeout: float | None = None,
+        insert_if_not_found: bool = False,
     ) -> Record:
         ...
 
@@ -269,6 +294,7 @@ class DatabaseWrapperObject(Object):
         lock: RowLevelLockMode | None = None,
         fetch_multiple_rows: bool = False,
         timeout: float | None = None,
+        insert_if_not_found: bool = False,
     ) -> Record | list[Record]:
         where_query, where_query_arguments, _ = cls._generate_cls_pgsql_where_query(
             required_values
@@ -288,9 +314,28 @@ class DatabaseWrapperObject(Object):
         )
         if record is not None:
             return record
+
+        if insert_if_not_found:
+            insert_query, insert_query_args, _ = cls._generate_pgsql_insert_query(
+                required_values
+            )
+            await connection.execute(
+                insert_query, *insert_query_args, timeout=timeout  # type: ignore
+            )
+            return await cls.fetch_record(
+                connection,
+                required_values,
+                selected_columns,
+                lock=lock,
+                fetch_multiple_rows=fetch_multiple_rows,
+                timeout=timeout,
+                insert_if_not_found=True,
+            )
+
         raise RecordNotFoundError(
-            f"Couldn't find a record derived from the SQL statement {query!r}"
-            f" with the arguments {where_query_arguments}"
+            f"Couldn't find a record derived from the SQL statement {query!r} with the arguments"
+            f" {where_query_arguments}. Use kwarg insert_if_not_found=True if you mean't to insert"
+            " instead of raising an error."
         )
 
     @overload
@@ -303,6 +348,7 @@ class DatabaseWrapperObject(Object):
         lock: Literal[None] = None,
         fetch_multiple_rows: Literal[True],
         timeout: float | None = None,
+        insert_if_not_found: bool = False,
     ) -> list[Self]:
         ...
 
@@ -316,6 +362,7 @@ class DatabaseWrapperObject(Object):
         lock: RowLevelLockMode | None = None,
         fetch_multiple_rows: Literal[False] = False,
         timeout: float | None = None,
+        insert_if_not_found: bool = False,
     ) -> Self:
         ...
 
@@ -328,6 +375,7 @@ class DatabaseWrapperObject(Object):
         lock: RowLevelLockMode | None = None,
         fetch_multiple_rows: bool = False,
         timeout: float | None = None,
+        insert_if_not_found: bool = False,
     ) -> Self | list[Self]:
         if fetch_multiple_rows:
             return [
@@ -337,10 +385,15 @@ class DatabaseWrapperObject(Object):
                     required_values,
                     fetch_multiple_rows=True,
                     timeout=timeout,
+                    insert_if_not_found=insert_if_not_found,
                 )
             ]
         record = await cls.fetch_record(
-            connection, required_values, lock=lock, timeout=timeout
+            connection,
+            required_values,
+            lock=lock,
+            timeout=timeout,
+            insert_if_not_found=insert_if_not_found,
         )
 
         return cls.from_record(record)
