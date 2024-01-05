@@ -55,7 +55,7 @@ bot_support_role_id = 0  # The ID used to determine whether or not the user is p
 
 # Data used to set up a webhook server and register top.gg votes as they come in.
 [topgg_webhook]
-    enabled = false  # Enables the creation of the top.gg webhook server/cog.
+    enabled = true  # Enables the creation of the top.gg webhook server/cog.
     host = "127.0.0.1"  # The host of the webhook server. Should correspond to the one entered in your bot's top.gg settings.
     port = 8080  # The port of the webhook server. Should correspond to the one entered in your bot's top.gg settings.
     authorization = ""  # The authorization token of the webhook server. Should correspond to the one entered in your bot's top.gg settings.
