@@ -1,6 +1,7 @@
 __pycache__/
 config/config.toml
 config/website.toml
+cogs/testing_commands.py
 .vscode/
 .venv/
 .mypy_cache/
