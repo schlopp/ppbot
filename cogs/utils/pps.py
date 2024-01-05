@@ -2,7 +2,7 @@ import asyncio
 from typing import Self
 
 import asyncpg
-from discord.ext import commands
+from discord.ext import commands, vbu
 
 from . import (
     DatabaseWrapperObject,
@@ -66,6 +66,9 @@ class Pp(DatabaseWrapperObject):
             raise commands.CheckFailure(
                 DatabaseTimeoutManager.get_notification(user_id)
             )
+
+    async def has_voted(self) -> bool:
+        return await vbu.user_has_voted(self.user_id)
 
     def grow(self, growth: int, *, include_multipliers: bool = True) -> int:
         if include_multipliers:
