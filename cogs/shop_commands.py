@@ -140,7 +140,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             )
 
         if listing_details:
-            listing_description += "\n• " + "\n• ".join(listing_details)
+            listing_description += "\n" + utils.format_iterable(listing_details)
 
         return f"{listing_title}\n{listing_description}"
 

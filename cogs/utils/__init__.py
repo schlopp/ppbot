@@ -8,6 +8,7 @@ from .formatters import (
 )
 from .helpers import (
     MEME_URL as MEME_URL,
+    VOTE_URL as VOTE_URL,
     RED as RED,
     GREEN as GREEN,
     BLUE as BLUE,

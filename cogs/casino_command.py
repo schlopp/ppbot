@@ -50,8 +50,7 @@ class CasinoSession(utils.Object):
         return self._stakes
 
     def generate_stat_description(self, *, note_invalid_stakes: bool = False) -> str:
-        list_symbol = "• "
-        description = list_symbol + f"\n{list_symbol}".join(
+        description = utils.format_iterable(
             [
                 f"During this session, you've {self.pp.format_growth(prefixed=True)}",
                 f"Your pp now has {self.pp.format_growth(self.pp.size.value)}",

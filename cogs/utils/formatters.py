@@ -136,10 +136,16 @@ def format_time(
 
 
 def format_iterable(__iterable: Iterable[Any], /, *, inline: bool = False) -> str:
+    """
+    Example:
+        format_iterable([1, 2, 3]) -> "1, 2 and 3"
+        format_iterable([1, 2, 3], inline=False) -> "• 1\n• 2\n• 3"
+    """
+
     values = [str(i) for i in __iterable] or ["nothing"]
 
     if not inline:
-        return "• " + "\n• ".join(values)
+        return "- " + "\n- ".join(values)
 
     if len(values) < 3:
         return " and ".join(values)

@@ -19,6 +19,7 @@ class RecordNotFoundError(Exception):
 
 
 MEME_URL = "https://youtu.be/4rgxdf-fVw0"
+VOTE_URL = "https://top.gg/bot/735147633076863027/vote"
 RED = discord.Colour(16007990)
 GREEN = discord.Colour(5025616)
 BLUE = discord.Colour(2201331)
