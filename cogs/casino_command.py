@@ -304,14 +304,14 @@ class CasinoSession(utils.Object):
                     f"And wins {self.pp.format_growth(self.stakes)}!"
                 )
                 self.game_embed.color
-                self.pp.grow(self.stakes, include_multipliers=False)
+                self.pp.grow(self.stakes)
 
             elif roll < bot_roll:
                 self.game_embed.colour = utils.RED
                 self.game_embed.description = (
                     f"And loses {self.pp.format_growth(self.stakes)} :("
                 )
-                self.pp.grow(-self.stakes, include_multipliers=False)
+                self.pp.grow(-self.stakes)
 
             else:
                 self.game_embed.colour = utils.BLUE

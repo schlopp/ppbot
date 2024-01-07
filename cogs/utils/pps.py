@@ -35,11 +35,21 @@ class Pp(DatabaseWrapperObject):
     _identifier_attributes = ("user_id",)
     _trackers = ("multiplier", "size", "name")
 
+    VOTE_MULTIPLIER = 4
+
     def __init__(self, user_id: int, multiplier: int, size: int, name: str) -> None:
         self.user_id = user_id
         self.multiplier = DifferenceTracker(multiplier, column="pp_multiplier")
         self.size = DifferenceTracker(size, column="pp_size")
         self.name = DifferenceTracker(name, column="pp_name")
+
+    def get_full_multiplier(self, *, voted: bool = False) -> int:
+        multiplier = self.multiplier.value
+
+        if voted:
+            multiplier *= self.VOTE_MULTIPLIER
+
+        return multiplier
 
     @classmethod
     async def fetch_from_user(
@@ -70,9 +80,12 @@ class Pp(DatabaseWrapperObject):
     async def has_voted(self) -> bool:
         return await vbu.user_has_voted(self.user_id)
 
-    def grow(self, growth: int, *, include_multipliers: bool = True) -> int:
-        if include_multipliers:
-            growth *= self.multiplier.value
+    def grow(self, growth: int) -> int:
+        self.size.value += growth
+        return growth
+
+    def grow_with_multipliers(self, growth: int, *, voted: bool = False) -> int:
+        growth *= self.get_full_multiplier(voted=voted)
         self.size.value += growth
         return growth
 

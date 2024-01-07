@@ -67,7 +67,7 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
     ) -> str:
         reward_message_chunks: list[str] = []
 
-        pp.grow(
+        pp.grow_with_multipliers(
             random.randint(
                 DailyCommandCog.MIN_DAILY_GROWTH, DailyCommandCog.MAX_DAILY_GROWTH
             )

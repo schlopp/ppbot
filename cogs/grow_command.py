@@ -21,7 +21,7 @@ class GrowCommandCog(vbu.Cog[utils.Bot]):
         ):
             pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
 
-            pp.grow(random.randint(1, 15))
+            pp.grow_with_multipliers(random.randint(1, 15))
             await pp.update(db.conn)
 
             embed = utils.Embed()
