@@ -19,6 +19,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         145_200: "the depth of the ocean",
         348_385: "Mount Everest",
         434_412: "the Mariana Trench",
+        501_653_543: "the diameter of the fucking earth",
         15_157_486_080: "the distance from the earth to the moon",
         5_984_252_000_000: "the distance from the earth to THE SUN",
     }
