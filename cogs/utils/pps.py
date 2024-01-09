@@ -1,5 +1,6 @@
 import asyncio
-from typing import Self
+from decimal import Decimal
+from typing import Self, Literal
 
 import asyncpg
 from discord.ext import commands, vbu
@@ -14,7 +15,11 @@ from . import (
     RecordNotFoundError,
     DatabaseTimeoutManager,
     format_slash_command,
+    is_weekend,
 )
+
+
+BoostLiteral = Literal["voter", "weekend"]
 
 
 class NoPpCheckFailure(commands.CheckFailure):
@@ -35,7 +40,8 @@ class Pp(DatabaseWrapperObject):
     _identifier_attributes = ("user_id",)
     _trackers = ("multiplier", "size", "name")
 
-    VOTE_MULTIPLIER = 4
+    VOTE_BOOST = 3
+    WEEKEND_BOOST = Decimal(".5")
 
     def __init__(self, user_id: int, multiplier: int, size: int, name: str) -> None:
         self.user_id = user_id
@@ -43,13 +49,25 @@ class Pp(DatabaseWrapperObject):
         self.size = DifferenceTracker(size, column="pp_size")
         self.name = DifferenceTracker(name, column="pp_name")
 
-    def get_full_multiplier(self, *, voted: bool = False) -> int:
+    def get_full_multiplier(
+        self, *, voted: bool
+    ) -> tuple[int, dict[BoostLiteral, int | Decimal], int | Decimal]:
+        """Returns `(full_multiplier: int, boosts: dict[boost: L[...], boost_percentage: int | Decimal], total_boost: int | Decimal)`"""
+        boosts: dict[BoostLiteral, int | Decimal] = {}
+
         multiplier = self.multiplier.value
 
         if voted:
-            multiplier *= self.VOTE_MULTIPLIER
+            boosts["voter"] = self.VOTE_BOOST
 
-        return multiplier
+        if is_weekend():
+            boosts["weekend"] = self.WEEKEND_BOOST
+
+        total_boost = 1
+        for multiplier_percentage in boosts.values():
+            total_boost += multiplier_percentage
+
+        return int(multiplier * total_boost), boosts, total_boost
 
     @classmethod
     async def fetch_from_user(
@@ -85,7 +103,7 @@ class Pp(DatabaseWrapperObject):
         return growth
 
     def grow_with_multipliers(self, growth: int, *, voted: bool = False) -> int:
-        growth *= self.get_full_multiplier(voted=voted)
+        growth *= self.get_full_multiplier(voted=voted)[0]
         self.size.value += growth
         return growth
 
