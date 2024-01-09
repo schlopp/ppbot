@@ -2,6 +2,7 @@ from __future__ import annotations
 import enum
 import random
 from collections.abc import Mapping, Iterable
+from datetime import datetime
 from typing import Generic, TypeVar, Any, Literal, overload, cast, Self
 
 import asyncpg
@@ -466,3 +467,8 @@ class IntegerHolder(int, Object):
 
     def __pow__(self, other: int):  # type: ignore
         return self.value**other
+
+
+def is_weekend() -> bool:
+    """Returns true on friday, saturday and sunday (UTC)"""
+    return datetime.utcnow().weekday() >= 4
