@@ -135,7 +135,9 @@ def format_time(
     return last_duration
 
 
-def format_iterable(__iterable: Iterable[Any], /, *, inline: bool = False) -> str:
+def format_iterable(
+    __iterable: Iterable[Any], /, *, inline: bool = False, joiner: str = "- "
+) -> str:
     """
     Example:
         format_iterable([1, 2, 3]) -> "1, 2 and 3"
@@ -145,7 +147,7 @@ def format_iterable(__iterable: Iterable[Any], /, *, inline: bool = False) -> st
     values = [str(i) for i in __iterable] or ["nothing"]
 
     if not inline:
-        return "- " + "\n- ".join(values)
+        return joiner + f"\n{joiner}".join(values)
 
     if len(values) < 3:
         return " and ".join(values)
