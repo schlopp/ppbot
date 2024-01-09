@@ -438,7 +438,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 embed.description = (
                     f"You need {pp.format_growth(cost - pp.size.value)}"
                     f" more to afford {item_object.format_amount(amount_number)}"
-                    " <:Sadge:1076202349246291978>"
+                    " <:sadge:1194351982044008561>"
                 )
                 embed.add_tip()
 
