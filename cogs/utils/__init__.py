@@ -24,6 +24,7 @@ from .helpers import (
     Embed as Embed,
     RowLevelLockMode as RowLevelLockMode,
     IntegerHolder as IntegerHolder,
+    is_weekend as is_weekend,
 )
 from .cards import Rank as Rank, Suit as Suit, Deck as Deck, Hand as Hand
 from .bot import DatabaseWrapper as DatabaseWrapper, Bot as Bot
