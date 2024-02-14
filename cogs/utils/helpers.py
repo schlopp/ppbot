@@ -268,8 +268,7 @@ class DatabaseWrapperObject(Object):
         fetch_multiple_rows: Literal[True],
         timeout: float | None = None,
         insert_if_not_found: bool = False,
-    ) -> list[Record]:
-        ...
+    ) -> list[Record]: ...
 
     @overload
     @classmethod
@@ -283,8 +282,7 @@ class DatabaseWrapperObject(Object):
         fetch_multiple_rows: Literal[False] = False,
         timeout: float | None = None,
         insert_if_not_found: bool = False,
-    ) -> Record:
-        ...
+    ) -> Record: ...
 
     @classmethod
     async def fetch_record(
@@ -351,8 +349,7 @@ class DatabaseWrapperObject(Object):
         fetch_multiple_rows: Literal[True],
         timeout: float | None = None,
         insert_if_not_found: bool = False,
-    ) -> list[Self]:
-        ...
+    ) -> list[Self]: ...
 
     @overload
     @classmethod
@@ -365,8 +362,7 @@ class DatabaseWrapperObject(Object):
         fetch_multiple_rows: Literal[False] = False,
         timeout: float | None = None,
         insert_if_not_found: bool = False,
-    ) -> Self:
-        ...
+    ) -> Self: ...
 
     @classmethod
     async def fetch(

@@ -56,12 +56,10 @@ class Deck(Object):
         random.shuffle(self.cards)
 
     @overload
-    def draw(self, amount: Literal[1] = 1, *, hand: Hand | None = None) -> Card:
-        ...
+    def draw(self, amount: Literal[1] = 1, *, hand: Hand | None = None) -> Card: ...
 
     @overload
-    def draw(self, amount: int, *, hand: Hand | None = None) -> list[Card]:
-        ...
+    def draw(self, amount: int, *, hand: Hand | None = None) -> list[Card]: ...
 
     def draw(self, amount: int = 1, *, hand: Hand | None = None) -> Card | list[Card]:
         cards = [self.cards.pop() for _ in range(amount)]

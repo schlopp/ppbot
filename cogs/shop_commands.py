@@ -296,11 +296,11 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                                 ).ratio()
                                 * 1000
                             ),
-                            500
-                            if item_value in item.name.lower()
-                            else 500
-                            if item_value in item.id.lower()
-                            else 0,
+                            (
+                                500
+                                if item_value in item.name.lower()
+                                else 500 if item_value in item.id.lower() else 0
+                            ),
                         )
                         for item in utils.ItemManager.items.values()
                     }
@@ -554,9 +554,11 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
         await interaction.response.send_autocomplete(
             [
                 discord.ApplicationCommandOptionChoice(
-                    name=f"{item.name} ({utils.format_int(item.price)} inches)"
-                    if not isinstance(item, utils.MultiplierItem)
-                    else item.name,
+                    name=(
+                        f"{item.name} ({utils.format_int(item.price)} inches)"
+                        if not isinstance(item, utils.MultiplierItem)
+                        else item.name
+                    ),
                     value=item.id,
                 )
                 for item in utils.ItemManager.items.values()
