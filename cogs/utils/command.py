@@ -29,7 +29,7 @@ class RedisCooldownMapping(commands.CooldownMapping):
         if current is None:
             current = time.time()
 
-        data = cast(str | None, await redis.get(key))
+        data = await redis.get(key)
 
         if data is None:
             tokens = self._cooldown.rate
