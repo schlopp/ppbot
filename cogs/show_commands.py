@@ -19,6 +19,9 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         145_200: "the depth of the ocean",
         348_385: "Mount Everest",
         434_412: "the Mariana Trench",
+        4_588_228: "the 405 freeway",
+        219_173_228: "the distance of New York to London",
+        501_653_543: "the diameter of the fucking earth",
         15_157_486_080: "the distance from the earth to the moon",
         5_984_252_000_000: "the distance from the earth to THE SUN",
     }
@@ -37,6 +40,10 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         20_000: "Are you mentally OK? Do u need a hug??",
         100_000: "Dude just give up this is too much",
         1_000_000: "Okay. You win. I give up. I fucking quit. You win the game. Fuck you.",
+    }
+    BOOST_DESCRIPTIONS = {
+        "voter": f"voting on [**top.gg**]({utils.VOTE_URL})",
+        "weekend": "for playing during the weekend :)",
     }
 
     def _component_factory(
@@ -63,7 +70,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
             discord.ui.ActionRow(*buttons.values())
         )
 
-    def _show_embed_factory(
+    async def _show_embed_factory(
         self,
         member: discord.Member | discord.User,
         pp: utils.Pp,
@@ -75,12 +82,57 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         )
         embed.description = f"8{'=' * min(pp.size.value // 50, 1000)}D"
 
+        voted = await pp.has_voted()
+        full_multiplier, boosts, total_boost = pp.get_full_multiplier(voted=voted)
+
+        if full_multiplier != pp.multiplier.value:
+            multiplier_display = (
+                f"~~{utils.format_int(pp.multiplier.value)}x~~"
+                f" **{utils.format_int(full_multiplier)}**x multiplier"
+                f" [**[+{int(total_boost * 100) - 100}%]**]({utils.MEME_URL})"
+            )
+        else:
+            multiplier_display = f"**{utils.format_int(full_multiplier)}**x multiplier"
+
+        boost_subdisplays: list[str] = []
+
+        if not voted:
+            boost_subdisplays.append(
+                f"vote on [**top.gg**]({utils.VOTE_URL}) for an extra **{pp.VOTE_BOOST * 100}% boost!**"
+            )
+
+        for boost, boost_percentage in boosts.items():
+            boost_subdisplays.append(
+                f"**[{boost} bonus:]({utils.MEME_URL}) +{int(boost_percentage * 100)}%**"
+                f" for {self.BOOST_DESCRIPTIONS.get(boost, '???')}"
+            )
+
+        if boost_subdisplays:
+            boost_display = utils.format_iterable(boost_subdisplays, joiner=" ╰ ")
+            multiplier_display += f"\n{boost_display}"
+
+        # if await pp.has_voted():
+        #     multiplier_display = (
+        #         f"~~{utils.format_int(pp.multiplier.value)}x~~"
+        #         f" **{utils.format_int(full_multiplier)}**x multiplier"
+        #         f"\n ╰ [**voter:**]({utils.VOTE_URL}) your multiplier increases by"
+        #         f" {pp.VOTE_BOOST * 100}%"
+        #     )
+
+        # else:
+        #     multiplier_display = (
+        #         f"**{utils.format_int(pp.multiplier.value)}**x multiplier"
+        #         f"\n ╰ [**Vote now for a {pp.VOTE_BOOST * 100}% increase and a"
+        #         f" {utils.format_int(pp.get_full_multiplier(voted=True))}x multiplier!**"
+        #         f"]({utils.VOTE_URL})"
+        #     )
+
         embed.add_field(
             name="stats",
             value=utils.format_iterable(
                 [
                     f"**{utils.format_int(pp.size.value)}** inches",
-                    f"**{utils.format_int(pp.multiplier.value)}**x multiplier",
+                    multiplier_display,
                 ]
             ),
         )
@@ -136,7 +188,12 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
             embed.add_field(
                 name=category_name,
                 value="\n".join(
-                    f"**{utils.format_int(inv_item.amount.value)}**x {inv_item.item.name}"
+                    f"**{utils.format_int(inv_item.amount.value)}**x "
+                    + (
+                        inv_item.item.name
+                        if inv_item.amount.value == 1
+                        else inv_item.item.plural
+                    )
                     + em_space_character * 2
                     + zero_width_character
                     for inv_item in inv_items
@@ -159,7 +216,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
     ) -> utils.Embed:
         embed = utils.Embed()
         embed.colour = utils.BLUE
-        embed.title = f"{utils.clean(member.display_name)}'s unlocked_commands"
+        embed.title = f"{utils.clean(member.display_name)}'s unlocked commands"
 
         unlocked_commands = [
             inv_item.item
@@ -184,10 +241,13 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         progress_bar = f"[{'▮' * len(unlocked_commands)}{'▯' * len(locked_commands)}]"
 
         embed.description = (
-            f"**`{progress_bar}"
-            f" ({len(unlocked_commands)}/{len(unlocked_commands) + len(locked_commands)}"
-            f" unlocked)`**\n\nuse {utils.format_slash_command('buy')} to unlock more items :))"
-            f"\n& check out {utils.format_slash_command('help')}  to see all the other commands!"
+            f"**`{progress_bar} ({len(unlocked_commands)}/"
+            f"{len(unlocked_commands) + len(locked_commands)} unlocked)`**"
+            "\n\n**What are locked commands?**\n Locked commands are commands that require a"
+            " specific item to unlock.\n- These items can be bought in the"
+            f" {utils.format_slash_command('shop')}"
+            # f" unlocked)`**\n\nuse {utils.format_slash_command('buy')} to unlock more items :))"
+            # f"\n& check out {utils.format_slash_command('help')}  to see all the other commands!"
         )
 
         # Used to add a lil more space between the fields
@@ -256,7 +316,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                                 f"{member.mention} ain't got a pp :("
                             )
 
-                embed = self._show_embed_factory(member, pp)
+                embed = await self._show_embed_factory(member, pp)
                 interaction_id, components = self._component_factory(
                     current_page_id="SHOW"
                 )
@@ -308,7 +368,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                     raise
                 raise utils.NoPpCheckFailure(f"{member.mention} ain't got a pp :(")
 
-        embed = self._show_embed_factory(member, pp)
+        embed = await self._show_embed_factory(member, pp)
 
         interaction_id, components = self._component_factory(current_page_id="SHOW")
         await ctx.interaction.response.send_message(embed=embed, components=components)

@@ -50,8 +50,7 @@ class CasinoSession(utils.Object):
         return self._stakes
 
     def generate_stat_description(self, *, note_invalid_stakes: bool = False) -> str:
-        list_symbol = "• "
-        description = list_symbol + f"\n{list_symbol}".join(
+        description = utils.format_iterable(
             [
                 f"During this session, you've {self.pp.format_growth(prefixed=True)}",
                 f"Your pp now has {self.pp.format_growth(self.pp.size.value)}",
@@ -304,14 +303,14 @@ class CasinoSession(utils.Object):
                     f"And wins {self.pp.format_growth(self.stakes)}!"
                 )
                 self.game_embed.color
-                self.pp.grow(self.stakes, include_multipliers=False)
+                self.pp.grow(self.stakes)
 
             elif roll < bot_roll:
                 self.game_embed.colour = utils.RED
                 self.game_embed.description = (
                     f"And loses {self.pp.format_growth(self.stakes)} :("
                 )
-                self.pp.grow(-self.stakes, include_multipliers=False)
+                self.pp.grow(-self.stakes)
 
             else:
                 self.game_embed.colour = utils.BLUE
@@ -377,7 +376,7 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
         """
         async with utils.DatabaseWrapper() as db, db.conn.transaction(), utils.DatabaseTimeoutManager.notify(
             ctx.author.id,
-            "You're still in the casino, and can't do anything else untill you leave!",
+            "You're still in the casino, and can't do anything else  you leave!",
         ):
             pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
 

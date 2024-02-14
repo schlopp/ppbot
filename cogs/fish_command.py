@@ -135,7 +135,7 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
                 embed.colour = utils.RED
                 embed.description = (
                     random.choice(self.ROD_BREAK_RESPONSES).format(ctx.author.mention)
-                    + f"\n\nYou now have {inv_tool.format_item()} left"
+                    + f"\n\n(You now have {inv_tool.format_item()} left)"
                 )
 
                 if inv_tool.amount.value == 0:
@@ -143,7 +143,7 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
 
             elif activity == Activity.SUCCESS:
                 growth = random.randint(1, 15)
-                pp.grow(growth)
+                pp.grow_with_multipliers(growth)
 
                 worth = growth / 15
                 catch = self.get_catch(worth)

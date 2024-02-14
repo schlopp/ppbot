@@ -20,7 +20,7 @@ class NewCommandCog(vbu.Cog[utils.Bot]):
 
             try:
                 await utils.Pp.fetch_from_user(db.conn, ctx.author.id)
-            except utils.RecordNotFoundError:
+            except utils.NoPpCheckFailure:
                 await db("INSERT INTO pps VALUES ($1)", ctx.author.id)
                 embed.colour = utils.GREEN
                 embed.description = f"{ctx.author.mention}, you now have a pp!"

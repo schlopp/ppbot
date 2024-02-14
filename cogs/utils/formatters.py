@@ -1,8 +1,13 @@
 import enum
 import math
 from collections.abc import Iterable
-from typing import Any, Literal
+from datetime import timedelta
+from typing import Any, Literal, overload
 
+
+TimeUnitLiteral = Literal[
+    "year", "week", "day", "hour", "minute", "second", "millisecond"
+]
 
 _UNITS = {
     "million": "m",
@@ -26,7 +31,7 @@ _UNITS = {
     "novemdecillion": " nov.",
     "vigintillion": " vig.",
 }
-_TIME_UNITS: dict[str, float] = {
+_TIME_UNITS: dict[TimeUnitLiteral, float] = {
     "year": 60 * 60 * 24 * 365,
     "week": 60 * 60 * 24 * 7,
     "day": 60 * 60 * 24,
@@ -73,27 +78,51 @@ def format_int(
         return f"{unit_value}{_UNITS[unit].upper()}"
 
 
+@overload
 def format_time(
-    __seconds: float,
+    duration: timedelta,
     /,
-    smallest_unit: Literal[
-        "year", "week", "day", "hour", "minute", "second", "millisecond"
-    ]
-    | None = "second",
+    smallest_unit: TimeUnitLiteral | None = "second",
+    *,
+    adjective: bool = False,
+) -> str:
+    ...
+
+
+@overload
+def format_time(
+    seconds: float,
+    /,
+    smallest_unit: TimeUnitLiteral | None = "second",
+    *,
+    adjective: bool = False,
+) -> str:
+    ...
+
+
+def format_time(
+    __time: timedelta | float,
+    /,
+    smallest_unit: TimeUnitLiteral | None = "second",
     *,
     adjective: bool = False,
 ) -> str:
     durations: list[str] = []
 
+    if isinstance(__time, timedelta):
+        seconds = __time.total_seconds()
+    else:
+        seconds = __time
+
     for time_unit, time_unit_value in _TIME_UNITS.items():
-        if __seconds // time_unit_value:
-            suffix = "s" if __seconds // time_unit_value != 1 and not adjective else ""
-            durations.append(f"{int(__seconds // time_unit_value)} {time_unit}{suffix}")
+        if seconds // time_unit_value:
+            suffix = "s" if seconds // time_unit_value != 1 and not adjective else ""
+            durations.append(f"{int(seconds // time_unit_value)} {time_unit}{suffix}")
 
         if time_unit == smallest_unit:
             break
 
-        __seconds -= __seconds // time_unit_value * time_unit_value
+        seconds -= seconds // time_unit_value * time_unit_value
 
     try:
         last_duration = durations.pop()
@@ -106,11 +135,19 @@ def format_time(
     return last_duration
 
 
-def format_iterable(__iterable: Iterable[Any], /, *, inline: bool = False) -> str:
+def format_iterable(
+    __iterable: Iterable[Any], /, *, inline: bool = False, joiner: str = "- "
+) -> str:
+    """
+    Example:
+        format_iterable([1, 2, 3]) -> "1, 2 and 3"
+        format_iterable([1, 2, 3], inline=False) -> "• 1\n• 2\n• 3"
+    """
+
     values = [str(i) for i in __iterable] or ["nothing"]
 
     if not inline:
-        return "• " + "\n• ".join(values)
+        return joiner + f"\n{joiner}".join(values)
 
     if len(values) < 3:
         return " and ".join(values)
