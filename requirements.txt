@@ -3,3 +3,4 @@ asyncpg
 pre-commit
 maturin
 black
+toml
