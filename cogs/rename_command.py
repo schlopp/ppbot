@@ -27,8 +27,12 @@ class RenameCommandCog(vbu.Cog[utils.Bot]):
         """
         Rename your big ol' Johnson
         """
-        async with utils.DatabaseWrapper() as db, db.conn.transaction(), utils.DatabaseTimeoutManager.notify(
-            ctx.author.id, "You're still busy renaming your pp!"
+        async with (
+            utils.DatabaseWrapper() as db,
+            db.conn.transaction(),
+            utils.DatabaseTimeoutManager.notify(
+                ctx.author.id, "You're still busy renaming your pp!"
+            ),
         ):
             pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
 

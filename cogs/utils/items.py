@@ -384,9 +384,11 @@ class ItemManager:
                 description=item["description"],
                 price=item["price"],
                 duration=timedelta(hours=item["duration"]),
-                cooldown=timedelta(hours=item["cooldown"])
-                if item.get("cooldown") is not None
-                else None,
+                cooldown=(
+                    timedelta(hours=item["cooldown"])
+                    if item.get("cooldown") is not None
+                    else None
+                ),
                 multiplier=item.get("multiplier"),
                 specified_details=specified_details,
             )

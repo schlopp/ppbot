@@ -94,8 +94,12 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
         Go fishing for some inches! Don't question it!
         """
 
-        async with utils.DatabaseWrapper() as db, db.conn.transaction(), utils.DatabaseTimeoutManager.notify(
-            ctx.author.id, "You're still busy fishing!"
+        async with (
+            utils.DatabaseWrapper() as db,
+            db.conn.transaction(),
+            utils.DatabaseTimeoutManager.notify(
+                ctx.author.id, "You're still busy fishing!"
+            ),
         ):
             pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
             tool = utils.ItemManager.get_command_tool("fish")

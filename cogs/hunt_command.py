@@ -93,8 +93,12 @@ class HuntCommandCog(vbu.Cog[utils.Bot]):
         Hunt for some inches, nothing wrong with that
         """
 
-        async with utils.DatabaseWrapper() as db, db.conn.transaction(), utils.DatabaseTimeoutManager.notify(
-            ctx.author.id, "You're still busy hunting!"
+        async with (
+            utils.DatabaseWrapper() as db,
+            db.conn.transaction(),
+            utils.DatabaseTimeoutManager.notify(
+                ctx.author.id, "You're still busy hunting!"
+            ),
         ):
             pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
             tool = utils.ItemManager.get_command_tool("hunt")

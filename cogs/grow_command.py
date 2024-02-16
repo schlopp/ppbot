@@ -16,8 +16,12 @@ class GrowCommandCog(vbu.Cog[utils.Bot]):
         """
         Grow your pp to get more inches!
         """
-        async with utils.DatabaseWrapper() as db, db.conn.transaction(), utils.DatabaseTimeoutManager.notify(
-            ctx.author.id, "You're still busy with the grow command!"
+        async with (
+            utils.DatabaseWrapper() as db,
+            db.conn.transaction(),
+            utils.DatabaseTimeoutManager.notify(
+                ctx.author.id, "You're still busy with the grow command!"
+            ),
         ):
             pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
 
