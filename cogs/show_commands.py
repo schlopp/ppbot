@@ -85,7 +85,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         voted = await pp.has_voted()
         full_multiplier, boosts, total_boost = pp.get_full_multiplier(voted=voted)
 
-        if full_multiplier != pp.multiplier.value:
+        if total_boost != 1:
             multiplier_display = (
                 f"~~{utils.format_int(pp.multiplier.value)}x~~"
                 f" **{utils.format_int(full_multiplier)}**x multiplier"
