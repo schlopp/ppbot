@@ -5,7 +5,7 @@ import logging
 import random
 import uuid
 from string import ascii_letters, digits
-from typing import Generic, TypeVar, TypedDict, cast
+from typing import Generic, TypeVar, TypedDict, Mapping, cast
 
 import asyncpg
 import discord
@@ -30,7 +30,7 @@ from . import (
     wait_for_component_interaction,
 )
 
-_MinigameContextDictT = TypeVar("_MinigameContextDictT", bound=TypedDict)
+_MinigameContextDictT = TypeVar("_MinigameContextDictT", bound=Mapping)
 
 
 ZERO_WIDTH_CHARACTER = "​"
