@@ -1,11 +1,10 @@
 from discord.ext import commands, vbu
 
-from cogs.utils.bot import Bot
 from . import utils
 
 
 class LoadingCog(vbu.Cog[utils.Bot]):
-    def __init__(self, bot: Bot, logger_name: str | None = None):
+    def __init__(self, bot: utils.Bot, logger_name: str | None = None):
         super().__init__(bot, logger_name)
         bot_ready_on_init = bot.is_ready()
 
