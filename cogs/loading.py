@@ -1,4 +1,4 @@
-from discord.ext import commands, vbu
+from discord.ext import vbu
 
 from . import utils
 
@@ -22,7 +22,7 @@ class LoadingCog(vbu.Cog[utils.Bot]):
         utils.MinigameDialogueManager.load()
         self.logger.info(" * Loading MinigameDialogueManager... success")
 
-    @commands.Cog.listener("on_ready")
+    @vbu.Cog.listener("on_ready")
     async def load_async_managers(self) -> None:
         self.logger.info("Loading ASYNC managers...")
 

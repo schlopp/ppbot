@@ -399,7 +399,7 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
             )
             await pp.update(db.conn)
 
-    @commands.Cog.listener("on_component_interaction")
+    @vbu.Cog.listener("on_component_interaction")
     async def casino_component_interaction_handler(
         self, interaction: discord.ComponentInteraction
     ) -> None:
@@ -464,7 +464,7 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
                 await casino_session.send(response=result.response)
                 return
 
-    @commands.Cog.listener("on_modal_submit")
+    @vbu.Cog.listener("on_modal_submit")
     async def casino_modal_submit_handler(
         self, interaction: discord.ModalInteraction
     ) -> None:
