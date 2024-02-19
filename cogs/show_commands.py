@@ -98,7 +98,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
 
         if not voted:
             boost_subdisplays.append(
-                f"vote on [**top.gg**]({utils.VOTE_URL}) for an extra **{pp.VOTE_BOOST * 100}% boost!**"
+                f"vote on [**top.gg**]({utils.VOTE_URL}) for an extra **{utils.BoostType.VOTE.percentage}% boost!**"
             )
 
         for boost, boost_percentage in boosts.items():

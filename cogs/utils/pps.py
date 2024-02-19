@@ -1,4 +1,5 @@
 import asyncio
+import enum
 import math
 from decimal import Decimal
 from typing import Self, Literal
@@ -23,6 +24,15 @@ from . import (
 BoostLiteral = Literal["voter", "weekend"]
 
 
+class BoostType(enum.Enum):
+    VOTE = Decimal("1")
+    WEEKEND = Decimal(".5")
+
+    @property
+    def percentage(self) -> int:
+        return int(self.value * 100)
+
+
 class NoPpCheckFailure(commands.CheckFailure):
     pass
 
@@ -41,9 +51,6 @@ class Pp(DatabaseWrapperObject):
     _identifier_attributes = ("user_id",)
     _trackers = ("multiplier", "size", "name")
 
-    VOTE_BOOST = 3
-    WEEKEND_BOOST = Decimal(".5")
-
     def __init__(self, user_id: int, multiplier: int, size: int, name: str) -> None:
         self.user_id = user_id
         self.multiplier = DifferenceTracker(multiplier, column="pp_multiplier")
@@ -59,10 +66,10 @@ class Pp(DatabaseWrapperObject):
         multiplier = self.multiplier.value
 
         if voted:
-            boosts["voter"] = self.VOTE_BOOST
+            boosts["voter"] = BoostType.VOTE.value
 
         if is_weekend():
-            boosts["weekend"] = self.WEEKEND_BOOST
+            boosts["weekend"] = BoostType.WEEKEND.value
 
         total_boost = 1
         for multiplier_percentage in boosts.values():
