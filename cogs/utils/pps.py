@@ -1,4 +1,5 @@
 import asyncio
+import math
 from decimal import Decimal
 from typing import Self, Literal
 
@@ -67,7 +68,7 @@ class Pp(DatabaseWrapperObject):
         for multiplier_percentage in boosts.values():
             total_boost += multiplier_percentage
 
-        return int(multiplier * total_boost), boosts, total_boost
+        return math.ceil(multiplier * total_boost), boosts, total_boost
 
     @classmethod
     async def fetch_from_user(
