@@ -40,9 +40,9 @@ class ReplyManager:
         if channel in cls.active_listeners:
             raise DuplicateReplyListenerError(repr(channel))
 
-        future: asyncio.Future[tuple[commands.SlashContext[Bot], str]] = (
-            asyncio.Future()
-        )
+        future: asyncio.Future[
+            tuple[commands.SlashContext[Bot], str]
+        ] = asyncio.Future()
         cls.active_listeners[channel] = (future, check)
 
         try:
