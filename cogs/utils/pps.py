@@ -37,6 +37,12 @@ class NoPpCheckFailure(commands.CheckFailure):
     pass
 
 
+class DatabaseTimeoutCheckFailure(commands.CheckFailure):
+    def __init__(self, message: str | None = None, *args, reason: str) -> None:
+        super().__init__(message, *args)
+        self.reason = reason
+
+
 class Pp(DatabaseWrapperObject):
     __slots__ = ("user_id", "multiplier", "size", "name")
     _repr_attributes = __slots__
@@ -99,8 +105,9 @@ class Pp(DatabaseWrapperObject):
                 " started :)"
             )
         except asyncio.TimeoutError:
-            raise commands.CheckFailure(
-                DatabaseTimeoutManager.get_notification(user_id)
+            raise DatabaseTimeoutCheckFailure(
+                DatabaseTimeoutManager.get_notification(user_id),
+                reason=DatabaseTimeoutManager.get_reason(user_id),
             )
 
     async def has_voted(self) -> bool:
