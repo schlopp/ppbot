@@ -1,10 +1,8 @@
 import asyncio
-import math
 import uuid
 from collections import Counter
 from difflib import SequenceMatcher
-from collections.abc import Awaitable, Callable
-from typing import Self, Literal, Iterable
+from typing import Literal
 
 import discord
 from discord.ext import commands, vbu
@@ -13,74 +11,6 @@ from . import utils
 
 
 ShopPaginatorActions = utils.PaginatorActions | Literal["SELECT_CATEGORY"]
-
-
-class ShopPaginator(utils.Paginator[utils.Item, ShopPaginatorActions]):
-    def __init__(
-        self,
-        bot: utils.Bot,
-        items: Iterable[utils.Item],
-        *,
-        loader: Callable[[Self, tuple[utils.Item, ...]], Awaitable[utils.Embed]],
-        per_page: int = 5,
-    ) -> None:
-        self.categories: set[str] = {
-            utils.MultiplierItem.category,
-            utils.BuffItem.category,
-            utils.ToolItem.category,
-            utils.UselessItem.category,
-        }
-        super().__init__(bot, items, loader=loader, per_page=per_page)
-        self._paginator_category_select_menu = discord.ui.SelectMenu(
-            custom_id=f"{self.id}_SELECT_CATEGORY",
-            options=[
-                discord.ui.SelectOption(
-                    label=ItemClass.category_name,
-                    value=ItemClass.category,
-                    default=True,
-                )
-                for ItemClass in [
-                    utils.MultiplierItem,
-                    # utils.BuffItem,
-                    utils.ToolItem,
-                    utils.UselessItem,
-                ]
-            ],
-            placeholder="Categories",
-            # max_values=4,
-            max_values=3,
-        )
-
-        self._components.components.insert(
-            0, discord.ui.ActionRow(self._paginator_category_select_menu)
-        )
-
-    def _update_components(self, *, disable_all: bool = False) -> None:
-        super()._update_components(disable_all=disable_all)
-        if disable_all:
-            return
-
-        for category_option in self._paginator_category_select_menu.options:
-            if category_option.value in self.categories:
-                category_option.default = True
-                continue
-            category_option.default = False
-
-    def handle_interaction(
-        self, interaction: discord.ComponentInteraction, action: ShopPaginatorActions
-    ) -> None:
-        if action == "SELECT_CATEGORY":
-            categories = interaction.data.get("values")
-            assert categories is not None
-            self.categories = set(categories)
-            self.max_pages = math.ceil(len(self.items) / self.per_page)
-            self.current_page = min(self.current_page, self.max_pages - 1)
-        return super().handle_interaction(interaction, action)
-
-    @property
-    def items(self) -> tuple[utils.Item, ...]:
-        """Returns `(item: utils.Item, ...)`"""
-        return tuple(item for item in self._items if item.category in self.categories)
 
 
 class ShopCommandCog(vbu.Cog[utils.Bot]):
@@ -177,15 +107,10 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
         embed.color = utils.BLUE
 
         async def paginator_loader(
-            paginator: ShopPaginator, items: tuple[utils.Item, ...]
+            paginator: utils.CategorisedPaginator, items: tuple[utils.Item, ...]
         ) -> utils.Embed:
             embed.title = f"SHOP ({pp.format_growth(pp.size.value)})"
-            if paginator.categories != {
-                utils.MultiplierItem.category,
-                utils.BuffItem.category,
-                utils.ToolItem.category,
-                utils.UselessItem.category,
-            }:
+            if len(paginator.active_categories) != len(paginator.categories):
                 embed.title += (
                     f" - {len(paginator.categories)}"
                     f" categor{'y' if len(paginator.categories) == 1 else 'ies'} selected"
@@ -210,14 +135,24 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
 
             return embed
 
-        paginator = ShopPaginator(
+        paginator = utils.CategorisedPaginator(
             self.bot,
             [
                 item
                 for item in utils.ItemManager.items.values()
                 if not isinstance(item, utils.BuffItem)
             ],
+            categories={
+                ItemClass.category: ItemClass.category_name
+                for ItemClass in [
+                    utils.MultiplierItem,
+                    utils.ToolItem,
+                    utils.UselessItem,
+                ]
+            },
             loader=paginator_loader,
+            categoriser=lambda item, active_categories: item.category
+            in active_categories,
         )
         await paginator.start(ctx.interaction)
 
