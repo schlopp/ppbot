@@ -53,28 +53,31 @@ class ReplyManager:
 
 
 class DatabaseTimeoutManager:
-    DEFAULT_NOTIFICATION = "You're busy doing something else right now!"
-    NOTIFICATIONS: dict[int, list[str]] = {}
+    DEFAULT_REASON = "You're busy doing something else right now!"
+    REASONS: dict[int, list[str]] = {}
+
+    @classmethod
+    def get_reason(cls, user_id: int) -> str:
+        try:
+            return cls.REASONS.get(user_id, cls.DEFAULT_REASON)[0]
+        except IndexError:
+            return cls.DEFAULT_REASON
 
     @classmethod
     def get_notification(cls, user_id: int) -> str:
-        try:
-            notification = cls.NOTIFICATIONS.get(user_id, cls.DEFAULT_NOTIFICATION)[0]
-        except (KeyError, IndexError):
-            notification = cls.DEFAULT_NOTIFICATION
-        return f"{notification} Try again later."
+        return f"{cls.get_reason(user_id)} Try again later."
 
     @classmethod
     def add_notification(cls, user_id: int, notification: str) -> None:
         try:
-            cls.NOTIFICATIONS[user_id].append(notification)
+            cls.REASONS[user_id].append(notification)
         except KeyError:
-            cls.NOTIFICATIONS[user_id] = [notification]
+            cls.REASONS[user_id] = [notification]
 
     @classmethod
     def clear_notification(cls, user_id: int, *, index: int = 0) -> None:
         try:
-            cls.NOTIFICATIONS[user_id].pop(index)
+            cls.REASONS[user_id].pop(index)
         except KeyError:
             pass
 
@@ -113,7 +116,7 @@ async def wait_for_component_interaction(
     *,
     users: list[discord.User | discord.Member] | None = None,
     actions: list[str] | None = None,
-    timeout: float = 30,
+    timeout: float | None = 30,
 ) -> tuple[discord.ComponentInteraction, str]:
     """Returns `(component_interaction: commands.ComponentInteraction, action: str)`"""
 
