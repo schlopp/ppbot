@@ -48,8 +48,18 @@ from .items import (
     InventoryItem as InventoryItem,
     ItemManager as ItemManager,
 )
-from .pps import BoostType as BoostType, Pp as Pp, NoPpCheckFailure as NoPpCheckFailure
-from .paginator import PaginatorActions as PaginatorActions, Paginator as Paginator
+from .pps import (
+    BoostType as BoostType,
+    Pp as Pp,
+    NoPpCheckFailure as NoPpCheckFailure,
+    DatabaseTimeoutCheckFailure as DatabaseTimeoutCheckFailure,
+)
+from .paginator import (
+    PaginatorActions as PaginatorActions,
+    CategorisedPaginatorActions as CategorisedPaginatorActions,
+    Paginator as Paginator,
+    CategorisedPaginator as CategorisedPaginator,
+)
 from .minigames import (
     Minigame as Minigame,
     ReverseMinigame as ReverseMinigame,
