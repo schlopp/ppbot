@@ -25,7 +25,7 @@ BoostLiteral = Literal["voter", "weekend"]
 
 
 class BoostType(enum.Enum):
-    VOTE = Decimal("1")
+    VOTE = Decimal("3")
     WEEKEND = Decimal(".5")
 
     @property
