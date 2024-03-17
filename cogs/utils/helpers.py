@@ -2,7 +2,7 @@ from __future__ import annotations
 import enum
 import random
 from collections.abc import Mapping, Iterable
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Generic, TypeVar, Any, Literal, overload, cast, Self
 
 import asyncpg
@@ -471,4 +471,4 @@ class IntegerHolder(int, Object):
 
 def is_weekend() -> bool:
     """Returns true on friday, saturday and sunday (UTC)"""
-    return datetime.utcnow().weekday() >= 4
+    return datetime.now(UTC).weekday() >= 4
