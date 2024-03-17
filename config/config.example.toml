@@ -76,6 +76,12 @@ bot_support_role_id = 0  # The ID used to determine whether or not the user is p
         [bot_info.links.Git]
             url = "https://example.com/#your-git-link"
 
+# Info pertaining to the help command
+[help_command]
+    use_vbu_implementation = false
+    dm_help = false
+    content = ""
+
 # Used to generate the invite link.
 [oauth]
     enabled = false  # Whether or not an invite link is enabled via the !invite command.
