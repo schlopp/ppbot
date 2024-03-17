@@ -379,7 +379,7 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
             db.conn.transaction(),
             utils.DatabaseTimeoutManager.notify(
                 ctx.author.id,
-                "You're still in the casino, and can't do anything else  you leave!",
+                "You're still in the casino, and can't do anything else until you leave!",
             ),
         ):
             pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
