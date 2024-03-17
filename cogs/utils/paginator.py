@@ -9,6 +9,7 @@ from . import Object, Embed, Bot
 
 
 PaginatorActions = Literal["START", "PREVIOUS", "NEXT", "END"]
+CategorisedPaginatorActions = PaginatorActions | Literal["SELECT_CATEGORY"]
 _ItemT = TypeVar("_ItemT")
 _ActionsT = TypeVar("_ActionsT", bound=str)
 
@@ -135,3 +136,94 @@ class Paginator(Object, Generic[_ItemT, _ActionsT]):
                 embed=await self.loader(self, self._get_current_items()),
                 components=self._components,
             )
+
+
+class CategorisedPaginator(Paginator[_ItemT, CategorisedPaginatorActions]):
+    def __init__(
+        self,
+        bot: Bot,
+        items: Iterable[_ItemT],
+        *,
+        categories: dict[str, str],
+        loader: Callable[[Self, tuple[_ItemT, ...]], Awaitable[Embed]],
+        categoriser: Callable[[_ItemT, set[str]], bool],
+        per_page: int = 5,
+    ) -> None:
+        # Has to be defined before super() due to (indirect) usage in superclass __init__
+        self.active_categories: set[str] = {"ALL"}
+
+        super().__init__(bot, items, loader=loader, per_page=per_page)
+        self.categories = categories
+        self.categoriser = categoriser
+
+        self.category_options = [
+            discord.ui.SelectOption(label="All", value="ALL", default=True)
+        ]
+
+        for category, category_name in self.categories.items():
+            self.category_options.append(
+                discord.ui.SelectOption(
+                    label=category_name,
+                    value=category,
+                    default=False,
+                )
+            )
+
+        self._paginator_category_select_menu = discord.ui.SelectMenu(
+            custom_id=f"{self.id}_SELECT_CATEGORY",
+            options=self.category_options,
+            placeholder="Categories",
+            max_values=len(self.category_options),
+        )
+
+        self._components.components.insert(
+            0, discord.ui.ActionRow(self._paginator_category_select_menu)
+        )
+
+    def _update_components(self, *, disable_all: bool = False) -> None:
+        super()._update_components(disable_all=disable_all)
+        if disable_all:
+            return
+
+        for category_option in self._paginator_category_select_menu.options:
+            if category_option.value in self.active_categories:
+                category_option.default = True
+                continue
+            category_option.default = False
+
+    def handle_interaction(
+        self,
+        interaction: discord.ComponentInteraction,
+        action: CategorisedPaginatorActions,
+    ) -> None:
+        if action == "SELECT_CATEGORY":
+            categories = interaction.data.get("values")
+            assert categories is not None
+
+            # Only use category "ALL" if every single category is individually selected
+            if len(categories) >= len(self.category_options) - 1:
+                self.active_categories = {"ALL"}
+
+            elif "ALL" in categories:
+                if "ALL" in self.active_categories:
+                    self.active_categories = set(categories) - {"ALL"}
+                else:
+                    self.active_categories = {"ALL"}
+
+            else:
+                self.active_categories = set(categories)
+
+            self.max_pages = math.ceil(len(self.items) / self.per_page)
+            self.current_page = min(self.current_page, self.max_pages - 1)
+
+        else:
+            super().handle_interaction(interaction, action)
+
+    @property
+    def items(self) -> tuple[_ItemT, ...]:
+        return tuple(
+            item
+            for item in self._items
+            if "ALL" in self.active_categories
+            or self.categoriser(item, self.active_categories)
+        )
