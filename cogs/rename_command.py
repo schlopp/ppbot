@@ -10,6 +10,7 @@ class RenameCommandCog(vbu.Cog[utils.Bot]):
     @commands.command(
         "rename",
         utils.Command,
+        category=utils.CommandCategory.STATS,
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
                 discord.ApplicationCommandOption(

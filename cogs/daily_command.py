@@ -102,6 +102,7 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
     @commands.command(
         "daily",
         utils.Command,
+        category=utils.CommandCategory.GROWING_PP,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
     @commands.cooldown(1, 60 * 60 * 24, commands.BucketType.user)

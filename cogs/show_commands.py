@@ -340,6 +340,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
     @commands.command(
         "show",
         utils.Command,
+        category=utils.CommandCategory.STATS,
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
                 discord.ApplicationCommandOption(
@@ -380,6 +381,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
     @commands.command(
         "inventory",
         utils.Command,
+        category=utils.CommandCategory.STATS,
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
                 discord.ApplicationCommandOption(
@@ -419,6 +421,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
     @commands.command(
         "unlocked-commands",
         utils.Command,
+        category=utils.CommandCategory.STATS,
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
                 discord.ApplicationCommandOption(

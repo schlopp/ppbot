@@ -8,6 +8,7 @@ class ReplyCommandCog(vbu.Cog[utils.Bot]):
     @commands.command(
         "reply",
         utils.Command,
+        category=utils.CommandCategory.OTHER,
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
                 discord.ApplicationCommandOption(

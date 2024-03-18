@@ -8,6 +8,7 @@ class GrowCommandCog(vbu.Cog[utils.Bot]):
     @commands.command(
         "grow",
         utils.Command,
+        category=utils.CommandCategory.GROWING_PP,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
     @commands.cooldown(1, 10, commands.BucketType.user)

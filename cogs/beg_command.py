@@ -115,6 +115,7 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
     @commands.command(
         "beg",
         utils.Command,
+        category=utils.CommandCategory.GROWING_PP,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -123,7 +124,6 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
         """
         Beg for some inches
         """
-
         async with (
             utils.DatabaseWrapper() as db,
             db.conn.transaction(),

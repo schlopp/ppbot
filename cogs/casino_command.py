@@ -367,6 +367,7 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
     @commands.command(
         "casino",
         utils.Command,
+        category=utils.CommandCategory.GAMBLING,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
     @commands.is_slash_command()

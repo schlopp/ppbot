@@ -7,6 +7,7 @@ class NewCommandCog(vbu.Cog[utils.Bot]):
     @commands.command(
         "new",
         utils.Command,
+        category=utils.CommandCategory.GETTING_STARTED,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
     @commands.cooldown(1, 10, commands.BucketType.user)

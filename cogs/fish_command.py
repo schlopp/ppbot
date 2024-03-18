@@ -85,6 +85,7 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
     @commands.command(
         "fish",
         utils.Command,
+        category=utils.CommandCategory.GROWING_PP,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
     @commands.cooldown(1, 10, commands.BucketType.user)

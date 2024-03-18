@@ -77,6 +77,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
     @commands.command(
         "shop",
         utils.Command,
+        category=utils.CommandCategory.SHOP,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
     @commands.is_slash_command()
@@ -159,6 +160,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
     @commands.command(
         "buy",
         utils.Command,
+        category=utils.CommandCategory.SHOP,
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
                 discord.ApplicationCommandOption(
