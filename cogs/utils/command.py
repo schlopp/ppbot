@@ -1,9 +1,12 @@
 from __future__ import annotations
-from datetime import timezone
 import time
+from datetime import timezone
+from enum import Enum
 from typing import Any, cast
+
 import discord
 from discord.ext import commands, vbu
+
 from . import Bot
 
 
@@ -90,11 +93,22 @@ class RedisCooldownMapping(commands.CooldownMapping):
             await redis.set(key, f"{self._cooldown._tokens}:0")
 
 
+class CommandCategory(Enum):
+    GETTING_STARTED = "getting started"
+    HELP = "help & support"
+    STATS = "stats"
+    GROWING_PP = "growing ur pp"
+    SHOP = "shop"
+    GAMBLING = "gambling"
+    OTHER = "other"
+
+
 class Command(commands.Command):
     _buckets: RedisCooldownMapping
 
-    def __init__(self, func, **kwargs):
+    def __init__(self, func, *, category: CommandCategory | None = None, **kwargs):
         super().__init__(func, **kwargs)
+        self.category = category
         self._buckets = RedisCooldownMapping(
             self._buckets._cooldown, self._buckets._type
         )

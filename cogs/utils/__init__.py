@@ -28,7 +28,11 @@ from .helpers import (
 )
 from .cards import Rank as Rank, Suit as Suit, Deck as Deck, Hand as Hand
 from .bot import DatabaseWrapper as DatabaseWrapper, Bot as Bot
-from .command import RedisCooldownMapping as RedisCooldownMapping, Command as Command
+from .command import (
+    RedisCooldownMapping as RedisCooldownMapping,
+    CommandCategory as CommandCategory,
+    Command as Command,
+)
 from .managers import (
     DuplicateReplyListenerError as DuplicateReplyListenerError,
     ReplyManager as ReplyManager,
