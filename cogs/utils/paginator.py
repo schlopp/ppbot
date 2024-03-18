@@ -155,7 +155,6 @@ class CategorisedPaginator(Paginator[_ItemT, CategorisedPaginatorActions]):
         super().__init__(bot, items, loader=loader, per_page=per_page)
         self.categories = categories
         self.categoriser = categoriser
-
         self.category_options = [
             discord.ui.SelectOption(label="All", value="ALL", default=True)
         ]
@@ -201,7 +200,11 @@ class CategorisedPaginator(Paginator[_ItemT, CategorisedPaginatorActions]):
             assert categories is not None
 
             # Only use category "ALL" if every single category is individually selected
-            if len(categories) >= len(self.category_options) - 1:
+            if (
+                len(categories) == len(self.category_options)
+                or len(categories) == len(self.category_options) - 1
+                and "ALL" not in categories
+            ):
                 self.active_categories = {"ALL"}
 
             elif "ALL" in categories:
