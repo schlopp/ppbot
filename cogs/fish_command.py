@@ -171,5 +171,5 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
             await ctx.interaction.response.send_message(embed=embed)
 
 
-def setup(bot: utils.Bot):
-    bot.add_cog(FishCommandCog(bot))
+async def setup(bot: utils.Bot):
+    await bot.add_cog(FishCommandCog(bot))

@@ -517,5 +517,5 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
             )
 
 
-def setup(bot: utils.Bot):
-    bot.add_cog(CasinoCommandCog(bot))
+async def setup(bot: utils.Bot):
+    await bot.add_cog(CasinoCommandCog(bot))

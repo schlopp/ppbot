@@ -285,6 +285,6 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
             )
 
 
-def setup(bot: utils.Bot):
+async def setup(bot: utils.Bot):
     if not bot.shard_ids or 0 in bot.shard_ids:
-        bot.add_cog(VotingEventsCog(bot))
+        await bot.add_cog(VotingEventsCog(bot))

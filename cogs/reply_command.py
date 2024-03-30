@@ -43,5 +43,5 @@ class ReplyCommandCog(vbu.Cog[utils.Bot]):
             future.set_result((ctx, content))
 
 
-def setup(bot: utils.Bot):
-    bot.add_cog(ReplyCommandCog(bot))
+async def setup(bot: utils.Bot):
+    await bot.add_cog(ReplyCommandCog(bot))

@@ -153,5 +153,5 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
             await ctx.interaction.response.send_message(embed=embed)
 
 
-def setup(bot: utils.Bot):
-    bot.add_cog(DailyCommandCog(bot))
+async def setup(bot: utils.Bot):
+    await bot.add_cog(DailyCommandCog(bot))

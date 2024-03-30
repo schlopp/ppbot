@@ -30,5 +30,5 @@ class LoadingCog(vbu.Cog[utils.Bot]):
         self.logger.info(" * Loading SlashCommandMappingManager... success")
 
 
-def setup(bot: utils.Bot):
-    bot.add_cog(LoadingCog(bot))
+async def setup(bot: utils.Bot):
+    await bot.add_cog(LoadingCog(bot))

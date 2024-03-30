@@ -459,5 +459,5 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         )
 
 
-def setup(bot: utils.Bot):
-    bot.add_cog(ShowCommandsCog(bot))
+async def setup(bot: utils.Bot):
+    await bot.add_cog(ShowCommandsCog(bot))
