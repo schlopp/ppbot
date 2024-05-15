@@ -236,9 +236,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                             (
                                 500
                                 if item_value in item.name.lower()
-                                else 500
-                                if item_value in item.id.lower()
-                                else 0
+                                else 500 if item_value in item.id.lower() else 0
                             ),
                         )
                         for item in utils.ItemManager.items.values()

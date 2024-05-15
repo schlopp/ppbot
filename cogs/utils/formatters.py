@@ -85,8 +85,7 @@ def format_time(
     smallest_unit: TimeUnitLiteral | None = "second",
     *,
     adjective: bool = False,
-) -> str:
-    ...
+) -> str: ...
 
 
 @overload
@@ -96,8 +95,7 @@ def format_time(
     smallest_unit: TimeUnitLiteral | None = "second",
     *,
     adjective: bool = False,
-) -> str:
-    ...
+) -> str: ...
 
 
 def format_time(
