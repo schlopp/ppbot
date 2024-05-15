@@ -177,7 +177,7 @@ class Command(commands.Command):
                 await self._max_concurrency.release(ctx)  # type: ignore
             raise
 
-    def is_on_cooldown(self, *_):
+    def is_on_cooldown(self, *_, **_1):
         raise NotImplementedError("Use async_is_on_cooldown instead.")
 
     async def async_is_on_cooldown(self, ctx: commands.Context[Bot]) -> bool:
@@ -194,7 +194,7 @@ class Command(commands.Command):
                 )
             )[0] == 0
 
-    def reset_cooldown(self, *_):
+    def reset_cooldown(self, *_, **_1):
         raise NotImplementedError("Use async_reset_cooldown instead.")
 
     async def async_reset_cooldown(self, ctx: commands.Context[Bot]) -> None:
@@ -203,7 +203,7 @@ class Command(commands.Command):
                 self._buckets.redis_bucket_key(ctx, self._buckets.get_message(ctx))
             )
 
-    def get_cooldown_retry_after(self, *_):
+    def get_cooldown_retry_after(self, *_, **_1):
         raise NotImplementedError("Use async_get_cooldown_retry_after instead.")
 
     async def async_get_cooldown_retry_after(self, ctx: commands.Context[Bot]):
