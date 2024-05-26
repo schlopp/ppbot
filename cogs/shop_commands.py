@@ -111,10 +111,10 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             paginator: utils.CategorisedPaginator, items: tuple[utils.Item, ...]
         ) -> utils.Embed:
             embed.title = f"SHOP ({pp.format_growth(pp.size.value)})"
-            if len(paginator.active_categories) != len(paginator.categories):
+            if "ALL" not in paginator.active_categories:
                 embed.title += (
-                    f" - {len(paginator.categories)}"
-                    f" categor{'y' if len(paginator.categories) == 1 else 'ies'} selected"
+                    f" - {len(paginator.active_categories)}"
+                    f" categor{'y' if len(paginator.active_categories) == 1 else 'ies'} selected"
                 )
 
             listings: list[str] = []
