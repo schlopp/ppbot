@@ -82,6 +82,9 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
         "Big Man Tyrone": "Every 60 seconds in Africa a minute passes.",
         "speed": None,
         "catdotjs": "Meow",
+        "Meek Mill": "Get UHHPPP 😩",
+        "Diddy": None,
+        "schlöpp": None,
     }
 
     def __init__(self, bot: Bot, logger_name: str | None = None):
