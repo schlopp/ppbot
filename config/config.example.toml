@@ -78,6 +78,7 @@ bot_support_role_id = 0  # The ID used to determine whether or not the user is p
 
 # Info pertaining to the help command
 [help_command]
+    enabled = false
     use_vbu_implementation = false
     dm_help = false
     content = ""
