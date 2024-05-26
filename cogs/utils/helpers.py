@@ -76,6 +76,7 @@ class Embed(discord.Embed):
     TIPS = ["There is no tip, take off your clothes."]
 
     def __init__(self, *args, **kwargs) -> None:
+        self.color = BLUE
         super().__init__(*args, **kwargs)
 
     def add_tip(self) -> None:
