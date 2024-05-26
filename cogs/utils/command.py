@@ -95,18 +95,21 @@ class RedisCooldownMapping(commands.CooldownMapping):
 
 class CommandCategory(Enum):
     GETTING_STARTED = "getting started"
-    HELP = "help & support"
-    STATS = "stats"
+    STATS = "see ur stats"
     GROWING_PP = "growing ur pp"
-    SHOP = "shop"
-    GAMBLING = "gambling"
-    OTHER = "other"
+    SHOP = "shop stuff"
+    GAMBLING = "gambling time"
+    FUN = "fun shit"
+    OTHER = "other pp things"
+    HELP = "help & info"
 
 
 class Command(commands.Command):
     _buckets: RedisCooldownMapping
 
-    def __init__(self, func, *, category: CommandCategory | None = None, **kwargs):
+    def __init__(
+        self, func, *, category: CommandCategory = CommandCategory.OTHER, **kwargs
+    ):
         super().__init__(func, **kwargs)
         self.category = category
         self._buckets = RedisCooldownMapping(
