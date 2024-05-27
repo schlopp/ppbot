@@ -1,6 +1,5 @@
 import random
 
-import discord
 from discord.ext import commands, vbu
 
 from . import utils
@@ -77,15 +76,15 @@ class HelpCommandsCog(vbu.Cog[utils.Bot]):
         Need some help? Here you go :)
         """
 
-        embeds: list[discord.Embed] = [self.generate_help_embed()]
+        await ctx.interaction.response.send_message(embed=self.generate_help_embed())
 
         async with utils.DatabaseWrapper() as db:
             try:
                 await utils.Pp.fetch_from_user(db.conn, ctx.author.id)
             except utils.NoPpCheckFailure:
-                embeds.append(self.generate_new_user_embed())
-
-        await ctx.interaction.response.send_message(embeds=embeds)
+                await ctx.interaction.followup.send(
+                    embed=self.generate_new_user_embed(), ephemeral=True
+                )
 
 
 async def setup(bot: utils.Bot):
