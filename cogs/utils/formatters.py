@@ -168,7 +168,7 @@ def format_ordinal(__ordinal: int, /) -> str:
         suffixes = {1: "st", 2: "nd", 3: "rd"}
         suffix = suffixes.get(__ordinal % 10, "th")
 
-    return f"{__ordinal}{suffix}"
+    return f"{__ordinal:,}{suffix}"
 
 
 def clean(text: str) -> str:
