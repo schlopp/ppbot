@@ -75,9 +75,8 @@ def find_nearest_number(
 class Embed(discord.Embed):
     TIPS = ["There is no tip, take off your clothes."]
 
-    def __init__(self, *args, **kwargs) -> None:
-        self.color = BLUE
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, color=BLUE, **kwargs) -> None:
+        super().__init__(*args, color=color, **kwargs)
 
     def add_tip(self) -> None:
         if not random.randint(0, 5):
