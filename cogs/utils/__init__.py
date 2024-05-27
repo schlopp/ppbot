@@ -4,6 +4,7 @@ from .formatters import (
     format_int as format_int,
     format_time as format_time,
     format_iterable as format_iterable,
+    format_ordinal as format_ordinal,
     clean as clean,
 )
 from .helpers import (
