@@ -5,7 +5,7 @@ from . import utils
 
 
 class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
-    LEADERBOARD_CACHE_REFRESH_TIME = timedelta(seconds=30)
+    LEADERBOARD_CACHE_REFRESH_TIME = timedelta(seconds=15)
 
     position_cache: dict[int, int] = {}
     size_cache: dict[int, int] = {}
@@ -18,7 +18,7 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
     async def cog_unload(self) -> None:
         self.cache_leaderboard.cancel()
 
-    @tasks.loop(seconds=10)
+    @tasks.loop(seconds=15)
     async def cache_leaderboard(self) -> None:
         self.logger.debug("Updating leaderboard cache...")
 
