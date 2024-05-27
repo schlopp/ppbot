@@ -139,7 +139,7 @@ def format_iterable(
     """
     Example:
         format_iterable([1, 2, 3]) -> "1, 2 and 3"
-        format_iterable([1, 2, 3], inline=False) -> "• 1\n• 2\n• 3"
+        format_iterable([1, 2, 3], inline=False) -> "- 1\n- 2\n- 3"
     """
 
     values = [str(i) for i in __iterable] or ["nothing"]
