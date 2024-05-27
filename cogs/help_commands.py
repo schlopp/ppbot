@@ -63,7 +63,6 @@ class HelpCommandsCog(vbu.Cog[utils.Bot]):
             " to make a pp and start growing it :)"
         )
 
-        self.logger.info("1")
         return embed
 
     @commands.command(
@@ -86,7 +85,6 @@ class HelpCommandsCog(vbu.Cog[utils.Bot]):
             except utils.NoPpCheckFailure:
                 embeds.append(self.generate_new_user_embed())
 
-        self.logger.info(embeds)
         await ctx.interaction.response.send_message(embeds=embeds)
 
 
