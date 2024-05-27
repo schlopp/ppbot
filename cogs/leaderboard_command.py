@@ -1,9 +1,12 @@
+from datetime import timedelta
 from discord.ext import commands, vbu, tasks
 
 from . import utils
 
 
 class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
+    LEADERBOARD_CACHE_REFRESH_TIME = timedelta(seconds=30)
+
     position_cache: dict[int, int] = {}
     size_cache: dict[int, int] = {}
     top10_cache: list[utils.Pp] = []
@@ -66,7 +69,10 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
 
         embed = utils.Embed()
         embed.set_author(
-            name="the biggest pps in the entire universe • updates every 10 seconds",
+            name=(
+                "the biggest pps in the entire universe"
+                f" • updates every {utils.format_time(self.LEADERBOARD_CACHE_REFRESH_TIME)}"
+            ),
             url=utils.MEME_URL,
         )
 
