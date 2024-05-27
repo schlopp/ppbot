@@ -1,4 +1,3 @@
-import time
 from discord.ext import commands, vbu, tasks
 
 from . import utils
@@ -65,9 +64,6 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
         Check out the biggest pps in the world
         """
 
-        durations: list[str] = []
-        start = time.time()
-
         embed = utils.Embed()
         embed.set_author(
             name="the biggest pps in the entire universe • updates every 10 seconds",
@@ -76,13 +72,10 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
 
         better_pp_size: int | None = None
 
-        durations.append(utils.format_time(time.time() - start))
-
         position = self.position_cache.get(ctx.author.id)
 
         if position is not None and position != 1:
             better_pp_size = self.size_cache[position - 1]
-            durations.append(utils.format_time(time.time() - start))
 
         segments: list[str] = []
 
@@ -128,8 +121,7 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
 
         embed.description = "\n".join(segments)
 
-        durations.append(utils.format_time(time.time() - start))
-        await ctx.interaction.response.send_message("\n".join(durations), embed=embed)
+        await ctx.interaction.response.send_message(embed=embed)
 
 
 async def setup(bot: utils.Bot):
