@@ -154,6 +154,23 @@ def format_iterable(
     return f"{', '.join(values)} and {last_value}"
 
 
+def format_ordinal(__ordinal: int, /) -> str:
+    """
+    Example:
+        format_ordinal(1) -> "1st"
+        format_ordinal(2) -> "2nd"
+        format_ordinal(48) -> "48th"
+    """
+
+    if 10 <= __ordinal % 100 <= 20:
+        suffix = "th"
+    else:
+        suffixes = {1: "st", 2: "nd", 3: "rd"}
+        suffix = suffixes.get(__ordinal % 10, "th")
+
+    return f"{__ordinal}{suffix}"
+
+
 def clean(text: str) -> str:
     markdown_replacements: dict[str, str] = {
         "*": "",
