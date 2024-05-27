@@ -165,6 +165,11 @@ def clean(text: str) -> str:
         "]": ")",
         "https://": "",
         "http://": "",
+        "<#": "#",
+        "<@": "@",
+        "<t:": "t:",
+        "<a:": "a:",
+        "<:": ":",
     }
 
     for character in markdown_replacements:
