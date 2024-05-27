@@ -451,7 +451,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                     f"*You take the {item_object.format_amount(amount_number)} for"
                     f" {pp.format_growth(cost)} and feel a sudden surge of power coursing through"
                     f" your pp's veins. You gain an additional **+{utils.format_int(gain)}**"
-                    f" multiplier.\n\nYou now have {pp.format_growth(cost)} and a"
+                    f" multiplier.*\n\nYou now have {pp.format_growth(cost)} and a"
                     f" **{utils.format_int(pp.multiplier.value)}x** multiplier!"
                 )
             else:
