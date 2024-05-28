@@ -22,8 +22,8 @@ class StreakReward(utils.Object):
 
 
 class DailyCommandCog(vbu.Cog[utils.Bot]):
-    MIN_DAILY_GROWTH = 90
-    MAX_DAILY_GROWTH = 110
+    MIN_DAILY_GROWTH = 240
+    MAX_DAILY_GROWTH = 260
     STREAK_REWARDS: dict[int, StreakReward] = {
         3: StreakReward(
             items={
