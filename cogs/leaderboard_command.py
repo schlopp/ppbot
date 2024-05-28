@@ -18,7 +18,7 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
     async def cog_unload(self) -> None:
         self.cache_leaderboard.cancel()
 
-    @tasks.loop(seconds=15)
+    @tasks.loop(seconds=int(LEADERBOARD_CACHE_REFRESH_TIME.total_seconds()))
     async def cache_leaderboard(self) -> None:
         self.logger.debug("Updating leaderboard cache...")
 
