@@ -143,7 +143,7 @@ class HuntCommandCog(vbu.Cog[utils.Bot]):
                 )
 
                 if inv_tool.amount.value == 0:
-                    embed.description += " :("
+                    embed.description += " 😢"
 
             elif activity == Activity.SUCCESS:
                 option, growth = self.get_hunting_option()

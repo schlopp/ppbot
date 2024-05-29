@@ -144,7 +144,7 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
                 )
 
                 if inv_tool.amount.value == 0:
-                    embed.description += " :("
+                    embed.description += " 😢"
 
             elif activity == Activity.SUCCESS:
                 growth = random.randint(1, 15)
