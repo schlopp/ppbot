@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS pps (
     user_id BIGINT PRIMARY KEY,
     pp_multiplier BIGINT NOT NULL DEFAULT 1,
     pp_size BIGINT NOT NULL DEFAULT 0,
-    pp_name TEXT NOT NULL DEFAULT 'Unnamed Pp'
+    pp_name TEXT NOT NULL DEFAULT 'Unnamed Pp',
+    digging_depth INTEGER NOT NULL DEFAULT 0
 );
 
 
