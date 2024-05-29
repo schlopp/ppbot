@@ -1,0 +1,26 @@
+[chance_weights]
+CLICK_THAT_BUTTON = 1
+
+
+[[CLICK_THAT_BUTTON]]
+object = "diamond ore"
+action = "mine"
+target_emoji = "<:diamond_ore:1244992032922144798>"
+fails = ["You didn't find any diamonds this time :("]
+wins = [
+    "You mine the diamonds and sell them for {}.",
+]
+foreground_style = "grey"
+background_emoji = "<:stone:1244992043156115537>"
+
+
+[[CLICK_THAT_BUTTON]]
+object = "gold ore"
+action = "mine"
+target_emoji = "<:gold_ore:1245012149064040559>"
+fails = ["You didn't find any gold this time :("]
+wins = [
+    "You mine the gold and sell it for {}.",
+]
+foreground_style = "grey"
+background_emoji = "<:stone:1244992043156115537>"

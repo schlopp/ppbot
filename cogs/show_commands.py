@@ -1,4 +1,5 @@
 import asyncio
+import random
 import uuid
 from typing import Literal
 
@@ -136,6 +137,25 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                 ]
             ),
         )
+
+        other_stats: list[str] = []
+
+        # easter egg xddd
+        if random.random() < 0.05:
+            other_stats.append(
+                random.choice(f"you smell [**REALLY**]({utils.MEME_URL}) bad"),
+            )
+
+        if pp.digging_depth.value > 0:
+            other_stats.append(
+                f"You've dug **{utils.format_int(pp.digging_depth.value)} feet** deep"
+            )
+
+        if other_stats:
+            embed.add_field(
+                name="and some more stats",
+                value=utils.format_iterable(other_stats),
+            )
 
         match utils.find_nearest_number(self.REAL_LIFE_COMPARISONS, pp.size.value):
             case nearest_number, -1:
