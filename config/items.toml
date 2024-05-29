@@ -44,9 +44,9 @@
     associated_command_name = "hunt"
 
     [tools.SHOVEL]
-    name = "shovel"
-    plural = "shovels"
-    description = "Dig up some ancient pps."
+    name = "fragile shovel"
+    plural = "fragile shovels"
+    description = "This shovel is super fragile, so ONLY buy it if ur loaded as fuck"
     price = 25_000
     associated_command_name = "dig"
 
