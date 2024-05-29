@@ -138,8 +138,8 @@ def format_iterable(
 ) -> str:
     """
     Example:
-        format_iterable([1, 2, 3]) -> "1, 2 and 3"
-        format_iterable([1, 2, 3], inline=False) -> "- 1\n- 2\n- 3"
+        format_iterable([1, 2, 3]) -> "\\- 1\n\\- 2\n\\- 3"
+        format_iterable([1, 2, 3], inline=True) -> "1, 2 and 3"
     """
 
     values = [str(i) for i in __iterable] or ["nothing"]
