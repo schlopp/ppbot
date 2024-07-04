@@ -205,7 +205,7 @@ class InventoryItem(DatabaseWrapperObject):
     def format_item(
         self, *, markdown: MarkdownFormat | None = MarkdownFormat.BOLD
     ) -> str:
-        return self.item.format_amount(self.amount.value)
+        return self.item.format_amount(self.amount.value, markdown=markdown)
 
     async def update(
         self,
