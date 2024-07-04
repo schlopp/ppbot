@@ -4,6 +4,8 @@ from collections.abc import Iterable
 from datetime import timedelta
 from typing import Any, Literal, overload
 
+from . import MEME_URL
+
 
 TimeUnitLiteral = Literal[
     "year", "week", "day", "hour", "minute", "second", "millisecond"
@@ -179,7 +181,35 @@ def format_ordinal(__ordinal: int, /) -> str:
     return f"{__ordinal:,}{suffix}"
 
 
-def format_amount(singular: str, plural: str, amount: int) -> str:
+@overload
+def format_amount(
+    singular: str,
+    plural: str,
+    amount: int,
+    *,
+    markdown: MarkdownFormat = MarkdownFormat.BOLD,
+    full_markdown: bool = False,
+) -> str: ...
+
+
+@overload
+def format_amount(
+    singular: str,
+    plural: str,
+    amount: int,
+    *,
+    markdown: None,
+) -> str: ...
+
+
+def format_amount(
+    singular: str,
+    plural: str,
+    amount: int,
+    *,
+    markdown: MarkdownFormat | None = MarkdownFormat.BOLD,
+    full_markdown: bool = False,
+) -> str:
     """
     Example:
         format_amounts('knife', 'knives', 1}) -> "a knife"
@@ -189,9 +219,28 @@ def format_amount(singular: str, plural: str, amount: int) -> str:
 
     if amount == 1:
         article = "an" if singular.lstrip("h")[0] in "aeiou" else "a"
-        return f"{article} {singular}"
 
-    return f"{format_int(amount), amount} {plural}"
+        if not full_markdown or markdown is None:
+            return f"{article} {singular}"
+
+        if markdown == MarkdownFormat.BOLD:
+            return f"**{article} {singular}**"
+
+        return f"**[{article} {singular}]({MEME_URL})**"
+
+    if markdown is None:
+        return f"{format_int(amount)} {plural}"
+
+    if not full_markdown:
+        if markdown == MarkdownFormat.BOLD:
+            return f"**{format_int(amount)}** {plural}"
+
+        return f"**[{format_int(amount)}]({MEME_URL})** {plural}"
+
+    if markdown == MarkdownFormat.BOLD:
+        return f"**{format_int(amount)} {plural}**"
+
+    return f"**[{format_int(amount)} {plural}]({MEME_URL})**"
 
 
 def clean(text: str) -> str:
