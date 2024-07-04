@@ -70,7 +70,8 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
         pp.grow_with_multipliers(
             random.randint(
                 DailyCommandCog.MIN_DAILY_GROWTH, DailyCommandCog.MAX_DAILY_GROWTH
-            )
+            ),
+            voted=await pp.has_voted(),
         )
         reward_message_chunks.append(pp.format_growth())
         await pp.update(connection)

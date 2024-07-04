@@ -147,7 +147,10 @@ class HuntCommandCog(vbu.Cog[utils.Bot]):
 
             elif activity == Activity.SUCCESS:
                 option, growth = self.get_hunting_option()
-                pp.grow_with_multipliers(growth)
+                pp.grow_with_multipliers(
+                    growth,
+                    voted=await pp.has_voted(),
+                )
 
                 embed.colour = utils.GREEN
                 embed.description = (

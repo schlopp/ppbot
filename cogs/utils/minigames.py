@@ -61,7 +61,10 @@ class Minigame(Generic[_MinigameContextDictT], Object):
     async def give_random_reward(self) -> str:
         reward_messages: list[str] = []
 
-        self.pp.grow_with_multipliers(random.randint(30, 60))
+        self.pp.grow_with_multipliers(
+            random.randint(30, 60),
+            voted=await self.pp.has_voted(),
+        )
         await self.pp.update(self.connection)
         reward_messages.append(self.pp.format_growth())
 

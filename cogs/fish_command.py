@@ -148,7 +148,10 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
 
             elif activity == Activity.SUCCESS:
                 growth = random.randint(1, 15)
-                pp.grow_with_multipliers(growth)
+                pp.grow_with_multipliers(
+                    growth,
+                    voted=await pp.has_voted(),
+                )
 
                 worth = growth / 15
                 catch = self.get_catch(worth)

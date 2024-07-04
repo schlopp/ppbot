@@ -153,7 +153,9 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
             embed = utils.Embed()
 
             if activity == Activity.DONATION:
-                pp.grow_with_multipliers(random.randint(1, 15))
+                pp.grow_with_multipliers(
+                    random.randint(1, 15), voted=await pp.has_voted()
+                )
                 embed.colour = utils.GREEN
                 embed.description = f"**{donator}** donated {pp.format_growth()} inches to {ctx.author.mention}"
 
