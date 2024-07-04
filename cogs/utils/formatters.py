@@ -56,6 +56,14 @@ class MarkdownFormat(enum.Enum):
 def format_int(
     __int: int, /, format_type: IntFormatType = IntFormatType.FULL_UNIT
 ) -> str:
+    """
+    IntFormatType.FULL_UNIT -> 123.45 million
+
+    IntFormatType.ABBREVIATED_UNIT -> 123.45M
+
+    IntFormatType.FULL -> 123,456,789
+
+    """
     if format_type == IntFormatType.FULL or -(10**6) < __int < 10**6:
         return f"{__int:,}"
     else:
@@ -169,6 +177,21 @@ def format_ordinal(__ordinal: int, /) -> str:
         suffix = suffixes.get(__ordinal % 10, "th")
 
     return f"{__ordinal:,}{suffix}"
+
+
+def format_amount(singular: str, plural: str, amount: int) -> str:
+    """
+    Example:
+        format_amounts('knife', 'knives', 1}) -> "a knife"
+
+        format_amounts('knife', 'knives', 2}) -> "2 knives"
+    """
+
+    if amount == 1:
+        article = "an" if singular.lstrip("h")[0] in "aeiou" else "a"
+        return f"{article} {singular}"
+
+    return f"{format_int(amount), amount} {plural}"
 
 
 def clean(text: str) -> str:
