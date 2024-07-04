@@ -69,10 +69,7 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
 
         embed = utils.Embed()
         embed.set_author(
-            name=(
-                "the biggest pps in the entire universe"
-                f" • updates every {utils.format_time(self.LEADERBOARD_CACHE_REFRESH_TIME)}"
-            ),
+            name=("the biggest pps in the entire universe"),
             url=utils.MEME_URL,
         )
 
