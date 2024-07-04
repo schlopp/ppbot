@@ -31,7 +31,6 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
         self,
         user: discord.User | discord.Member,
         *,
-        late: bool = False,
         bot_down: bool = False,
     ) -> None:
         self.logger.info(f"Sending reminder to {user} ({user.id})")
@@ -40,23 +39,20 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
         embed = utils.Embed()
         embed.color = utils.PINK
 
-        if late and not bot_down:
-            embed.title = "You can already vote again!"
-        else:
-            embed.title = random.choice(
-                [
-                    "BEEP BEEP BEEP VOTE NOW!!!",
-                    "wakey wakey its voting time",
-                    "you can vote again !!",
-                ]
-            )
+        embed.title = random.choice(
+            [
+                "BEEP BEEP BEEP VOTE NOW!!!",
+                "wakey wakey its voting time",
+                "you can vote again !!",
+            ]
+        )
 
         embed.description = (
             f"[**Vote now**]({utils.VOTE_URL}) to get your **{utils.BoostType.VOTE.percentage}%**"
             f" voting boost back!"
         )
 
-        if late and bot_down:
+        if bot_down:
             embed.set_footer(
                 text="This notification is late because the bot was down earlier :("
             )
@@ -84,7 +80,7 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
             async with vbu.Redis() as redis:
                 await redis.delete(f"reminders:voting:{user.id}")
 
-            await self._send_reminder(user, late=late, bot_down=bot_down)
+            await self._send_reminder(user, bot_down=bot_down)
 
         self.bot.loop.create_task(reminder())
 
@@ -99,7 +95,7 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
                 assert reminder_timestamp_data
 
                 reminder_timestamp = int(reminder_timestamp_data)
-                self._schedule_reminder(user, reminder_timestamp)
+                self._schedule_reminder(user, reminder_timestamp, bot_down=True)
 
     @vbu.Cog.listener("on_component_interaction")
     async def handle_vote_reminder_button_interaction(
@@ -228,7 +224,8 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
             # of multiple transactions being necessary (see code above)
             try:
                 pp.grow_with_multipliers(
-                    random.randint(self.MIN_VOTE_GROWTH, self.MAX_VOTE_GROWTH)
+                    random.randint(self.MIN_VOTE_GROWTH, self.MAX_VOTE_GROWTH),
+                    voted=await pp.has_voted(),
                 )
                 await pp.update(db.conn)
             except:
