@@ -121,7 +121,7 @@ class Pp(DatabaseWrapperObject):
         self.size.value += growth
         return growth
 
-    def grow_with_multipliers(self, growth: int, *, voted: bool = False) -> int:
+    def grow_with_multipliers(self, growth: int, *, voted: bool) -> int:
         growth *= self.get_full_multiplier(voted=voted)[0]
         self.size.value += growth
         return growth
