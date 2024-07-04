@@ -1,3 +1,12 @@
+import discord
+
+MEME_URL = "https://youtu.be/4rgxdf-fVw0"
+VOTE_URL = "https://top.gg/bot/735147633076863027/vote"
+RED = discord.Colour(16007990)
+GREEN = discord.Colour(5025616)
+BLUE = discord.Colour(2201331)
+PINK = discord.Colour(15418782)
+
 from .formatters import (
     IntFormatType as IntFormatType,
     MarkdownFormat as MarkdownFormat,
@@ -9,12 +18,6 @@ from .formatters import (
     clean as clean,
 )
 from .helpers import (
-    MEME_URL as MEME_URL,
-    VOTE_URL as VOTE_URL,
-    RED as RED,
-    GREEN as GREEN,
-    BLUE as BLUE,
-    PINK as PINK,
     limit_text as limit_text,
     compare as compare,
     find_nearest_number as find_nearest_number,

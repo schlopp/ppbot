@@ -8,6 +8,8 @@ from typing import Generic, TypeVar, Any, Literal, overload, cast, Self
 import asyncpg
 import discord
 
+from . import RED, BLUE
+
 
 _IntStrT_co = TypeVar("_IntStrT_co", str, int, covariant=True)
 
@@ -17,14 +19,6 @@ Record = Mapping[str, Any]
 
 class RecordNotFoundError(Exception):
     pass
-
-
-MEME_URL = "https://youtu.be/4rgxdf-fVw0"
-VOTE_URL = "https://top.gg/bot/735147633076863027/vote"
-RED = discord.Colour(16007990)
-GREEN = discord.Colour(5025616)
-BLUE = discord.Colour(2201331)
-PINK = discord.Colour(15418782)
 
 
 def limit_text(text: str, limit: int):
