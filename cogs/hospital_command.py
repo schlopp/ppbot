@@ -73,7 +73,7 @@ class HospitalCommandCog(vbu.Cog[utils.Bot]):
                     name="FAILED",
                     value=(
                         "The operation failed."
-                        f" Your pp snapped and you lost **{pp.format_growth()} inches.** 😭"
+                        f" Your pp snapped and you lost {pp.format_growth()} 😭"
                         f" It is now {pp.format_growth(pp.size.value)}."
                     ),
                 )
