@@ -1,5 +1,4 @@
 import asyncio
-import itertools
 import os
 import logging
 import random
@@ -16,11 +15,9 @@ from . import (
     Object,
     Pp,
     Embed,
-    InventoryItem,
+    give_random_reward,
     ReplyManager,
-    ItemManager,
     format_time,
-    format_iterable,
     format_slash_command,
     limit_text,
     clean,
@@ -59,56 +56,13 @@ class Minigame(Generic[_MinigameContextDictT], Object):
         return MinigameDialogueManager.generate_random_dialogue(cls, section)
 
     async def give_random_reward(self) -> str:
-        reward_messages: list[str] = []
-
-        self.pp.grow_with_multipliers(
-            random.randint(30, 60),
-            voted=await self.pp.has_voted(),
+        message, _, _ = await give_random_reward(
+            self.connection,
+            self.pp,
+            growth_range=(30, 60),
+            max_item_reward_price=self.MAXIMUM_ITEM_REWARD_PRICE,
         )
-        await self.pp.update(self.connection)
-        reward_messages.append(self.pp.format_growth())
-
-        reward_item_ids: list[str] = []
-        while True:
-            # 50% 1 item, ~33% 2 items, ~12.5% 3 items, ~4% 4 or more items
-            if reward_item_ids and random.randint(0, len(reward_item_ids)):
-                break
-            try:
-                reward_item = InventoryItem(
-                    self.pp.user_id,
-                    random.choice(
-                        [
-                            item_id
-                            for item_id, item in itertools.chain(
-                                ItemManager.tools.items(),
-                                ItemManager.useless.items(),
-                                ItemManager.buffs.items(),
-                            )
-                            if item.price
-                            < self.MAXIMUM_ITEM_REWARD_PRICE * self.pp.multiplier.value
-                        ]
-                    ),
-                    0,
-                )
-            except IndexError:
-                break
-
-            if reward_item.id in reward_item_ids:
-                break
-
-            reward_item.amount.value += random.randint(
-                1,
-                self.MAXIMUM_ITEM_REWARD_PRICE
-                * self.pp.multiplier.value
-                // reward_item.item.price
-                * 3,
-            )
-
-            await reward_item.update(self.connection, additional=True)
-            reward_item_ids.append(reward_item.id)
-            reward_messages.append(reward_item.format_item())
-
-        return format_iterable(reward_messages, inline=True)
+        return message
 
     @staticmethod
     def clean_sentence(sentence: str):
