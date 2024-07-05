@@ -69,6 +69,7 @@ from .paginator import (
     Paginator as Paginator,
     CategorisedPaginator as CategorisedPaginator,
 )
+from .generate_rewards import give_random_reward as give_random_reward
 from .minigames import (
     Minigame as Minigame,
     ReverseMinigame as ReverseMinigame,
