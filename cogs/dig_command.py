@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import enum
 import itertools
 import math
@@ -26,14 +27,36 @@ class Activity(enum.Enum):
         )[0]
 
 
-class DepthReward(enum.Enum):
-    COOL_BOX = ("cool box of stuff :)", "cool boxes of stuff :)")
-    TREASURE_CHEST = ("treasure chest!", "treasure chests!")
-    AWESOME_TREASURE_CHEST = (
-        "SUPER MEGA AWESOME TREASURE CHEST!!",
-        "SUPER MEGA AWESOME TREASURE CHESTS!!",
+@dataclass
+class DepthReward:
+    name: str
+    name_plural: str
+    name_stylised: str
+    growth_range: tuple[int, int]
+    max_item_value: int
+
+
+class DepthRewardType(enum.Enum):
+    COOL_BOX = DepthReward(
+        "cool box of stuff", "cool boxes of stuff", "cool box of stuff :)", (1, 10), 5
     )
-    GIFT_FROM_THE_PP_GODS = ("gift from the pp gods", "gifts from the pp gods")
+    TREASURE_CHEST = DepthReward(
+        "treasure chest", "treasure chests", "treasure chest!", (10, 30), 20
+    )
+    AWESOME_TREASURE_CHEST = DepthReward(
+        "SUPER MEGA AWESOME TREASURE CHEST",
+        "SUPER MEGA AWESOME TREASURE CHESTS",
+        "SUPER MEGA AWESOME TREASURE CHEST!!",
+        (30, 60),
+        45,
+    )
+    GIFT_FROM_THE_PP_GODS = DepthReward(
+        "<:ppEvil:902894209160347708> gift from the pp gods <:ppEvil:902894209160347708>",
+        "<:ppEvil:902894209160347708> gifts from the pp gods <:ppEvil:902894209160347708>",
+        "gifts from the pp gods",
+        (60, 90),
+        75,
+    )
 
 
 MinigameActivity = Literal[Activity.CLICK_THAT_BUTTON_MINIGAME]
@@ -45,33 +68,35 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
         "{}'s shovel literally snapped in half while trying to dig",
         "{}'s shovel shattered into a thousand pieces",
     ]
-    UNIQUE_DEPTH_REWARDS: dict[int, DepthReward] = {
-        69: DepthReward.GIFT_FROM_THE_PP_GODS,
-        420: DepthReward.GIFT_FROM_THE_PP_GODS,
-        666: DepthReward.GIFT_FROM_THE_PP_GODS,
-        6969: DepthReward.GIFT_FROM_THE_PP_GODS,
+    UNIQUE_DEPTH_REWARDS: dict[int, DepthRewardType] = {
+        69: DepthRewardType.GIFT_FROM_THE_PP_GODS,
+        420: DepthRewardType.GIFT_FROM_THE_PP_GODS,
+        666: DepthRewardType.GIFT_FROM_THE_PP_GODS,
+        6969: DepthRewardType.GIFT_FROM_THE_PP_GODS,
     }
 
     def __init__(self, bot: Bot, logger_name: str | None = None):
         super().__init__(bot, logger_name)
 
-    def _get_depth_reward(self, depth: int) -> DepthReward | None:
+    def _get_depth_reward(self, depth: int) -> DepthRewardType | None:
         try:
             return self.UNIQUE_DEPTH_REWARDS[depth]
         except:
             pass
 
         if depth == 10:
-            return DepthReward.COOL_BOX
+            return DepthRewardType.COOL_BOX
         elif depth % 1000 == 0:
-            return DepthReward.GIFT_FROM_THE_PP_GODS
+            return DepthRewardType.GIFT_FROM_THE_PP_GODS
         elif depth % 100 == 0:
-            return DepthReward.AWESOME_TREASURE_CHEST
+            return DepthRewardType.AWESOME_TREASURE_CHEST
         elif depth % 25 == 0:
-            return DepthReward.TREASURE_CHEST
+            return DepthRewardType.TREASURE_CHEST
 
-    def _get_depth_rewards(self, depth_range: range) -> dict[int, DepthReward] | None:
-        rewards: dict[int, DepthReward] = {}
+    def _get_depth_rewards(
+        self, depth_range: range
+    ) -> dict[int, DepthRewardType] | None:
+        rewards: dict[int, DepthRewardType] = {}
 
         for depth in depth_range:
             try:
@@ -80,13 +105,13 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
                 pass
 
             if depth == 10:
-                rewards[depth] = DepthReward.COOL_BOX
+                rewards[depth] = DepthRewardType.COOL_BOX
             elif depth % 1000 == 0:
-                rewards[depth] = DepthReward.GIFT_FROM_THE_PP_GODS
+                rewards[depth] = DepthRewardType.GIFT_FROM_THE_PP_GODS
             elif depth % 100 == 0:
-                rewards[depth] = DepthReward.AWESOME_TREASURE_CHEST
+                rewards[depth] = DepthRewardType.AWESOME_TREASURE_CHEST
             elif depth % 25 == 0:
-                rewards[depth] = DepthReward.TREASURE_CHEST
+                rewards[depth] = DepthRewardType.TREASURE_CHEST
 
         if not rewards:
             return None
@@ -101,7 +126,7 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
         else:
             closest_standard_depth = math.ceil(pp.digging_depth.value / 5) * 5
         closest_depth = closest_standard_depth
-        future_rewards: dict[int, DepthReward] = {}
+        future_rewards: dict[int, DepthRewardType] = {}
 
         rewards_before_closest_depth = self._get_depth_rewards(
             range(pp.digging_depth.value + 1, closest_standard_depth)
@@ -111,7 +136,7 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
             future_rewards.update(rewards_before_closest_depth)
 
         for depth in itertools.count(closest_depth):
-            if len(unformatted_segments) >= 6:
+            if len(unformatted_segments) >= 4:
                 break
 
             depth_segment = utils.format_int(
@@ -119,13 +144,13 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
             )
             depth_segment = f"{depth_segment} ft"
             if depth in future_rewards:
-                segment = f"{{}} [{future_rewards[depth].value[0]}]"
+                segment = f"{{}} [{future_rewards[depth].name}]"
                 unformatted_segments.append((depth_segment, segment))
                 continue
 
             reward = self._get_depth_reward(depth)
             if reward:
-                segment = f"{{}} [{reward.value[0]}]"
+                segment = f"{{}} [{reward.value.name_stylised}]"
                 unformatted_segments.append((depth_segment, segment))
                 continue
 
@@ -225,7 +250,7 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
                 embed = utils.Embed()
                 embeds.append(embed)
 
-                depth = random.randint(1, 3 * 100)
+                depth = random.randint(1, 3)
                 pp.digging_depth.value += depth
 
                 embed.description = (
@@ -261,11 +286,11 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
 
                 embed.description += (
                     "\n\n<:shovel:1258091579843809321> You've dug"
-                    f" **{utils.format_int(pp.digging_depth.value)}** feet deep"
+                    f" **{utils.format_int(pp.digging_depth.value)}** feet deep. "
                 )
 
                 if new_rewards:
-                    new_rewards_compiled: dict[DepthReward, int] = {}
+                    new_rewards_compiled: dict[DepthRewardType, int] = {}
                     for reward in new_rewards.values():
                         try:
                             new_rewards_compiled[reward] += 1
@@ -274,7 +299,8 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
 
                     segments = [
                         utils.format_amount(
-                            *reward.value,
+                            reward.value.name,
+                            reward.value.name_plural,
                             amount,
                             markdown=utils.MarkdownFormat.BOLD_BLUE,
                             full_markdown=True,
@@ -282,11 +308,42 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
                         for reward, amount in new_rewards_compiled.items()
                     ]
                     embed.description += (
-                        f" and found {utils.format_iterable(segments, inline=True)}"
+                        f" and found {utils.format_iterable(segments, inline=True)}."
                     )
 
+                    segments: list[str] = []
+
+                    for reward, amount in new_rewards_compiled.items():
+                        if amount == 1:
+                            message, _, _ = await utils.give_random_reward(
+                                db.conn,
+                                pp,
+                                growth_range=reward.value.growth_range,
+                                max_item_reward_price=reward.value.max_item_value,
+                            )
+                            segments.append(
+                                f"The **[{reward.value.name}]({utils.MEME_URL})**"
+                                f" contained {message}."
+                            )
+                            continue
+
+                        for ordinal in range(1, amount + 1):
+                            message, _, _ = await utils.give_random_reward(
+                                db.conn,
+                                pp,
+                                growth_range=reward.value.growth_range,
+                                max_item_reward_price=reward.value.max_item_value,
+                            )
+                            segments.append(
+                                f"The {utils.format_ordinal(ordinal)}"
+                                f" **[{reward.value.name}]({utils.MEME_URL})**"
+                                f" contained {message}."
+                            )
+
+                    embed.description += f"\n{utils.format_iterable(segments)}\n\n"
+
                 embed.description += (
-                    f". Here are your next rewards:\n{self._generate_reward_visual(pp)}"
+                    f"Here are your next rewards:\n{self._generate_reward_visual(pp)}"
                 )
 
                 embed.add_tip()
