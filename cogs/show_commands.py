@@ -329,12 +329,10 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                     async with utils.DatabaseWrapper() as db:
                         try:
                             pp = await utils.Pp.fetch_from_user(db.conn, member.id)
-                        except utils.NoPpCheckFailure:
+                        except utils.PpMissing:
                             if member == ctx.author:
                                 raise
-                            raise utils.NoPpCheckFailure(
-                                f"{member.mention} ain't got a pp :("
-                            )
+                            raise utils.PpMissing(f"{member.mention} ain't got a pp :(")
 
                 embed = await self._show_embed_factory(member, pp)
                 interaction_id, components = self._component_factory(
@@ -384,10 +382,10 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         async with utils.DatabaseWrapper() as db:
             try:
                 pp = await utils.Pp.fetch_from_user(db.conn, member.id)
-            except utils.NoPpCheckFailure:
+            except utils.PpMissing:
                 if member == ctx.author:
                     raise
-                raise utils.NoPpCheckFailure(f"{member.mention} ain't got a pp :(")
+                raise utils.PpMissing(f"{member.mention} ain't got a pp :(")
 
         embed = await self._show_embed_factory(member, pp)
 

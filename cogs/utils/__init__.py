@@ -60,7 +60,6 @@ from .items import (
 from .pps import (
     BoostType as BoostType,
     Pp as Pp,
-    NoPpCheckFailure as NoPpCheckFailure,
     DatabaseTimeoutCheckFailure as DatabaseTimeoutCheckFailure,
 )
 from .paginator import (
@@ -77,4 +76,10 @@ from .minigames import (
     FillInTheBlankMinigame as FillInTheBlankMinigame,
     ClickThatButtonMinigame as ClickThatButtonMinigame,
     MinigameDialogueManager as MinigameDialogueManager,
+)
+from .errors import (
+    PpMissing as PpMissing,
+    PpNotBigEnough as PpNotBigEnough,
+    MissingTool as MissingTool,
+    InvalidArgumentAmount as InvalidArgumentAmount,
 )

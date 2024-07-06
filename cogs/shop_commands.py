@@ -87,13 +87,10 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
         """
 
         async with utils.DatabaseWrapper() as db:
-            try:
-                pp = await utils.Pp.fetch(
-                    db.conn,
-                    {"user_id": ctx.author.id},
-                )
-            except utils.RecordNotFoundError:
-                raise commands.CheckFailure("You don't have a pp!")
+            pp = await utils.Pp.fetch_from_user(
+                db.conn,
+                ctx.author.id,
+            )
 
             inventory = {
                 inventory_item.id: inventory_item
@@ -184,7 +181,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
         if amount not in {"all", "max"} and not (
             amount.isnumeric() and int(amount) >= 1
         ):
-            raise commands.CheckFailure(
+            raise utils.InvalidArgumentAmount(
                 f"{utils.clean(amount)!r} is not a valid amount!"
                 " Please enter `all`, `max`, or a (positive) number"
             )
@@ -199,7 +196,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             try:
                 pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
             except utils.RecordNotFoundError:
-                raise commands.CheckFailure("You don't have a pp!")
+                raise utils.PpMissing("You don't have a pp!")
 
             interaction_id = uuid.uuid4().hex
 

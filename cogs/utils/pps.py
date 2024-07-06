@@ -18,6 +18,7 @@ from . import (
     DatabaseTimeoutManager,
     format_slash_command,
     is_weekend,
+    PpMissing,
 )
 
 
@@ -31,10 +32,6 @@ class BoostType(enum.Enum):
     @property
     def percentage(self) -> int:
         return int(self.value * 100)
-
-
-class NoPpCheckFailure(commands.CheckFailure):
-    pass
 
 
 class DatabaseTimeoutCheckFailure(commands.CheckFailure):
@@ -104,7 +101,7 @@ class Pp(DatabaseWrapperObject):
                 timeout=timeout,
             )
         except RecordNotFoundError:
-            raise NoPpCheckFailure(
+            raise PpMissing(
                 f"You don't have a pp! Go make one with {format_slash_command('new')} and get"
                 " started :)"
             )

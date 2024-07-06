@@ -39,7 +39,7 @@ class HospitalCommandCog(vbu.Cog[utils.Bot]):
             if pp.size.value < min_size:
                 assert isinstance(ctx.command, utils.Command)
                 await ctx.command.async_reset_cooldown(ctx)
-                raise commands.CheckFailure(
+                raise utils.PpNotBigEnough(
                     f"Your pp isn't big enough! You need at least **{utils.format_int(min_size)}"
                     " inches** to visit the hospital crodie"
                 )

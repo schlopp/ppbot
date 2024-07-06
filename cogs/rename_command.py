@@ -42,13 +42,13 @@ class RenameCommandCog(vbu.Cog[utils.Bot]):
             name = utils.clean(name)
 
             if len(name) > self.MAX_NAME_LENGTH:
-                raise commands.CheckFailure(
+                raise commands.BadArgument(
                     f"That name is {len(name)} characters long,"
                     f" but the max is {self.MAX_NAME_LENGTH}"
                 )
 
             if pp.name.value == name:
-                raise commands.CheckFailure("Bro that's literally the same name lmao")
+                raise commands.BadArgument("Bro that's literally the same name lmao")
 
             pp.name.value = name
             await pp.update(db.conn)

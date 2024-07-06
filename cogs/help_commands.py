@@ -81,7 +81,7 @@ class HelpCommandsCog(vbu.Cog[utils.Bot]):
         async with utils.DatabaseWrapper() as db:
             try:
                 await utils.Pp.fetch_from_user(db.conn, ctx.author.id)
-            except utils.NoPpCheckFailure:
+            except utils.PpMissing:
                 await ctx.interaction.followup.send(
                     embed=self.generate_new_user_embed(), ephemeral=True
                 )
