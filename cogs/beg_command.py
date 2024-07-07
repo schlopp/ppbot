@@ -53,6 +53,11 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
         "No.",
         "no wtf?",
         'try being a little "cooler" next time',
+        "womp womp",
+        (
+            "i just came back from one of Diddy's parties it was deck n balls everywhere you"
+            " shoulda been there"
+        ),
     ]
     DONATORS: dict[str, str | list[str] | None] = {
         "obama": None,
