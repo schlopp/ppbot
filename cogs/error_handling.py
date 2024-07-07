@@ -350,7 +350,9 @@ class ErrorHandler(vbu.Cog):
         )
         if isinstance(error, ignored_errors):
             return
-        self.logger.info(f"Hit error in command {ctx.command} - {error}")
+        self.logger.info(
+            f"Hit error {type(error).__name__} in command {ctx.command} - {error}"
+        )
 
         # See what we've got to deal with
         setattr(
@@ -381,6 +383,12 @@ class ErrorHandler(vbu.Cog):
                 pass
             else:
                 return await ctx.reinvoke()
+
+        # Remove any cooldowns if the error was a check failure
+        if isinstance(ctx.command, utils.Command) and isinstance(
+            error, commands.CheckFailure
+        ):
+            await ctx.command.async_reset_cooldown(ctx)
 
         # See if the command itself has an error handler AND it isn't a locally handlled arg
         # if hasattr(ctx.command, "on_error") and not isinstance(ctx.command, commands.command):
