@@ -10,7 +10,6 @@ class NewCommandCog(vbu.Cog[utils.Bot]):
         category=utils.CommandCategory.GETTING_STARTED,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
-    @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.is_slash_command()
     async def new_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
         """

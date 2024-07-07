@@ -11,7 +11,7 @@ class GrowCommandCog(vbu.Cog[utils.Bot]):
         category=utils.CommandCategory.GROWING_PP,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.is_slash_command()
     async def grow_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
         """

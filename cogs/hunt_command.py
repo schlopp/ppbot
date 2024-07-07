@@ -87,7 +87,7 @@ class HuntCommandCog(vbu.Cog[utils.Bot]):
         category=utils.CommandCategory.GROWING_PP,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
-    @commands.cooldown(1, 45, commands.BucketType.user)
+    @commands.cooldown(1, 60, commands.BucketType.user)
     @commands.is_slash_command()
     async def hunt_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
         """
