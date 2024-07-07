@@ -7,6 +7,7 @@ guild_settings_prefix_column = "prefix"  # Used if multiple bots connect to the 
 ephemeral_error_messages = true  # Whether or not error messages [from slash commands] should be ephemeral.
 owners_ignore_command_errors = false  # Whether or not owners ignore command errors.
 owners_ignore_check_failures = false  # Whether or not owners ignore check failures.
+enable_error_handler = false  # Whether or not the error handler at vbu/cogs/error_handler.py is activated.
 
 # These are used with the on_message event. As such, they will likely soon be deprecated.
 default_prefix = "pp "  # The prefix for the bot's commands.
