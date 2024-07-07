@@ -137,9 +137,11 @@ class HuntCommandCog(vbu.Cog[utils.Bot]):
                 await inv_tool.update(db.conn)
 
                 embed.colour = utils.RED
-                embed.description = (
-                    random.choice(self.ITEM_BREAK_RESPONSES).format(ctx.author.mention)
-                    + f"\n\n(You now have {inv_tool.format_item()} left)"
+                embed.description = random.choice(self.ITEM_BREAK_RESPONSES).format(
+                    ctx.author.mention
+                ) + (
+                    f"\n\n(You now have {inv_tool.format_item(article=utils.Article.NUMERAL)}"
+                    " left)"
                 )
 
                 if inv_tool.amount.value == 0:

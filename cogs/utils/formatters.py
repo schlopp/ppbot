@@ -55,6 +55,14 @@ class MarkdownFormat(enum.Enum):
     BOLD = enum.auto()
 
 
+class Article(enum.Enum):
+    DEFINITE = enum.auto()
+    INDEFINITE_A = enum.auto()
+    INDEFINITE_AN = enum.auto()
+    INDEFINITE = enum.auto()
+    NUMERAL = enum.auto()
+
+
 def format_int(
     __int: int, /, format_type: IntFormatType = IntFormatType.FULL_UNIT
 ) -> str:
@@ -213,7 +221,7 @@ def format_amount(
     *,
     markdown: MarkdownFormat = MarkdownFormat.BOLD,
     full_markdown: bool = False,
-    definite_article: bool = False,
+    article: Article | None = None,
 ) -> str: ...
 
 
@@ -224,7 +232,7 @@ def format_amount(
     amount: int,
     *,
     markdown: None,
-    definite_article: bool = False,
+    article: Article | None = None,
 ) -> str: ...
 
 
@@ -236,7 +244,7 @@ def format_amount(
     *,
     markdown: MarkdownFormat | None = MarkdownFormat.BOLD,
     full_markdown: bool = False,
-    definite_article: bool = False,
+    article: Article | None = None,
 ) -> str: ...
 
 
@@ -247,7 +255,7 @@ def format_amount(
     *,
     markdown: MarkdownFormat | None = MarkdownFormat.BOLD,
     full_markdown: bool = False,
-    definite_article: bool = False,
+    article: Article | None = None,
 ) -> str:
     """
     Example:
@@ -257,18 +265,30 @@ def format_amount(
     """
 
     if amount == 1:
-        if definite_article:
-            article = "the"
-        else:
-            article = "an" if singular.lstrip("h")[0] in "aeiou" else "a"
+        prefix = ""
+
+        if article == Article.DEFINITE:
+            prefix = "the "
+
+        elif article == Article.INDEFINITE_A:
+            prefix = "a "
+
+        elif article == Article.INDEFINITE_AN:
+            prefix = "an "
+
+        elif article == Article.INDEFINITE:
+            prefix = "an " if singular[0] in "aeiou" else "a "
+
+        elif article == Article.NUMERAL:
+            prefix = f"1 "
 
         if not full_markdown or markdown is None:
-            return f"{article} {singular}"
+            return f"{prefix}{singular}"
 
         if markdown == MarkdownFormat.BOLD:
-            return f"**{article} {singular}**"
+            return f"**{prefix}{singular}**"
 
-        return f"**[{article} {singular}]({MEME_URL})**"
+        return f"**[{prefix}{singular}]({MEME_URL})**"
 
     if markdown is None:
         return f"{format_int(amount)} {plural}"

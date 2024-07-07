@@ -1,12 +1,14 @@
 [multipliers]
     [multipliers.PILLS]
     name = "pills"
+    indefinite_article = "none"
     description = "I LOVE DRUGS!!!"
     price = 60
     gain = 1
 
     [multipliers.STRONG_PILLS]
     name = "stronger pills"
+    indefinite_article = "none"
     description = "I think there's some cocaine and some sildenafil in these..."
     price = 500
     gain = 20
@@ -14,6 +16,7 @@
 [buffs]
     [buffs.HAPPY_FLOUR]
     name = "happy flour"
+    indefinite_article = "none"
     description = "Definitely not cocaine, trust me."
     price = 500
     duration = 0.5

@@ -88,7 +88,7 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
         category=utils.CommandCategory.GROWING_PP,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
-    @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.cooldown(1, 60, commands.BucketType.user)
     @commands.is_slash_command()
     async def fish_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
         """
@@ -138,9 +138,11 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
                 await inv_tool.update(db.conn)
 
                 embed.colour = utils.RED
-                embed.description = (
-                    random.choice(self.ROD_BREAK_RESPONSES).format(ctx.author.mention)
-                    + f"\n\n(You now have {inv_tool.format_item()} left)"
+                embed.description = random.choice(self.ROD_BREAK_RESPONSES).format(
+                    ctx.author.mention
+                ) + (
+                    f"\n\n(You now have {inv_tool.format_item(article=utils.Article.NUMERAL)}"
+                    " left)"
                 )
 
                 if inv_tool.amount.value == 0:

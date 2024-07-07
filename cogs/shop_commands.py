@@ -330,9 +330,13 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                             1, current_multiplier=pp.multiplier.value
                         )
                         embed.description = (
-                            f"You literally can't even afford {item_object.format_amount(1)}"
-                            f" lmao. Come back when you have"
-                            f" **{utils.format_int(cost - pp.size.value)}** more inches loser"
+                            "You literally can't even afford {item} lmao."
+                            " Come back when you have **{inches_more_required}** more inches loser"
+                        ).format(
+                            item=item_object.format_amount(
+                                1, article=item_object.indefinite_article
+                            ),
+                            inches_more_required=utils.format_int(cost - pp.size.value),
                         )
                         embed.add_tip()
 
@@ -366,13 +370,19 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                     cost = amount_number * item_object.price
                     gain = None
 
+            item_formatted = item_object.format_amount(
+                amount_number, article=item_object.indefinite_article
+            )
+
             if cost > pp.size.value:
                 embed.colour = utils.RED
                 embed.title = f"Purchase failed - ur broke"
                 embed.description = (
-                    f"You need {pp.format_growth(cost - pp.size.value)}"
-                    f" more to afford {item_object.format_amount(amount_number)}"
+                    "You need {inches_more_required} more to afford {item}"
                     " <:sadge:1194351982044008561>"
+                ).format(
+                    inches_more_required=utils.format_int(cost - pp.size.value),
+                    item=item_formatted,
                 )
                 embed.add_tip()
 
@@ -384,7 +394,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 f"Buying {item_object.format_amount(amount_number, markdown=None)}"
             )
             embed.description = (
-                f"Are you sure that you want to buy {item_object.format_amount(amount_number)}"
+                f"Are you sure that you want to buy {item_formatted}"
                 f" for {pp.format_growth(cost)}? You'll have"
                 f" {pp.format_growth(pp.size.value - cost)} left"
                 f"\n\n{self.format_listing(item_object, pp=pp)}"
@@ -430,7 +440,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 embed.colour = utils.RED
                 embed.title = "Purchase cancelled"
                 embed.description = (
-                    f"You've cancelled your purchase of {item_object.format_amount(amount_number)}"
+                    f"You've cancelled your purchase of {item_formatted}"
                     f" for {pp.format_growth(cost)}"
                 )
                 await component_interaction.response.edit_message(
@@ -446,10 +456,11 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 pp.multiplier.value += gain
                 embed.description = (
                     "*You take"
-                    f" {item_object.format_amount(amount_number, definite_article=True)} for"
-                    f" {pp.format_growth(cost)} and feel a sudden surge of power coursing through"
-                    f" your pp's veins. You gain an additional **+{utils.format_int(gain)}**"
-                    f" multiplier.*\n\nYou now have {pp.format_growth(cost)} and a"
+                    f" {item_formatted}"
+                    f" for {pp.format_growth(cost)} and feel a sudden surge of power coursing"
+                    f" through your pp's veins. You gain an additional"
+                    f" **+{utils.format_int(gain)}** multiplier.*"
+                    f"\n\nYou now have {pp.format_growth(pp.size.value)} and a"
                     f" **{utils.format_int(pp.multiplier.value)}x** multiplier!"
                 )
             else:
@@ -468,10 +479,10 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 await inventory_item.update(db.conn)
 
                 embed.description = (
-                    f"You've successfully purchased {item_object.format_amount(amount_number)}"
+                    f"You've successfully purchased {item_formatted}"
                     f" for {pp.format_growth(cost)}. You now have"
                     f" {pp.format_growth(pp.size.value)} and"
-                    f" {item_object.format_amount(inventory_item.amount.value)}!"
+                    f" {inventory_item.format_item(article=utils.Article.INDEFINITE)}!"
                 )
 
             await pp.update(db.conn)

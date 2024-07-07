@@ -4,7 +4,7 @@ import logging
 import re
 from datetime import timedelta
 from functools import cached_property
-from typing import Any
+from typing import Any, Literal
 
 import toml
 import rust_utils  # pyright: ignore[reportMissingModuleSource]
@@ -16,6 +16,7 @@ from . import (
     MarkdownFormat,
     format_slash_command,
     format_amount,
+    Article,
 )
 
 
@@ -35,12 +36,17 @@ class UselessItem(Object):
         *,
         name: str,
         plural: str | None = None,
+        indefinite_article: (
+            Literal[Article.INDEFINITE_A, Article.INDEFINITE_AN, Article.INDEFINITE]
+            | None
+        ) = Article.INDEFINITE,
         description: str,
         price: int,
     ) -> None:
         self.id = id
         self.name = name
         self.plural = plural or name
+        self.indefinite_article = indefinite_article
         self.description = description
         self.price = price
 
@@ -50,7 +56,7 @@ class UselessItem(Object):
         *,
         markdown: MarkdownFormat | None = MarkdownFormat.BOLD,
         full_markdown: bool = False,
-        definite_article: bool = False,
+        article: Article | None = None,
     ) -> str:
         return format_amount(
             self.name,
@@ -58,7 +64,7 @@ class UselessItem(Object):
             amount=amount,
             markdown=markdown,
             full_markdown=full_markdown,
-            definite_article=definite_article,
+            article=article,
         )
 
 
@@ -74,6 +80,10 @@ class MultiplierItem(UselessItem):
         *,
         name: str,
         plural: str | None = None,
+        indefinite_article: (
+            Literal[Article.INDEFINITE_A, Article.INDEFINITE_AN, Article.INDEFINITE]
+            | None
+        ) = Article.INDEFINITE,
         description: str,
         price: int,
         gain: int,
@@ -81,6 +91,7 @@ class MultiplierItem(UselessItem):
         self.id = id
         self.name = name
         self.plural = plural or name
+        self.indefinite_article = indefinite_article
         self.description = description
         self.price = price
         self.gain = gain
@@ -123,6 +134,10 @@ class BuffItem(UselessItem):
         *,
         name: str,
         plural: str | None = None,
+        indefinite_article: (
+            Literal[Article.INDEFINITE_A, Article.INDEFINITE_AN, Article.INDEFINITE]
+            | None
+        ) = Article.INDEFINITE,
         description: str,
         price: int,
         duration: timedelta,
@@ -133,6 +148,7 @@ class BuffItem(UselessItem):
         self.id = id
         self.name = name
         self.plural = plural or name
+        self.indefinite_article = indefinite_article
         self.description = description
         self.price = price
         self.multiplier = multiplier
@@ -164,6 +180,10 @@ class ToolItem(UselessItem):
         *,
         name: str,
         plural: str | None = None,
+        indefinite_article: (
+            Literal[Article.INDEFINITE_A, Article.INDEFINITE_AN, Article.INDEFINITE]
+            | None
+        ) = Article.INDEFINITE,
         description: str,
         price: int,
         associated_command_name: str,
@@ -171,6 +191,7 @@ class ToolItem(UselessItem):
         self.id = id
         self.name = name
         self.plural = plural or name
+        self.indefinite_article = indefinite_article
         self.description = description
         self.price = price
         self.associated_command_name = associated_command_name
@@ -206,9 +227,18 @@ class InventoryItem(DatabaseWrapperObject):
         return ItemManager.get(self.id)
 
     def format_item(
-        self, *, markdown: MarkdownFormat | None = MarkdownFormat.BOLD
+        self,
+        *,
+        markdown: MarkdownFormat | None = MarkdownFormat.BOLD,
+        full_markdown: bool = False,
+        article: Article | None = None,
     ) -> str:
-        return self.item.format_amount(self.amount.value, markdown=markdown)
+        return self.item.format_amount(
+            self.amount.value,
+            markdown=markdown,
+            full_markdown=full_markdown,
+            article=article,
+        )
 
     async def update(
         self,
@@ -290,6 +320,28 @@ class ItemManager:
     _MATCH_SLASH_COMMANDS_PATTERN = re.compile(r"<\/[A-z](?:[A-z]|[0-9]|-|\s)*>")
     _logger = logging.getLogger("vbu.bot.cog.utils.ItemManager")
 
+    @staticmethod
+    def _format_indefinite_article(item_data: dict[str, Any]) -> None:
+        try:
+            indefinite_article_value: str = item_data.pop("indefinite_article")
+        except KeyError:
+            return
+
+        if indefinite_article_value == "none":
+            item_data["indefinite_article"] = None
+            return
+
+        indefinite_article = Article[indefinite_article_value]
+
+        if indefinite_article not in (Article.INDEFINITE_A, Article.INDEFINITE_AN):
+            raise ValueError(
+                f"Expected indefinite_article of item to be {Article.INDEFINITE_A!r}, "
+                f" {Article.INDEFINITE_AN!r} or None, received {indefinite_article!r}"
+                " instead."
+            )
+
+        item_data["indefinite_article"] = indefinite_article
+
     @classmethod
     def get(cls, item_key: str) -> Item:
         try:
@@ -364,11 +416,13 @@ class ItemManager:
         new_items: list[Item] = []
 
         for item_id, item in item_data["multipliers"].items():
+            cls._format_indefinite_article(item)
             new_item = MultiplierItem(item_id, **item)
             new_items.append(new_item)
             cls._logger.info(f" * Loaded multiplier item {new_item.id!r}")
 
         for item_id, item in item_data["buffs"].items():
+            cls._format_indefinite_article(item)
             specified_details: list[str] | None = item.get("specified_details")
             if specified_details is not None:
                 for index, detail in enumerate(specified_details):
@@ -384,6 +438,7 @@ class ItemManager:
                 item_id,
                 name=item["name"],
                 plural=item.get("plural"),
+                indefinite_article=item.get("indefinite_article", Article.INDEFINITE),
                 description=item["description"],
                 price=item["price"],
                 duration=timedelta(hours=item["duration"]),
@@ -400,11 +455,13 @@ class ItemManager:
             cls._logger.info(f" * Loaded buff item {new_item.id!r}")
 
         for item_id, item in item_data["tools"].items():
+            cls._format_indefinite_article(item)
             new_item = ToolItem(item_id, **item)
             new_items.append(new_item)
             cls._logger.info(f" * Loaded tool item {new_item.id!r}")
 
         for item_id, item in item_data["useless"].items():
+            cls._format_indefinite_article(item)
             new_item = UselessItem(item_id, **item)
             new_items.append(new_item)
             cls._logger.info(f" * Loaded useless item {new_item.id!r}")

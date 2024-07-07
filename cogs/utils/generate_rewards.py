@@ -71,6 +71,8 @@ async def give_random_reward(
 
         await reward_item.update(connection, additional=True)
         reward_item_ids.append(reward_item.id)
-        segments.append(reward_item.format_item())
+        segments.append(
+            reward_item.format_item(article=reward_item.item.indefinite_article)
+        )
 
     return formatter(segments), growth, reward_items

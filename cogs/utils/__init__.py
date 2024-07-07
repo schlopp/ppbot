@@ -10,6 +10,7 @@ PINK = discord.Colour(15418782)
 from .formatters import (
     IntFormatType as IntFormatType,
     MarkdownFormat as MarkdownFormat,
+    Article as Article,
     format_int as format_int,
     format_time as format_time,
     format_iterable as format_iterable,

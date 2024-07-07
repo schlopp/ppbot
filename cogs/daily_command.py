@@ -81,7 +81,9 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
             for item_id, amount in streak_reward.items.items():
                 reward_item = utils.InventoryItem(pp.user_id, item_id, amount)
                 await reward_item.update(connection, additional=True)
-                reward_message_chunks.append(reward_item.format_item())
+                reward_message_chunks.append(
+                    reward_item.format_item(article=utils.Article.INDEFINITE)
+                )
 
         return utils.format_iterable(reward_message_chunks, inline=True)
 

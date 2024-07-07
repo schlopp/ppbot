@@ -363,11 +363,11 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
                     embed = utils.Embed()
                     embed.colour = utils.RED
                     embed.set_author(name=f"but... your {tool.name} broke")
-                    embed.description = (
-                        random.choice(self.SHOVEL_BREAK_RESPONSES).format(
-                            ctx.author.mention
-                        )
-                        + f"\n\n(You now have {inv_tool.format_item()} left)"
+                    embed.description = random.choice(
+                        self.SHOVEL_BREAK_RESPONSES
+                    ).format(ctx.author.mention) + (
+                        f"\n\n(You now have {inv_tool.format_item(article=utils.Article.NUMERAL)}"
+                        " left)"
                     )
 
                     if inv_tool.amount.value == 0:
