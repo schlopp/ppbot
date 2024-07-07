@@ -14,9 +14,8 @@ from . import (
     DatabaseWrapperObject,
     DifferenceTracker,
     MarkdownFormat,
-    format_int,
-    MEME_URL,
     format_slash_command,
+    format_amount,
 )
 
 
@@ -46,17 +45,21 @@ class UselessItem(Object):
         self.price = price
 
     def format_amount(
-        self, amount: int, *, markdown: MarkdownFormat | None = MarkdownFormat.BOLD
+        self,
+        amount: int,
+        *,
+        markdown: MarkdownFormat | None = MarkdownFormat.BOLD,
+        full_markdown: bool = False,
+        definite_article: bool = False,
     ) -> str:
-        name = self.name if amount == 1 else self.plural
-
-        if markdown is None:
-            return f"{format_int(amount)} {name}"
-
-        if markdown == MarkdownFormat.BOLD:
-            return f"**{format_int(amount)}** {name}"
-
-        return f"**[{format_int(amount)}]({MEME_URL})** {name}"
+        return format_amount(
+            self.name,
+            self.plural,
+            amount=amount,
+            markdown=markdown,
+            full_markdown=full_markdown,
+            definite_article=definite_article,
+        )
 
 
 class MultiplierItem(UselessItem):
