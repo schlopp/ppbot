@@ -22,12 +22,13 @@ from . import (
 )
 
 
-BoostLiteral = Literal["voter", "weekend"]
+BoostLiteral = Literal["voter", "weekend", "pp_bot_channel"]
 
 
 class BoostType(enum.Enum):
     VOTE = Decimal("3")
     WEEKEND = Decimal(".5")
+    PP_BOT_CHANNEL = Decimal(".10")
 
     @property
     def percentage(self) -> int:
@@ -65,7 +66,7 @@ class Pp(DatabaseWrapperObject):
         self.digging_depth = DifferenceTracker(digging_depth, column="digging_depth")
 
     def get_full_multiplier(
-        self, *, voted: bool
+        self, *, voted: bool, channel_name: str | None = None
     ) -> tuple[int, dict[BoostLiteral, int | Decimal], int | Decimal]:
         """Returns `(full_multiplier: int, boosts: dict[boost: L[...], boost_percentage: int | Decimal], total_boost: int | Decimal)`"""
         boosts: dict[BoostLiteral, int | Decimal] = {}
@@ -74,6 +75,11 @@ class Pp(DatabaseWrapperObject):
 
         if voted:
             boosts["voter"] = BoostType.VOTE.value
+
+        if channel_name is not None and (
+            "pp-bot" in channel_name or "ppbot" in channel_name
+        ):
+            boosts["pp_bot_channel"] = BoostType.PP_BOT_CHANNEL.value
 
         if is_weekend():
             boosts["weekend"] = BoostType.WEEKEND.value
@@ -129,7 +135,11 @@ class Pp(DatabaseWrapperObject):
         *,
         markdown: MarkdownFormat | None = MarkdownFormat.BOLD,
         prefixed: bool = False,
+        in_between: str | None = None,
     ) -> str:
+        if in_between is None:
+            in_between = " "
+
         if growth is None:
             growth = self.size.difference or 0
 
@@ -143,14 +153,18 @@ class Pp(DatabaseWrapperObject):
             prefix = ""
 
         if markdown is None:
-            return prefix + f"{format_int(growth)} inch{'' if growth == 1 else 'es'}"
+            return (
+                prefix
+                + f"{format_int(growth)}{in_between}inch{'' if growth == 1 else 'es'}"
+            )
 
         if markdown == MarkdownFormat.BOLD:
             return (
-                prefix + f"**{format_int(growth)}** inch{'' if growth == 1 else 'es'}"
+                prefix
+                + f"**{format_int(growth)}**{in_between}inch{'' if growth == 1 else 'es'}"
             )
 
         return (
             prefix
-            + f"**[{format_int(growth)}]({MEME_URL}) inch{'' if growth == 1 else 'es'}**"
+            + f"**[{format_int(growth)}]({MEME_URL}){in_between}inch{'' if growth == 1 else 'es'}**"
         )

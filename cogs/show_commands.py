@@ -45,6 +45,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
     BOOST_DESCRIPTIONS = {
         "voter": f"voting on [**top.gg**]({utils.VOTE_URL})",
         "weekend": "for playing during the weekend :)",
+        "pp_bot_channel": "for being in a channel named after pp bot <:ppHappy:902894208703156257>",
     }
 
     def _component_factory(
