@@ -95,6 +95,7 @@ def format_time(
     smallest_unit: TimeUnitLiteral | None = "second",
     *,
     adjective: bool = False,
+    max_decimals: int = 0,
 ) -> str: ...
 
 
@@ -105,6 +106,7 @@ def format_time(
     smallest_unit: TimeUnitLiteral | None = "second",
     *,
     adjective: bool = False,
+    max_decimals: int = 0,
 ) -> str: ...
 
 
@@ -114,6 +116,7 @@ def format_time(
     smallest_unit: TimeUnitLiteral | None = "second",
     *,
     adjective: bool = False,
+    max_decimals: int = 0,
 ) -> str:
     durations: list[str] = []
 
@@ -122,8 +125,29 @@ def format_time(
     else:
         seconds = __time
 
+    biggest_unit: TimeUnitLiteral | None = None
+
     for time_unit, time_unit_value in _TIME_UNITS.items():
-        if seconds // time_unit_value:
+        if biggest_unit is None:
+            if seconds // time_unit_value:
+                biggest_unit = time_unit
+            elif (
+                time_unit == smallest_unit
+                and (seconds * 10**max_decimals) // time_unit_value
+            ):
+                biggest_unit = time_unit
+
+        if (
+            time_unit == smallest_unit
+            and biggest_unit == smallest_unit
+            and (seconds * 10**max_decimals) // time_unit_value
+        ):
+            suffix = "s"
+            durations.append(
+                f"{seconds / time_unit_value:,.{max_decimals}f} {time_unit}{suffix}"
+            )
+
+        elif seconds // time_unit_value:
             suffix = "s" if seconds // time_unit_value != 1 and not adjective else ""
             durations.append(f"{int(seconds // time_unit_value)} {time_unit}{suffix}")
 
