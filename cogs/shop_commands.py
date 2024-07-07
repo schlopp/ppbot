@@ -445,7 +445,8 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             if gain is not None:
                 pp.multiplier.value += gain
                 embed.description = (
-                    f"*You take the {item_object.format_amount(amount_number)} for"
+                    "*You take"
+                    f" {item_object.format_amount(amount_number, definite_article=True)} for"
                     f" {pp.format_growth(cost)} and feel a sudden surge of power coursing through"
                     f" your pp's veins. You gain an additional **+{utils.format_int(gain)}**"
                     f" multiplier.*\n\nYou now have {pp.format_growth(cost)} and a"
