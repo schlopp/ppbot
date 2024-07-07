@@ -138,7 +138,7 @@ async def wait_for_component_interaction(
                 component_interaction.response.send_message(
                     random.choice(
                         [
-                            "This button ain't for you lil bra. Keep strolling come back tomorrow",
+                            "This button ain't for you lil bra.",
                             "Don't click no random ahh buttons that aren't meant for you",
                             "You not supposed to click that button gang",
                             (
