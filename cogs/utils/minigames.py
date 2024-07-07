@@ -365,7 +365,7 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
 class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
     ID = "CLICK_THAT_BUTTON"
     GRID_HEIGHT = 2
-    GRID_WIDTH = 5
+    GRID_WIDTH = 4
     TIMEOUT = 10
 
     def __init__(
