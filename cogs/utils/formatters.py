@@ -213,6 +213,7 @@ def format_amount(
     *,
     markdown: MarkdownFormat = MarkdownFormat.BOLD,
     full_markdown: bool = False,
+    definite_article: bool = False,
 ) -> str: ...
 
 
@@ -223,6 +224,19 @@ def format_amount(
     amount: int,
     *,
     markdown: None,
+    definite_article: bool = False,
+) -> str: ...
+
+
+@overload
+def format_amount(
+    singular: str,
+    plural: str,
+    amount: int,
+    *,
+    markdown: MarkdownFormat | None = MarkdownFormat.BOLD,
+    full_markdown: bool = False,
+    definite_article: bool = False,
 ) -> str: ...
 
 
@@ -233,6 +247,7 @@ def format_amount(
     *,
     markdown: MarkdownFormat | None = MarkdownFormat.BOLD,
     full_markdown: bool = False,
+    definite_article: bool = False,
 ) -> str:
     """
     Example:
@@ -242,7 +257,10 @@ def format_amount(
     """
 
     if amount == 1:
-        article = "an" if singular.lstrip("h")[0] in "aeiou" else "a"
+        if definite_article:
+            article = "the"
+        else:
+            article = "an" if singular.lstrip("h")[0] in "aeiou" else "a"
 
         if not full_markdown or markdown is None:
             return f"{article} {singular}"
