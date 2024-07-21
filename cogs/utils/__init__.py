@@ -12,6 +12,7 @@ from .formatters import (
     MarkdownFormat as MarkdownFormat,
     Article as Article,
     format_int as format_int,
+    format_inches as format_inches,
     format_time as format_time,
     format_iterable as format_iterable,
     format_ordinal as format_ordinal,
@@ -21,7 +22,6 @@ from .formatters import (
 from .errors import (
     PpMissing as PpMissing,
     PpNotBigEnough as PpNotBigEnough,
-    MissingTool as MissingTool,
     InvalidArgumentAmount as InvalidArgumentAmount,
 )
 from .helpers import (
@@ -63,6 +63,7 @@ from .items import (
     Item as Item,
     InventoryItem as InventoryItem,
     ItemManager as ItemManager,
+    MissingTool as MissingTool,
 )
 from .pps import (
     BoostType as BoostType,

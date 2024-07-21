@@ -72,7 +72,6 @@ def format_int(
     IntFormatType.ABBREVIATED_UNIT -> 123.45M
 
     IntFormatType.FULL -> 123,456,789
-
     """
     if format_type == IntFormatType.FULL or -(10**6) < __int < 10**6:
         return f"{__int:,}"
@@ -94,6 +93,27 @@ def format_int(
             return f"{unit_value} {unit}"
 
         return f"{unit_value}{_UNITS[unit].upper()}"
+
+
+def format_inches(
+    __inches: int,
+    /,
+    *,
+    markdown: MarkdownFormat | None = MarkdownFormat.BOLD,
+    in_between: str | None = None,
+) -> str:
+    if in_between is None:
+        in_between = ""
+    else:
+        in_between += " "
+
+    if markdown is None:
+        return f"{format_int(__inches)} {in_between}inch{'' if __inches == 1 else 'es'}"
+
+    if markdown == MarkdownFormat.BOLD:
+        return f"**{format_int(__inches)}** {in_between}inch{'' if __inches == 1 else 'es'}"
+
+    return f"**[{format_int(__inches)}]({MEME_URL}) {in_between}inch{'' if __inches == 1 else 'es'}**"
 
 
 @overload
@@ -259,13 +279,14 @@ def format_amount(
 ) -> str:
     """
     Example:
-        format_amounts('knife', 'knives', 1, full_markdown=True}) -> "**a knife**"
+        format_amounts('knife', 'knives', 1, full_markdown=True}) -> "a **knife**"
 
         format_amounts('knife', 'knives', 2}) -> "**2** knives"
     """
 
     if amount == 1:
         prefix = ""
+        prefix_markdown = False
 
         if article == Article.DEFINITE:
             prefix = "the "
@@ -281,14 +302,21 @@ def format_amount(
 
         elif article == Article.NUMERAL:
             prefix = f"1 "
+            prefix_markdown = True
 
         if not full_markdown or markdown is None:
             return f"{prefix}{singular}"
 
-        if markdown == MarkdownFormat.BOLD:
-            return f"**{prefix}{singular}**"
+        if prefix_markdown:
+            if markdown == MarkdownFormat.BOLD:
+                return f"**{prefix}{singular}**"
 
-        return f"**[{prefix}{singular}]({MEME_URL})**"
+            return f"**[{prefix}{singular}]({MEME_URL})**"
+
+        if markdown == MarkdownFormat.BOLD:
+            return f"{prefix}**{singular}**"
+
+        return f"{prefix}**[{singular}]({MEME_URL})**"
 
     if markdown is None:
         return f"{format_int(amount)} {plural}"

@@ -8,6 +8,7 @@ from typing import Any, Literal
 
 import toml
 import rust_utils  # pyright: ignore[reportMissingModuleSource]
+from discord.ext import commands
 
 from . import (
     Object,
@@ -468,3 +469,9 @@ class ItemManager:
 
         cls.items.clear()
         cls.add(*new_items)
+
+
+class MissingTool(commands.CheckFailure):
+    def __init__(self, message: str | None = None, *args: Any, tool: ToolItem) -> None:
+        super().__init__(message, tool, *args)
+        self.tool = tool
