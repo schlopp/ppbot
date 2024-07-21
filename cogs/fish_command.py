@@ -108,10 +108,7 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
             if not await utils.InventoryItem.user_has_item(
                 db.conn, ctx.author.id, tool.id
             ):
-                raise utils.MissingTool(
-                    f"You need a **{tool.name}** for this command!"
-                    f" You can buy one in the {utils.format_slash_command('shop')}"
-                )
+                raise utils.MissingTool(tool=tool)
 
             activity = Activity.random()
 

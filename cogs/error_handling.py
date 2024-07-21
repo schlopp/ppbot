@@ -1,7 +1,7 @@
 import io
 import random
 import traceback
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from datetime import timedelta
 from typing import Any, TypeVar
 
@@ -43,15 +43,15 @@ class ErrorHandler(vbu.Cog):
         embed = utils.Embed(color=utils.RED)
         embed.title = random.choice(
             [
-                f"Oopsie {ctx.author.display_name},",
-                "Oopsie, I'm just a girl🎀",
-                "Nuh uh",
-                "Error!!!!!",
+                f"oopsie {ctx.author.display_name},",
+                "oopsie, I'm just a girl🎀",
+                "nuh uh",
+                "error!!!!!",
                 "No.",
-                "System overload.",
-                "You fucked up",
-                "Something went wrong :(",
-                "Does anyone read these error titles?",
+                "system overload.",
+                "you fucked up",
+                "something went wrong :(",
+                "does anyone read these error titles?",
             ]
         )
 
@@ -283,6 +283,30 @@ class ErrorHandler(vbu.Cog):
         # (commands.CommandRegistrationError, lambda ctx, error: ""),
     )
 
+    def find_closest_ancestor_error(
+        self,
+        error_type: type[commands.CommandError],
+        error_types: Iterable[type[commands.CommandError]],
+    ) -> type[commands.CommandError] | None:
+        closest_ancestor = None
+        max_depth = -1
+
+        def inheritance_depth(cls):
+            depth = 0
+            while cls != object:
+                cls = cls.__bases__[0]
+                depth += 1
+            return depth
+
+        for cls in error_types:
+            if issubclass(error_type, cls):
+                depth = inheritance_depth(cls)
+                if depth > max_depth:
+                    max_depth = depth
+                    closest_ancestor = cls
+
+        return closest_ancestor
+
     async def send_embed_to_ctx_or_author(
         self, ctx: vbu.Context, embed: discord.Embed
     ) -> discord.Message | None:
@@ -399,11 +423,12 @@ class ErrorHandler(vbu.Cog):
         output = None
         error_found = False
 
-        for error_type, function in self.command_error_responses.items():
-            if isinstance(error, error_type):
-                error_found = True
-                output = function(ctx, error)
-                break
+        closest_ancestor_error = self.find_closest_ancestor_error(
+            type(error), self.command_error_responses
+        )
+        if closest_ancestor_error is not None:
+            output = self.command_error_responses[closest_ancestor_error](ctx, error)
+            error_found = True
 
         # Send a message based on the output
         if output is not None:
@@ -526,6 +551,47 @@ def handle_command_error(
         cooldown_label=cooldown_label,
         cooldown=cooldown,
     )
+
+    return embed
+
+
+@ErrorHandler.command_error_response(utils.MissingTool)
+def handle_tool_missing(ctx: vbu.Context, error: utils.MissingTool) -> utils.Embed:
+    embed = ErrorHandler.error_embed_factory(ctx)
+    embed.title = random.choice(["lil bro doesn't have the item", "nuh uh"])
+
+    embed.description = (
+        "You need {tool} for this command!" " You can buy one with {command} for {cost}"
+    ).format(
+        tool=error.tool.format_amount(
+            1, article=error.tool.indefinite_article, full_markdown=True
+        ),
+        command=utils.format_slash_command("buy"),
+        cost=utils.format_inches(error.tool.price),
+    )
+    return embed
+
+
+@ErrorHandler.command_error_response(utils.PpMissing)
+def handle_pp_missing(ctx: vbu.Context, error: utils.PpMissing) -> utils.Embed:
+    embed = ErrorHandler.error_embed_factory(ctx)
+    embed.color = utils.PINK
+    embed.url = utils.MEME_URL
+    embed.set_author(name="IMPORTANT!!!!!1!!")
+
+    if error.user is None or error.user == ctx.author:
+        embed.title = "u dont have a pp yet!!!"
+        embed.description = (
+            f"use {utils.format_slash_command('new')}"
+            " to make a pp and start growing it :)"
+        )
+
+    else:
+        embed.title = f"{error.user.display_name} doesn't have a pp yet!!!"
+        embed.description = (
+            f"tell {error.user.mention} to use {utils.format_slash_command('new')}"
+            " to make a pp and start growing it :)"
+        )
 
     return embed
 

@@ -333,7 +333,9 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                         except utils.PpMissing:
                             if member == ctx.author:
                                 raise
-                            raise utils.PpMissing(f"{member.mention} ain't got a pp :(")
+                            raise utils.PpMissing(
+                                f"{member.mention} ain't got a pp :(", user=member
+                            )
 
                 embed = await self._show_embed_factory(member, pp)
                 interaction_id, components = self._component_factory(
@@ -386,7 +388,9 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
             except utils.PpMissing:
                 if member == ctx.author:
                     raise
-                raise utils.PpMissing(f"{member.mention} ain't got a pp :(")
+                raise utils.PpMissing(
+                    f"{member.mention} ain't got a pp :(", user=member
+                )
 
         embed = await self._show_embed_factory(member, pp)
 
