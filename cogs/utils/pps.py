@@ -138,7 +138,7 @@ class Pp(DatabaseWrapperObject):
         in_between: str | None = None,
     ) -> str:
         if in_between is None:
-            in_between = " "
+            in_between = ""
 
         if growth is None:
             growth = self.size.difference or 0
@@ -155,16 +155,16 @@ class Pp(DatabaseWrapperObject):
         if markdown is None:
             return (
                 prefix
-                + f"{format_int(growth)}{in_between}inch{'' if growth == 1 else 'es'}"
+                + f"{format_int(growth)}{in_between} inch{'' if growth == 1 else 'es'}"
             )
 
         if markdown == MarkdownFormat.BOLD:
             return (
                 prefix
-                + f"**{format_int(growth)}**{in_between}inch{'' if growth == 1 else 'es'}"
+                + f"**{format_int(growth)}**{in_between} inch{'' if growth == 1 else 'es'}"
             )
 
         return (
             prefix
-            + f"**[{format_int(growth)}]({MEME_URL}){in_between}inch{'' if growth == 1 else 'es'}**"
+            + f"**[{format_int(growth)}]({MEME_URL}){in_between} inch{'' if growth == 1 else 'es'}**"
         )
