@@ -20,4 +20,21 @@ class PpNotBigEnough(commands.CheckFailure):
 
 
 class InvalidArgumentAmount(commands.BadArgument):
-    pass
+    def __init__(
+        self,
+        message: str | None = None,
+        *args: Any,
+        argument: str,
+        min: int | None = None,
+        max: int | None = None,
+        special_amounts: list[str] | None = None,
+    ) -> None:
+        super().__init__(message, *args)
+        self.argument = argument
+        self.min = min
+        self.max = max
+
+        if special_amounts is not None:
+            self.special_amounts = special_amounts
+        else:
+            special_amounts = []

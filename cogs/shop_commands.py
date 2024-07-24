@@ -182,8 +182,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             amount.isnumeric() and int(amount) >= 1
         ):
             raise utils.InvalidArgumentAmount(
-                f"{utils.clean(amount)!r} is not a valid amount!"
-                " Please enter `all`, `max`, or a (positive) number"
+                argument="amount", min=0, special_amounts=["all", "max"]
             )
 
         async with (

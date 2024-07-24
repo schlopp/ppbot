@@ -596,6 +596,44 @@ def handle_pp_missing(ctx: vbu.Context, error: utils.PpMissing) -> utils.Embed:
     return embed
 
 
+@ErrorHandler.command_error_response(utils.InvalidArgumentAmount)
+def handle_invalid_argument_amount(
+    ctx: vbu.Context, error: utils.InvalidArgumentAmount
+) -> utils.Embed:
+    embed = ErrorHandler.error_embed_factory(ctx)
+    embed.title = "lil bro entered the wrong amount"
+
+    segments: list[str] = []
+
+    if error.min is not None and error.max is not None:
+        segments.append(
+            "{min} - {max}".format(
+                min=utils.format_int(error.min),
+                max=utils.format_int(error.max),
+            )
+        )
+
+    elif error.min is not None:
+        if error.min == 0:
+            segments.append("(positive) numbers")
+        else:
+            segments.append(f"{utils.format_int(error.min)} or more")
+
+    elif error.max is not None:
+        segments.append(f"{utils.format_int(error.max)} or less")
+
+    segments.extend(f"`{special_value}`" for special_value in error.special_amounts)
+
+    embed.description = f"The amount you entered for `{error.argument}` is invalid!"
+
+    if segments:
+        embed.description += (
+            f" The valid amounts are {utils.format_iterable(segments, inline=True)}"
+        )
+
+    return embed
+
+
 async def setup(bot: vbu.Bot):
     x = ErrorHandler(bot)
     await bot.add_cog(x)
