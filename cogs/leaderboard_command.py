@@ -1,30 +1,112 @@
+import asyncio
+import logging
+import uuid
 from datetime import timedelta
+from typing import Generic, TypeVar
+
+import discord
 from discord.ext import commands, vbu, tasks
 
 from . import utils
 
 
-class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
-    LEADERBOARD_CACHE_REFRESH_TIME = timedelta(seconds=15)
+_T_co = TypeVar("_T_co", covariant=True)
 
-    position_cache: dict[int, int] = {}
-    size_cache: dict[int, int] = {}
-    top10_cache: list[utils.Pp] = []
 
-    def __init__(self, bot: utils.Bot, logger_name: str | None = None):
-        super().__init__(bot, logger_name)
-        self.cache_leaderboard.start()
+class LeaderboardCache(utils.Object, Generic[_T_co]):
+    """
+    Logic in case I forget:
+    You take the user's ID, put it into positions_per_user_id to
+    get their position, use that minus 1 as the index for leaderboard_items
+    and get the stats
+    """
 
-    async def cog_unload(self) -> None:
-        self.cache_leaderboard.cancel()
+    __slots__ = ("positions_per_user_id", "leaderboard_items")
+    positions_per_user_id: dict[int, int]
+    leaderboard_items: list[tuple[utils.Pp, _T_co]]
+    title: str
+    label: str
 
-    @tasks.loop(seconds=int(LEADERBOARD_CACHE_REFRESH_TIME.total_seconds()))
-    async def cache_leaderboard(self) -> None:
-        self.logger.debug("Updating leaderboard cache...")
+    def __init__(
+        self,
+        *,
+        logger: logging.Logger,
+    ) -> None:
+        self.logger = logger
+        self.positions_per_user_id = {}
+        self.leaderboard_items = []
 
-        new_top10_cache: list[utils.Pp] = []
-        new_position_cache: dict[int, int] = {}
-        new_size_cache: dict[int, int] = {}
+    async def update(self) -> None:
+        raise NotImplementedError
+
+    def podium_value_formatter(self, position: int) -> str:
+        raise NotImplementedError
+
+    def comparison_formatter(self, position: int) -> str | None:
+        raise NotImplementedError
+
+    def generate_embed(self, ctx: commands.SlashContext[utils.Bot]) -> utils.Embed:
+        embed = utils.Embed()
+        embed.set_author(
+            name=self.title,
+            url=utils.MEME_URL,
+        )
+
+        position = self.positions_per_user_id.get(ctx.author.id)
+
+        if position is not None:
+            comparison = self.comparison_formatter(position)
+
+            if comparison:
+                embed.set_footer(
+                    text=(
+                        f"ur {utils.format_ordinal(position)} place on the leaderboard,"
+                        f" {comparison}"
+                    )
+                )
+
+            elif position == 1:
+                embed.set_footer(text="you're in first place!! loser")
+
+            else:
+                embed.set_footer(
+                    text=(
+                        f"ur {utils.format_ordinal(position)} place on the leaderboard"
+                    )
+                )
+
+        else:
+            embed.set_footer(text="use /new to make your own pp :3")
+
+        segments: list[str] = []
+
+        for position, (pp, _) in enumerate(self.leaderboard_items, start=1):
+            if position <= 3:
+                prefix = ["🥇", "🥈", "🥉"][position - 1]
+            elif position == 10:
+                prefix = "<a:nerd:1244646167799791637>"
+            else:
+                prefix = "🔹"
+
+            segments.append(
+                f"{prefix} {self.podium_value_formatter(position)}"
+                f" - {pp.name.value} `({pp.user_id})`"
+            )
+
+        embed.description = "\n".join(segments)
+
+        return embed
+
+
+class SizeLeaderboardCache(LeaderboardCache[int]):
+    title = "the biggest pps in the entire universe"
+    label = "Size"
+
+    async def update(self) -> None:
+        self.logger.debug("Updating size leaderboard cache...")
+
+        new_position_per_user_id: dict[int, int] = {}
+        new_leaderboard_items: list[tuple[utils.Pp, int]] = []
 
         async with utils.DatabaseWrapper() as db:
             records = await db(
@@ -44,15 +126,123 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
                 if n < 10:
                     pp_data = dict(record)
                     pp_data.pop("position")
-                    new_top10_cache.append(utils.Pp.from_record(pp_data))
-                new_position_cache[record["user_id"]] = record["position"]
-                new_size_cache[record["position"]] = record["pp_size"]
+                    pp = utils.Pp.from_record(pp_data)
+                    new_leaderboard_items.append((pp, pp.size.value))
+                new_position_per_user_id[record["user_id"]] = record["position"]
 
-        self.top10_cache = new_top10_cache
-        self.position_cache = new_position_cache
-        self.size_cache = new_size_cache
+        self.positions_per_user_id = new_position_per_user_id
+        self.leaderboard_items = new_leaderboard_items
 
-        self.logger.debug("Leaderboard cache updated")
+        self.logger.debug("Size leaderboard cache updated")
+
+    def podium_value_formatter(self, position: int) -> str:
+        size = self.leaderboard_items[position - 1][1]
+        return utils.format_inches(size)
+
+    def comparison_formatter(self, position: int) -> str | None:
+        better_pp_size: int | None = None
+
+        if position == 1:
+            return
+
+        pp_size = self.leaderboard_items[position - 1][1]
+        better_pp_size = self.leaderboard_items[position - 2][1]
+
+        difference = better_pp_size - pp_size
+
+        return (
+            f"{utils.format_inches(difference, markdown=None)} behind"
+            f" {utils.format_ordinal(position - 1)} place"
+        )
+
+
+class MultiplierLeaderboardCache(LeaderboardCache[int]):
+    title = "the craziest multipliers across all of pp bot (boosts not included)"
+    label = "Multiplier"
+
+    async def update(self) -> None:
+        self.logger.debug("Updating multiplier leaderboard cache...")
+
+        new_position_per_user_id: dict[int, int] = {}
+        new_leaderboard_items: list[tuple[utils.Pp, int]] = []
+
+        async with utils.DatabaseWrapper() as db:
+            records = await db(
+                """
+                SELECT
+                    *,
+                    ROW_NUMBER()
+                    OVER (
+                        ORDER BY pp_multiplier
+                        DESC
+                    )
+                    AS position 
+                FROM pps
+                """
+            )
+            for n, record in enumerate(records):
+                if n < 10:
+                    pp_data = dict(record)
+                    pp_data.pop("position")
+                    pp = utils.Pp.from_record(pp_data)
+                    new_leaderboard_items.append((pp, pp.multiplier.value))
+                new_position_per_user_id[record["user_id"]] = record["position"]
+
+        self.positions_per_user_id = new_position_per_user_id
+        self.leaderboard_items = new_leaderboard_items
+
+        self.logger.debug("Multiplier leaderboard cache updated")
+
+    def podium_value_formatter(self, position: int) -> str:
+        multiplier = self.leaderboard_items[position - 1][1]
+        return f"**{utils.format_int(multiplier)}x** multiplier"
+
+    def comparison_formatter(self, position: int) -> str | None:
+        better_multiplier: int | None = None
+
+        if position == 1:
+            return
+
+        multiplier = self.leaderboard_items[position - 1][1]
+        better_multiplier = self.leaderboard_items[position - 2][1]
+
+        difference = better_multiplier - multiplier
+
+        return (
+            f"{utils.format_int(difference)} multipliers behind"
+            f" {utils.format_ordinal(position - 1)} place"
+        )
+
+
+class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
+    LEADERBOARD_CACHE_REFRESH_TIME = timedelta(seconds=15)
+    size_leaderboard_cache = SizeLeaderboardCache(
+        logger=logging.getLogger(
+            "vbu.bot.cog.LeaderboardCommandCog.SizeLeaderboardCache"
+        )
+    )
+    multiplier_leaderboard_cache = MultiplierLeaderboardCache(
+        logger=logging.getLogger(
+            "vbu.bot.cog.LeaderboardCommandCog.MultiplierLeaderboardCache"
+        )
+    )
+    CATEGORIES: dict[str, LeaderboardCache] = {
+        "SIZE": size_leaderboard_cache,
+        "MULTIPLIER": multiplier_leaderboard_cache,
+    }
+
+    def __init__(self, bot: utils.Bot, logger_name: str | None = None):
+        super().__init__(bot, logger_name)
+        self.cache_leaderboard.start()
+
+    async def cog_unload(self) -> None:
+        self.cache_leaderboard.cancel()
+
+    @tasks.loop(seconds=int(LEADERBOARD_CACHE_REFRESH_TIME.total_seconds()))
+    async def cache_leaderboard(self) -> None:
+        self.logger.debug("Updating leaderboard caches...")
+        await self.size_leaderboard_cache.update()
+        await self.multiplier_leaderboard_cache.update()
 
     @commands.command(
         "leaderboard",
@@ -67,64 +257,49 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
         Check out the biggest pps in the world
         """
 
-        embed = utils.Embed()
-        embed.set_author(
-            name=("the biggest pps in the entire universe"),
-            url=utils.MEME_URL,
+        embed = self.size_leaderboard_cache.generate_embed(ctx)
+
+        interaction_id = uuid.uuid4().hex
+        select_menu = discord.ui.SelectMenu(
+            custom_id=f"{interaction_id}_CATEGORY",
+            options=[
+                discord.ui.SelectOption(
+                    label=leaderboard_cache.label,
+                    value=category,
+                    default=category == "SIZE",
+                )
+                for category, leaderboard_cache in self.CATEGORIES.items()
+            ],
+        )
+        components = discord.ui.MessageComponents(discord.ui.ActionRow(select_menu))
+
+        await ctx.interaction.response.send_message(
+            embed=embed,
+            components=components,
         )
 
-        better_pp_size: int | None = None
-
-        position = self.position_cache.get(ctx.author.id)
-
-        if position is not None and position != 1:
-            better_pp_size = self.size_cache[position - 1]
-
-        segments: list[str] = []
-
-        if position is not None:
-            pp_size = self.size_cache[position]
-
-            if better_pp_size is not None:
-                difference = better_pp_size - pp_size
-
-                embed.set_footer(
-                    text=(
-                        f"ur {utils.format_ordinal(position)} place on the leaderboard,"
-                        f" {utils.format_int(difference)} inches"
-                        f" behind {utils.format_ordinal(position - 1)} place"
-                    )
+        while True:
+            try:
+                interaction, _ = await utils.wait_for_component_interaction(
+                    self.bot, interaction_id, users=[ctx.author], actions=["CATEGORY"]
                 )
+            except asyncio.TimeoutError:
+                components.disable_components()
+                await ctx.interaction.edit_original_message(components=components)
+                break
 
-            elif position == 1:
-                embed.set_footer(text="you're in first place!! loser")
+            category = interaction.values[0]
+            leaderboard_cache = self.CATEGORIES[category]
 
-            else:
-                embed.set_footer(
-                    text=(
-                        f"ur {utils.format_ordinal(position)} place on the leaderboard"
-                    )
-                )
+            embed = leaderboard_cache.generate_embed(ctx)
 
-        else:
-            embed.set_footer(text="use /new to make your own pp :3")
+            for option in select_menu.options:
+                if option.value == category:
+                    option.default = True
+                else:
+                    option.default = False
 
-        for position, pp in enumerate(self.top10_cache, start=1):
-            if position <= 3:
-                prefix = ["🥇", "🥈", "🥉"][position - 1]
-            elif position == 10:
-                prefix = "<a:nerd:1244646167799791637>"
-            else:
-                prefix = "🔹"
-
-            segments.append(
-                f"{prefix} **{utils.format_int(pp.size.value)} inches**"
-                f" - {pp.name.value} `({pp.user_id})`"
-            )
-
-        embed.description = "\n".join(segments)
-
-        await ctx.interaction.response.send_message(embed=embed)
+            await interaction.response.edit_message(embed=embed, components=components)
 
 
 async def setup(bot: utils.Bot):
