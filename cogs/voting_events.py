@@ -162,7 +162,7 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
                 pp = await utils.Pp.fetch_from_user(
                     db.conn, user.id, edit=True, timeout=timeout
                 )
-            except utils.DatabaseTimeoutCheckFailure as error:
+            except utils.DatabaseTimeout as error:
                 await transaction.rollback()
                 transaction = db.conn.transaction()
                 await transaction.start()
@@ -186,7 +186,7 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
                         pp = await utils.Pp.fetch_from_user(
                             db.conn, user.id, edit=True, timeout=timeout
                         )
-                    except utils.DatabaseTimeoutCheckFailure as error:
+                    except utils.DatabaseTimeout as error:
                         try:
                             await dm_channel.send(
                                 (

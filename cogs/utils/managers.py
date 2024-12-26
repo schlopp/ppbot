@@ -53,26 +53,29 @@ class ReplyManager:
 
 
 class DatabaseTimeoutManager:
-    DEFAULT_REASON = "You're busy doing something else right now!"
-    REASONS: dict[int, list[str]] = {}
+    DEFAULT_REASON = ("You're busy doing something else right now!", None)
+    REASONS: dict[int, list[tuple[str, str | None]]] = {}
 
     @classmethod
-    def get_reason(cls, user_id: int) -> str:
+    def get_reason(cls, user_id: int) -> tuple[str, str | None]:
         try:
-            return cls.REASONS.get(user_id, cls.DEFAULT_REASON)[0]
+            return cls.REASONS.get(user_id, [cls.DEFAULT_REASON])[0]
         except IndexError:
             return cls.DEFAULT_REASON
 
     @classmethod
-    def get_notification(cls, user_id: int) -> str:
-        return f"{cls.get_reason(user_id)} Try again later."
+    def get_notification(cls, user_id: int) -> tuple[str, str | None]:
+        reason, casino_id = cls.get_reason(user_id)
+        return f"{reason} Try again later.", casino_id
 
     @classmethod
-    def add_notification(cls, user_id: int, notification: str) -> None:
+    def add_notification(
+        cls, user_id: int, notification: str, casino_id: str | None = None
+    ) -> None:
         try:
-            cls.REASONS[user_id].append(notification)
+            cls.REASONS[user_id].append((notification, casino_id))
         except KeyError:
-            cls.REASONS[user_id] = [notification]
+            cls.REASONS[user_id] = [(notification, casino_id)]
 
     @classmethod
     def clear_notification(cls, user_id: int, *, index: int = 0) -> None:
@@ -82,20 +85,27 @@ class DatabaseTimeoutManager:
             pass
 
     @classmethod
-    def notify(cls, user_id: int, notification: str) -> NotificationContextManager:
-        return NotificationContextManager(user_id, notification)
+    def notify(
+        cls, user_id: int, notification: str, casino_id: str | None = None
+    ) -> NotificationContextManager:
+        return NotificationContextManager(user_id, notification, casino_id=casino_id)
 
 
 class NotificationContextManager(Object):
     __slots__ = ("user_id", "notification")
     _repr_attributes = __slots__
 
-    def __init__(self, user_id: int, notification: str) -> None:
+    def __init__(
+        self, user_id: int, notification: str, *, casino_id: str | None = None
+    ) -> None:
         self.user_id = user_id
         self.notification = notification
+        self.casino_id = casino_id
 
     def __enter__(self) -> None:
-        DatabaseTimeoutManager.add_notification(self.user_id, self.notification)
+        DatabaseTimeoutManager.add_notification(
+            self.user_id, self.notification, casino_id=self.casino_id
+        )
 
     def __exit__(self, exc_type: type[BaseException] | None, *_):
         if exc_type is None or not issubclass(exc_type, commands.CheckFailure):

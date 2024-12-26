@@ -8,6 +8,7 @@ import asyncpg
 from discord.ext import commands, vbu
 
 from . import (
+    Object,
     DatabaseWrapperObject,
     DifferenceTracker,
     format_int,
@@ -35,10 +36,17 @@ class BoostType(enum.Enum):
         return int(self.value * 100)
 
 
-class DatabaseTimeoutCheckFailure(commands.CheckFailure):
-    def __init__(self, message: str | None = None, *args, reason: str) -> None:
+class DatabaseTimeout(commands.CheckFailure):
+    def __init__(
+        self,
+        message: str | None = None,
+        *args,
+        reason: str,
+        casino_id: str | None = None,
+    ) -> None:
         super().__init__(message, *args)
         self.reason = reason
+        self.casino_id = casino_id
 
 
 class Pp(DatabaseWrapperObject):
@@ -112,9 +120,11 @@ class Pp(DatabaseWrapperObject):
                 " started :)"
             )
         except asyncio.TimeoutError:
-            raise DatabaseTimeoutCheckFailure(
-                DatabaseTimeoutManager.get_notification(user_id),
-                reason=DatabaseTimeoutManager.get_reason(user_id),
+            reason, casino_id = DatabaseTimeoutManager.get_reason(user_id)
+            raise DatabaseTimeout(
+                DatabaseTimeoutManager.get_notification(user_id)[0],
+                reason=reason,
+                casino_id=casino_id,
             )
 
     async def has_voted(self) -> bool:

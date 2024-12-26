@@ -68,7 +68,7 @@ from .items import (
 from .pps import (
     BoostType as BoostType,
     Pp as Pp,
-    DatabaseTimeoutCheckFailure as DatabaseTimeoutCheckFailure,
+    DatabaseTimeout as DatabaseTimeout,
 )
 from .paginator import (
     PaginatorActions as PaginatorActions,

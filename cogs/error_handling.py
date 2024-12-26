@@ -14,7 +14,8 @@ from . import utils
 
 _T_CommandError = TypeVar("_T_CommandError", bound=commands.CommandError)
 CommandErrorResponseFactory = Callable[
-    [vbu.Context[discord.Guild | None], _T_CommandError], utils.Embed
+    [vbu.Context[discord.Guild | None], _T_CommandError],
+    tuple[utils.Embed, discord.ui.MessageComponents | None],
 ]
 
 
@@ -32,6 +33,26 @@ class ErrorHandler(vbu.Cog):
                 [vbu.Context[discord.Guild | None], _T_CommandError], utils.Embed
             ]
         ):
+            def component_func(
+                ctx: vbu.Context[discord.Guild | None], error: _T_CommandError
+            ) -> tuple[utils.Embed, None]:
+                return func(ctx, error), None
+
+            for error_type in error_types:
+                cls.command_error_responses[error_type] = component_func
+            return func
+
+        return deco
+
+    @classmethod
+    def command_error_component_response(cls, *error_types: type[_T_CommandError]):
+        def deco(
+            func: Callable[
+                [vbu.Context[discord.Guild | None], _T_CommandError],
+                tuple[utils.Embed, discord.ui.MessageComponents | None],
+            ]
+        ):
+
             for error_type in error_types:
                 cls.command_error_responses[error_type] = func
             return func
@@ -307,11 +328,15 @@ class ErrorHandler(vbu.Cog):
 
         return closest_ancestor
 
-    async def send_embed_to_ctx_or_author(
-        self, ctx: vbu.Context, embed: discord.Embed
+    async def send_message_to_ctx_or_author(
+        self,
+        ctx: vbu.Context,
+        embed: discord.Embed,
+        components: discord.ui.MessageComponents | None,
     ) -> discord.Message | None:
         kwargs: dict[str, Any] = {
             "embed": embed,
+            "components": components,
             "allowed_mentions": discord.AllowedMentions.none(),
         }
         if isinstance(ctx, commands.SlashContext) and self.bot.config.get(
@@ -432,7 +457,7 @@ class ErrorHandler(vbu.Cog):
 
         # Send a message based on the output
         if output is not None:
-            return await self.send_embed_to_ctx_or_author(ctx, output)
+            return await self.send_message_to_ctx_or_author(ctx, *output)
 
         for error_types, function in self.LEGACY_COMMAND_ERROR_RESPONSES:
             if isinstance(error, error_types):
@@ -632,6 +657,33 @@ def handle_invalid_argument_amount(
         )
 
     return embed
+
+
+@ErrorHandler.command_error_component_response(utils.DatabaseTimeout)
+def handle_database_timeout(
+    ctx: vbu.Context, error: utils.DatabaseTimeout
+) -> tuple[utils.Embed, discord.ui.MessageComponents | None]:
+    embed = ErrorHandler.error_embed_factory(ctx)
+    embed.title = random.choice(
+        [
+            "you have some unfinished business",
+            "clean up after urself",
+        ]
+    )
+    embed.description = error.reason
+
+    if error.casino_id is None:
+        return embed, None
+
+    return embed, discord.ui.MessageComponents(
+        discord.ui.ActionRow(
+            discord.ui.Button(
+                label="Leave Casino (TODO)",
+                style=discord.ButtonStyle.red,
+                custom_id=f"{error.casino_id}_EXTERNAL_LEAVE",
+            )
+        )
+    )
 
 
 async def setup(bot: vbu.Bot):

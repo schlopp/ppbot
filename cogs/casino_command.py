@@ -15,6 +15,10 @@ class InvalidAction(Exception):
     pass
 
 
+class ExternalLeave(Exception):
+    pass
+
+
 class CasinoState(enum.Enum):
     MENU = enum.auto()
     CHANGING_STAKES = enum.auto()
@@ -194,7 +198,10 @@ class CasinoSession(utils.Object):
         embed: discord.Embed | None = None,
         response: discord.InteractionResponse | None = None,
         defer: bool = False,
+        external_leave: bool = False,
     ) -> None:
+        if external_leave:
+            await self.ctx.interaction.delete_original_message()
         if self.state in [CasinoState.MENU, CasinoState.CHANGING_STAKES]:
             components = self.generate_menu_components()
             if disable:
@@ -242,7 +249,7 @@ class CasinoSession(utils.Object):
         embed.title = "Casino closed"
         embed.colour = utils.RED
 
-        if error is None:
+        if error is None or isinstance(error, ExternalLeave):
             embed.description = f"Thank you for visiting the casino, **{utils.clean(self.ctx.author.display_name)}**!"
             embed.colour = utils.GREEN
         elif isinstance(error, asyncio.TimeoutError):
@@ -259,7 +266,12 @@ class CasinoSession(utils.Object):
         embed.description += "\n\n" + self.generate_stat_description()
 
         try:
-            await self.send(disable=True, embed=embed, response=response)
+            await self.send(
+                disable=True,
+                embed=embed,
+                response=response,
+                external_leave=isinstance(error, ExternalLeave),
+            )
         except discord.HTTPException:
             pass
 
@@ -276,6 +288,7 @@ class CasinoSession(utils.Object):
             "component_interaction", check=check, timeout=timeout
         )
         action = interaction.custom_id.split("_", 1)[1]
+
         if action not in actions:
             raise InvalidAction(action)
 
@@ -283,7 +296,8 @@ class CasinoSession(utils.Object):
 
     async def play_dice(
         self, interaction: discord.ComponentInteraction
-    ) -> discord.ComponentInteraction | Exception:
+    ) -> tuple[discord.ComponentInteraction | None, Exception | None]:
+        """Returns (interaction: discord.ComponentInteraction | None, error: Exception | None)"""
         self.state = CasinoState.PLAYING_DICE
 
         self.last_interaction = None
@@ -345,14 +359,19 @@ class CasinoSession(utils.Object):
             )
 
             await self.send(response=interaction.response)
+
             try:
                 interaction, interaction_id = await self.wait_for_interaction(
-                    "REROLL", "MENU"
+                    "REROLL", "MENU", "EXTERNAL_LEAVE"
                 )
             except (InvalidAction, asyncio.TimeoutError) as error:
-                return error
+                return None, error
+
+            if interaction_id == "EXTERNAL_LEAVE":
+                return interaction, ExternalLeave()
+
             if interaction_id == "MENU":
-                return interaction
+                return interaction, None
 
 
 class CasinoCommandCog(vbu.Cog[utils.Bot]):
@@ -378,27 +397,29 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
         async with (
             utils.DatabaseWrapper() as db,
             db.conn.transaction(),
-            utils.DatabaseTimeoutManager.notify(
-                ctx.author.id,
-                "You're still in the casino, and can't do anything else until you leave!",
-            ),
         ):
             pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
 
             casino_session = CasinoSession(ctx, pp)
-            await casino_session.send()
 
-            interaction: discord.ComponentInteraction | None
-            error: commands.CommandError | None
-            _, interaction, error = await self.bot.wait_for(
-                "casino_leave",
-                check=lambda s, _, _1: s is casino_session,
-            )
-            await casino_session.close(
-                error,
-                response=interaction.response if interaction is not None else None,
-            )
-            await pp.update(db.conn)
+            async with utils.DatabaseTimeoutManager.notify(
+                ctx.author.id,
+                "You're still in the casino, and can't do anything else until you leave!",
+                casino_id=casino_session.id,
+            ):
+                await casino_session.send()
+
+                interaction: discord.ComponentInteraction | None
+                error: commands.CommandError | None
+                _, interaction, error = await self.bot.wait_for(
+                    "casino_leave",
+                    check=lambda s, _, _1: s is casino_session,
+                )
+                await casino_session.close(
+                    error,
+                    response=interaction.response if interaction is not None else None,
+                )
+                await pp.update(db.conn)
 
     @vbu.Cog.listener("on_component_interaction")
     async def casino_component_interaction_handler(
@@ -450,19 +471,41 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
                     )
                 )
                 return
+            if interaction_id == "EXTERNAL_LEAVE":
+                self.bot.dispatch(
+                    "casino_leave", casino_session, interaction, ExternalLeave()
+                )
+                return
             if interaction_id == "LEAVE":
                 self.bot.dispatch("casino_leave", casino_session, interaction, None)
                 return
             if interaction_id == "DICE":
-                result = await casino_session.play_dice(interaction)
-                if isinstance(result, Exception):
+                result_interaction, result_error = await casino_session.play_dice(
+                    interaction
+                )
+                if result_error is not None:
                     self.bot.dispatch(
-                        "casino_leave", casino_session, interaction, result
+                        "casino_leave",
+                        casino_session,
+                        (
+                            result_interaction
+                            if result_interaction is not None
+                            else interaction
+                        ),
+                        result_error,
+                    )
+                    return
+                if result_interaction is None:  # ! Not supposed to ever happen!
+                    self.bot.dispatch(
+                        "casino_leave",
+                        casino_session,
+                        interaction,
+                        Exception("The code fucked up"),
                     )
                     return
                 casino_session.last_interaction = datetime.now()
                 casino_session.state = CasinoState.MENU
-                await casino_session.send(response=result.response)
+                await casino_session.send(response=result_interaction.response)
                 return
 
     @vbu.Cog.listener("on_modal_submit")
