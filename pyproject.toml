@@ -5,6 +5,7 @@ build-backend = "maturin"
 [project]
 name = "ppbot"
 requires-python = ">=3.11"
+dynamic = ["version"]
 
 [tool.pyright]
 reportPrivateUsage = false
