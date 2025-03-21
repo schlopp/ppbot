@@ -34,6 +34,13 @@ CREATE TABLE IF NOT EXISTS streaks (
 );
 
 
+CREATE TABLE IF NOT EXISTS donations (
+    user_id BIGINT PRIMARY KEY,
+    created_at TIMESTAMP,
+    amount INTEGER NOT NULL DEFAULT 0,
+);
+
+
 -- CREATE TABLE IF NOT EXISTS role_list(
 --     guild_id BIGINT,
 --     role_id BIGINT,
