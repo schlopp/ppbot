@@ -56,7 +56,7 @@ fn compute_max_multiplier_item_purchase_amount(
 }
 
 #[pymodule]
-fn rust_utils(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+fn rust_utils(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compute_multiplier_item_cost, m)?)?;
     m.add_function(wrap_pyfunction!(
         compute_max_multiplier_item_purchase_amount,
