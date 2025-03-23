@@ -31,7 +31,7 @@ class ErrorHandler(vbu.Cog):
         def deco(
             func: Callable[
                 [vbu.Context[discord.Guild | None], _T_CommandError], utils.Embed
-            ]
+            ],
         ):
             def component_func(
                 ctx: vbu.Context[discord.Guild | None], error: _T_CommandError
@@ -50,7 +50,7 @@ class ErrorHandler(vbu.Cog):
             func: Callable[
                 [vbu.Context[discord.Guild | None], _T_CommandError],
                 tuple[utils.Embed, discord.ui.MessageComponents | None],
-            ]
+            ],
         ):
 
             for error_type in error_types:
