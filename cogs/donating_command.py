@@ -9,7 +9,7 @@ from . import utils
 
 
 class DonateCommandCog(vbu.Cog[utils.Bot]):
-    DONATION_LIMIT = 10_000_000
+    DONATION_LIMIT = 5
 
     @commands.command(
         "donate",
@@ -67,7 +67,7 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                     user=recipiant,
                 )
 
-            if amount < pp.size.value:
+            if amount > pp.size.value:
                 raise utils.PpNotBigEnough(
                     f"{ctx.author.mention} your pp isn't big enough to donate that much 🫵😂😂"
                     f" you only have {utils.format_inches(pp.size.value)} lil bro"
