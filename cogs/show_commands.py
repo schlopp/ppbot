@@ -142,10 +142,15 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         other_stats: list[str] = []
 
         # easter egg xddd
+        easter_egg_stats = [
+            f"you smell [**REALLY**]({utils.MEME_URL}) bad",
+            f"your parents [**dont love you**]({utils.MEME_URL})",
+            f"you've taken [**3 showers**]({utils.MEME_URL}) this year",
+            f"you will [**never find love**]({utils.MEME_URL})",
+        ]
+
         if random.random() < 0.05:
-            other_stats.append(
-                random.choice(f"you smell [**REALLY**]({utils.MEME_URL}) bad"),
-            )
+            other_stats.append(random.choice(easter_egg_stats))
 
         if pp.digging_depth.value > 0:
             other_stats.append(
