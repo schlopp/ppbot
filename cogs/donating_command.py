@@ -70,14 +70,14 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
             if amount < pp.size.value:
                 raise utils.PpNotBigEnough(
                     f"{ctx.author.mention} your pp isn't big enough to donate that much 🫵😂😂"
-                    f" you only have **{utils.format_inches(pp.size.value)} lil bro"
+                    f" you only have {utils.format_inches(pp.size.value)} lil bro"
                 )
 
             if amount > self.DONATION_LIMIT:
                 embed = utils.Embed(color=utils.RED)
                 embed.description = (
                     f"{ctx.author.mention} you can't donate that much bro the limit"
-                    f" is **{utils.format_inches(self.DONATION_LIMIT)}"
+                    f" is {utils.format_inches(self.DONATION_LIMIT)}"
                 )
 
                 interaction_id = uuid.uuid4().hex
