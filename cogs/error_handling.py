@@ -115,13 +115,13 @@ class ErrorHandler(vbu.Cog):
         (
             vbu.errors.BotNotReady,
             lambda ctx, error: (
-                "The bot isn't ready to start processing that command yet - please wait."
+                "The bot isn't ready to start processing that command yet - please wait"
             ),
         ),
         (
             commands.NSFWChannelRequired,
             lambda ctx, error: (
-                "You can only run this command in channels set as NSFW."
+                "Hey freak you can only run this command in channels set as NSFW"
             ),
         ),
         (
@@ -129,7 +129,7 @@ class ErrorHandler(vbu.Cog):
             lambda ctx, error: {
                 True: ("This command can only be run as a slash command."),
                 False: (
-                    "This command can only be run as a slash command. Please re-invite the bot to add slash commands to your server."
+                    "This command can only be run as a slash command!!!!! If they don't work please re-invite the bot to add slash commands to your server :)"
                 ),
             }[error.missing_scope],
         ),
