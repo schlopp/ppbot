@@ -1,4 +1,6 @@
+import asyncio
 import random
+import uuid
 
 import discord
 from discord.ext import commands, vbu
@@ -52,7 +54,7 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                 raise commands.BadArgument(
                     f"{ctx.author.mention} dawg u can't donate to yourself :/"
                 )
-            
+
             try:
                 recipiant_pp = await utils.Pp.fetch_from_user(
                     db.conn, recipiant.id, edit=True
@@ -64,18 +66,54 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                     " and get started on the pp grind",
                     user=recipiant,
                 )
-            
-            if amount > self.DONATION_LIMIT:
-                raise commands.BadArgument(
-                    f"{ctx.author.mention} you can't donate that much bro the limit"
-                    f"is **{utils.format_inches(self.DONATION_LIMIT)}"
-                )
-            
+
             if amount < pp.size.value:
                 raise utils.PpNotBigEnough(
                     f"{ctx.author.mention} your pp isn't big enough to donate that much 🫵😂😂"
                     f" you only have **{utils.format_inches(pp.size.value)} lil bro"
                 )
+
+            if amount > self.DONATION_LIMIT:
+                embed = utils.Embed(color=utils.RED)
+                embed.description = (
+                    f"{ctx.author.mention} you can't donate that much bro the limit"
+                    f" is **{utils.format_inches(self.DONATION_LIMIT)}"
+                )
+
+                interaction_id = uuid.uuid4().hex
+                components = discord.ui.MessageComponents(
+                    discord.ui.ActionRow(
+                        discord.ui.Button(
+                            label=f"Change amount to {utils.format_inches(self.DONATION_LIMIT, markdown=None)}",
+                            custom_id=f"{interaction_id}_USE_DONATION_LIMIT",
+                            style=discord.ButtonStyle.green,
+                        ),
+                        discord.ui.Button(
+                            label=f"Cancel donation",
+                            custom_id=f"{interaction_id}_CANCEL_DONATION",
+                            style=discord.ButtonStyle.red,
+                        ),
+                    )
+                )
+
+                await ctx.interaction.response.send_message(
+                    embed=embed, components=components
+                )
+
+                try:
+                    interaction, action = await utils.wait_for_component_interaction(
+                        self.bot,
+                        interaction_id,
+                        users=[ctx.author],
+                        actions=["USE_DONATION_LIMIT", "CANCEL_DONATION"],
+                        timeout=10,
+                    )
+                except asyncio.TimeoutError:
+                    await ctx.interaction.edit_original_message(
+                        embed=utils.Embed.as_timeout("Donation cancelled"),
+                        components=components.disable_components(),
+                    )
+                    return
 
             # pp.grow_with_multipliers(
             #     random.randint(1, 15),
