@@ -30,7 +30,7 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
             ]
         ),
     )
-    @commands.cooldown(1, 30, commands.BucketType.user)
+    # @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.is_slash_command()
     async def donate_command(
         self,
@@ -112,6 +112,17 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                     await ctx.interaction.edit_original_message(
                         embed=utils.Embed.as_timeout("Donation cancelled"),
                         components=components.disable_components(),
+                    )
+                    return
+
+                if action == "CANCEL_DONATION":
+                    embed = utils.Embed(color=utils.RED)
+                    embed.title = "Donation cancelled"
+                    embed.description = (
+                        f"I guess {ctx.author.mention} really hates {recipiant.mention}"
+                    )
+                    await interaction.response.edit_message(
+                        embed=embed, components=None
                     )
                     return
 
