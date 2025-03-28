@@ -9,7 +9,7 @@ from . import utils
 
 
 class DonateCommandCog(vbu.Cog[utils.Bot]):
-    DONATION_LIMIT = 5
+    DONATION_LIMIT = 10_000_000
 
     @commands.command(
         "donate",
@@ -56,9 +56,7 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                 )
 
             try:
-                recipiant_pp = await utils.Pp.fetch_from_user(
-                    db.conn, recipiant.id, edit=True
-                )
+                recipiant_pp = await utils.Pp.fetch_from_user(db.conn, recipiant.id)
             except utils.PpMissing:
                 raise utils.PpMissing(
                     f"{recipiant.mention} doesn't have a pp 🫵😂😂"
@@ -73,6 +71,8 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                     f" you only have {utils.format_inches(pp.size.value)} lil bro"
                 )
 
+            interaction_id = uuid.uuid4().hex
+
             if amount > self.DONATION_LIMIT:
                 embed = utils.Embed(color=utils.RED)
                 embed.description = (
@@ -80,12 +80,11 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                     f" is {utils.format_inches(self.DONATION_LIMIT)}"
                 )
 
-                interaction_id = uuid.uuid4().hex
                 components = discord.ui.MessageComponents(
                     discord.ui.ActionRow(
                         discord.ui.Button(
                             label=f"Change amount to {utils.format_inches(self.DONATION_LIMIT, markdown=None)}",
-                            custom_id=f"{interaction_id}_USE_DONATION_LIMIT",
+                            custom_id=f"{interaction_id}_DONATE",
                             style=discord.ButtonStyle.green,
                         ),
                         discord.ui.Button(
@@ -96,49 +95,93 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                     )
                 )
 
-                await ctx.interaction.response.send_message(
-                    embed=embed, components=components
+                amount = self.DONATION_LIMIT
+
+            else:
+                embed = utils.Embed()
+                embed.description = (
+                    f"{ctx.author.mention} are u sure you want to donate"
+                    f" {utils.format_inches(amount)} to {recipiant.mention}?"
                 )
 
-                try:
-                    interaction, action = await utils.wait_for_component_interaction(
-                        self.bot,
-                        interaction_id,
-                        users=[ctx.author],
-                        actions=["USE_DONATION_LIMIT", "CANCEL_DONATION"],
-                        timeout=10,
+                components = discord.ui.MessageComponents(
+                    discord.ui.ActionRow(
+                        discord.ui.Button(
+                            label=f"yes!!",
+                            custom_id=f"{interaction_id}_DONATE",
+                            style=discord.ButtonStyle.green,
+                        ),
+                        discord.ui.Button(
+                            label=f"no",
+                            custom_id=f"{interaction_id}_CANCEL_DONATION",
+                            style=discord.ButtonStyle.red,
+                        ),
                     )
-                except asyncio.TimeoutError:
-                    await ctx.interaction.edit_original_message(
-                        embed=utils.Embed.as_timeout("Donation cancelled"),
-                        components=components.disable_components(),
-                    )
-                    return
+                )
 
-                if action == "CANCEL_DONATION":
-                    embed = utils.Embed(color=utils.RED)
-                    embed.title = "Donation cancelled"
-                    embed.description = (
-                        f"I guess {ctx.author.mention} really hates {recipiant.mention}"
-                    )
-                    await interaction.response.edit_message(
-                        embed=embed, components=None
-                    )
-                    return
-
-            # pp.grow_with_multipliers(
-            #     random.randint(1, 15),
-            #     voted=await pp.has_voted(),
-            # )
-            # await pp.update(db.conn)
-
-            embed = utils.Embed()
-            embed.colour = utils.GREEN
-            embed.description = (
-                f"{ctx.author.mention} u tried donating to {recipiant.mention}"
+            await ctx.interaction.response.send_message(
+                embed=embed, components=components
             )
 
-            await ctx.interaction.response.send_message(embed=embed)
+            try:
+                interaction, action = await utils.wait_for_component_interaction(
+                    self.bot,
+                    interaction_id,
+                    users=[ctx.author],
+                    actions=["DONATE", "CANCEL_DONATION"],
+                    timeout=10,
+                )
+            except asyncio.TimeoutError:
+                await ctx.interaction.edit_original_message(
+                    embed=utils.Embed.as_timeout("Donation cancelled"),
+                    components=components.disable_components(),
+                )
+                return
+
+            if action == "CANCEL_DONATION":
+                embed = utils.Embed(color=utils.RED)
+                embed.title = "Donation cancelled"
+                embed.description = (
+                    f"I guess {ctx.author.mention} really hates {recipiant.mention}"
+                )
+                await interaction.response.edit_message(embed=embed, components=None)
+                return
+
+            # Fetch the recipiant pp again with edit=true
+            # Do this only now so that the recipiant isn't locked from using
+            # other commands while acceping a donation
+            async with (
+                utils.DatabaseWrapper() as recipiant_db,
+                recipiant_db.conn.transaction(),
+                utils.DatabaseTimeoutManager.notify(
+                    recipiant.id,
+                    "You're receiving a donation right now and it's still being processed! Please try again!!",
+                ),
+            ):
+                try:
+                    recipiant_pp = await utils.Pp.fetch_from_user(
+                        recipiant_db.conn, recipiant.id, edit=True
+                    )
+                except utils.DatabaseTimeout:
+                    await ctx.interaction.edit_original_message(components=components.disable_components())
+                    raise commands.CheckFailure(
+                        f"{recipiant.mention} seems to be busy right now! Try donating another time :)"
+                    )
+
+                pp.size.value -= amount
+                recipiant_pp.size.value += amount
+                await pp.update(db.conn)
+                await recipiant_pp.update(recipiant_db.conn)
+
+            embed = utils.Embed(color=utils.GREEN)
+            embed.title = "Donation successful!"
+            embed.description = (
+                f"u successfully donated {utils.format_inches(amount)} to {recipiant}"
+                f"\n\n {ctx.author.mention} now has {utils.format_inches(pp.size.value)}"
+                f"\n {recipiant.mention} now has {utils.format_inches(recipiant_pp.size.value)}"
+            )
+
+            await interaction.response.edit_message(embed=embed, components=None)
 
 
 async def setup(bot: utils.Bot):
