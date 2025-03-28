@@ -163,7 +163,9 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                         recipiant_db.conn, recipiant.id, edit=True
                     )
                 except utils.DatabaseTimeout:
-                    await ctx.interaction.edit_original_message(components=components.disable_components())
+                    await ctx.interaction.edit_original_message(
+                        components=components.disable_components()
+                    )
                     raise commands.CheckFailure(
                         f"{recipiant.mention} seems to be busy right now! Try donating another time :)"
                     )
