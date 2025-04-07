@@ -85,3 +85,4 @@ from .minigames import (
     ClickThatButtonMinigame as ClickThatButtonMinigame,
     MinigameDialogueManager as MinigameDialogueManager,
 )
+from .donations import Donation

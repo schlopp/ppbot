@@ -1,11 +1,10 @@
+from datetime import datetime
 from typing import Self
 
 import asyncpg
 
 from . import (
     DatabaseWrapperObject,
-    DifferenceTracker,
-    RowLevelLockMode,
 )
 
 
@@ -21,11 +20,31 @@ class Donation(DatabaseWrapperObject):
     }
     _column_attributes = {attribute: column for column, attribute in _columns.items()}
 
-    def __init__(self, recipiant_id: int, donor_id: int, created_at, amount: int) -> None:
+    def __init__(
+        self, *, recipiant_id: int, donor_id: int, created_at: datetime, amount: int
+    ) -> None:
         self.recipiant_id = recipiant_id
         self.donor_id = donor_id
         self.created_at = created_at
         self.amount = amount
+
+    @classmethod
+    async def register(
+        cls,
+        connection: asyncpg.Connection,
+        recipiant_id: int,
+        donor_id: int,
+        amount: int,
+    ) -> None:
+        await connection.execute(
+            """
+            INSERT INTO donations (recipiant_id, donor_id, amount)
+            VALUES ($1, $2, $3)
+            """,
+            recipiant_id,
+            donor_id,
+            amount,
+        )
 
     @classmethod
     async def fetch_received_donations(
@@ -37,10 +56,11 @@ class Donation(DatabaseWrapperObject):
     ) -> list[Self]:
         records = await connection.fetch(
             f"""
-            SLECT FROM {cls._table} 
+            SELECT FROM {cls._table} 
             WHERE user_id = $1 
             """,
-            user_id
+            user_id,
+            timeout=timeout,
         )
         return [cls.from_record(record) for record in records]
 
@@ -51,12 +71,14 @@ class Donation(DatabaseWrapperObject):
         user_id: int,
         *,
         timeout: float | None = 2,
-    ) -> Self:
+    ) -> int:
         records = await connection.fetch(
             f"""
-            SLECT FROM {cls._table} 
+            SELECT FROM {cls._table} 
             WHERE user_id = $1 
             """,
-            user_id
+            user_id,
+            timeout=timeout,
         )
-        return [cls.from_record(record) for record in records]
+
+        return sum(cls.from_record(record).amount for record in records)

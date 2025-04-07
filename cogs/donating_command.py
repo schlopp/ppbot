@@ -170,6 +170,10 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                         f"{recipiant.mention} seems to be busy right now! Try donating another time :)"
                     )
 
+                await utils.Donation.register(
+                    db.conn, recipiant.id, ctx.author.id, amount
+                )
+
                 pp.size.value -= amount
                 recipiant_pp.size.value += amount
                 await pp.update(db.conn)

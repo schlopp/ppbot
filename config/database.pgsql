@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS streaks (
 
 
 CREATE TABLE IF NOT EXISTS donations (
-    user_id BIGINT NOT NULL,
+    recipiant_id BIGINT NOT NULL,
+    donor_id BIGINT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     amount INTEGER NOT NULL DEFAULT 0
 );
