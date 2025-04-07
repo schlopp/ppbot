@@ -65,6 +65,12 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                     user=recipiant,
                 )
 
+            if amount <= 0:
+                raise commands.BadArgument(
+                    f"{ctx.author.mention} ??? 🫵😂😂"
+                    f" you gotta donate atleast {utils.format_inches(1)} lil bro"
+                )
+
             if amount > pp.size.value:
                 raise utils.PpNotBigEnough(
                     f"{ctx.author.mention} your pp isn't big enough to donate that much 🫵😂😂"
@@ -80,7 +86,7 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
             if relevant_received_donation_sum >= self.DONATION_LIMIT:
                 raise commands.CheckFailure(
                     f"{recipiant.mention} has already hit the daily donation limit"
-                    f"of {utils.format_inches(self.DONATION_LIMIT)}"
+                    f" of {utils.format_inches(self.DONATION_LIMIT)}"
                 )
 
             interaction_id = uuid.uuid4().hex
@@ -93,7 +99,11 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                 )
 
                 if relevant_received_donation_sum:
-                    embed.description += f" and they already received {utils.format_inches(relevant_received_donation_sum)}"
+                    embed.description += (
+                        " and they already received"
+                        f" {utils.format_inches(relevant_received_donation_sum)}"
+                        " in the last 24 hours"
+                    )
 
                 components = discord.ui.MessageComponents(
                     discord.ui.ActionRow(
@@ -160,6 +170,7 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                     f"I guess {ctx.author.mention} really hates {recipiant.mention}"
                 )
                 await interaction.response.edit_message(embed=embed, components=None)
+                self.donate_command.reset_cooldown(ctx)
                 return
 
             # Fetch the recipiant pp again with edit=true

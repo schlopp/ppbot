@@ -111,24 +111,17 @@ class SizeLeaderboardCache(LeaderboardCache[int]):
         async with utils.DatabaseWrapper() as db:
             records = await db(
                 """
-                SELECT
-                    *,
-                    ROW_NUMBER()
-                    OVER (
-                        ORDER BY pp_size
-                        DESC
-                    )
-                    AS position 
+                SELECT *
                 FROM pps
+                ORDER BY pp_size DESC
                 """
             )
             for n, record in enumerate(records):
                 if n < 10:
                     pp_data = dict(record)
-                    pp_data.pop("position")
                     pp = utils.Pp.from_record(pp_data)
                     new_leaderboard_items.append((pp, pp.size.value))
-                new_position_per_user_id[record["user_id"]] = record["position"]
+                new_position_per_user_id[record["user_id"]] = n + 1
 
         self.positions_per_user_id = new_position_per_user_id
         self.leaderboard_items = new_leaderboard_items
@@ -169,24 +162,17 @@ class MultiplierLeaderboardCache(LeaderboardCache[int]):
         async with utils.DatabaseWrapper() as db:
             records = await db(
                 """
-                SELECT
-                    *,
-                    ROW_NUMBER()
-                    OVER (
-                        ORDER BY pp_multiplier
-                        DESC
-                    )
-                    AS position 
+                SELECT *
                 FROM pps
+                ORDER BY pp_multiplier DESC
                 """
             )
             for n, record in enumerate(records):
                 if n < 10:
                     pp_data = dict(record)
-                    pp_data.pop("position")
                     pp = utils.Pp.from_record(pp_data)
                     new_leaderboard_items.append((pp, pp.multiplier.value))
-                new_position_per_user_id[record["user_id"]] = record["position"]
+                new_position_per_user_id[record["user_id"]] = n + 1
 
         self.positions_per_user_id = new_position_per_user_id
         self.leaderboard_items = new_leaderboard_items
@@ -196,6 +182,69 @@ class MultiplierLeaderboardCache(LeaderboardCache[int]):
     def podium_value_formatter(self, position: int) -> str:
         multiplier = self.leaderboard_items[position - 1][1]
         return f"**{utils.format_int(multiplier)}x** multiplier"
+
+    def comparison_formatter(self, position: int) -> str | None:
+        better_multiplier: int | None = None
+
+        if position == 1:
+            return
+
+        multiplier = self.leaderboard_items[position - 1][1]
+        better_multiplier = self.leaderboard_items[position - 2][1]
+
+        difference = better_multiplier - multiplier
+
+        return (
+            f"{utils.format_int(difference)} multipliers behind"
+            f" {utils.format_ordinal(position - 1)} place"
+        )
+
+
+class DonationLeaderboardCache(LeaderboardCache[int]):
+    title = "the most generous people sharing their pp with everyone"
+    label = "Donations"
+
+    async def update(self) -> None:
+        self.logger.debug("Updating donation leaderboard cache...")
+
+        new_position_per_user_id: dict[int, int] = {}
+        new_leaderboard_items: list[tuple[utils.Pp, int]] = []
+
+        async with utils.DatabaseWrapper() as db:
+            records = await db(
+                """
+                WITH donation_totals AS (
+                    SELECT
+                        donor_id,
+                        SUM(amount) AS total_donations
+                    FROM donations
+                    GROUP BY donor_id
+                )
+                SELECT
+                    pps.*,
+                    donation_totals.total_donations
+                FROM donation_totals
+                JOIN pps
+                    ON donation_totals.donor_id = pps.user_id
+                ORDER BY donation_totals.total_donations DESC
+                """
+            )
+            for n, record in enumerate(records):
+                if n < 10:
+                    pp_data = dict(record)
+                    total_donations = pp_data.pop("total_donations")
+                    pp = utils.Pp.from_record(pp_data)
+                    new_leaderboard_items.append((pp, total_donations))
+                new_position_per_user_id[record["user_id"]] = n + 1
+
+        self.positions_per_user_id = new_position_per_user_id
+        self.leaderboard_items = new_leaderboard_items
+
+        self.logger.debug("Donation leaderboard cache updated")
+
+    def podium_value_formatter(self, position: int) -> str:
+        amount = self.leaderboard_items[position - 1][1]
+        return f"{utils.format_inches(amount)} donated"
 
     def comparison_formatter(self, position: int) -> str | None:
         better_multiplier: int | None = None
@@ -226,9 +275,15 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
             "vbu.bot.cog.LeaderboardCommandCog.MultiplierLeaderboardCache"
         )
     )
+    donation_leaderboard_cache = DonationLeaderboardCache(
+        logger=logging.getLogger(
+            "vbu.bot.cog.LeaderboardCommandCog.DonationLeaderboardCache"
+        )
+    )
     CATEGORIES: dict[str, LeaderboardCache] = {
         "SIZE": size_leaderboard_cache,
         "MULTIPLIER": multiplier_leaderboard_cache,
+        "DONATION": donation_leaderboard_cache,
     }
 
     def __init__(self, bot: utils.Bot, logger_name: str | None = None):
@@ -243,6 +298,7 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
         self.logger.debug("Updating leaderboard caches...")
         await self.size_leaderboard_cache.update()
         await self.multiplier_leaderboard_cache.update()
+        await self.donation_leaderboard_cache.update()
 
     @commands.command(
         "leaderboard",

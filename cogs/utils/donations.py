@@ -21,7 +21,7 @@ class Donation(DatabaseWrapperObject):
     _column_attributes = {attribute: column for column, attribute in _columns.items()}
 
     def __init__(
-        self, *, recipiant_id: int, donor_id: int, created_at: datetime, amount: int
+        self, recipiant_id: int, donor_id: int, created_at: datetime, amount: int
     ) -> None:
         self.recipiant_id = recipiant_id
         self.donor_id = donor_id
@@ -56,8 +56,9 @@ class Donation(DatabaseWrapperObject):
     ) -> list[Self]:
         records = await connection.fetch(
             f"""
-            SELECT FROM {cls._table} 
-            WHERE user_id = $1 
+            SELECT *
+            FROM {cls._table}
+            WHERE recipiant_id = $1
             """,
             user_id,
             timeout=timeout,
@@ -72,13 +73,17 @@ class Donation(DatabaseWrapperObject):
         *,
         timeout: float | None = 2,
     ) -> int:
-        records = await connection.fetch(
+        record = await connection.fetchrow(
             f"""
-            SELECT FROM {cls._table} 
-            WHERE user_id = $1 
+            SELECT sum(amount) AS total_amount
+            FROM {cls._table}
+            WHERE recipiant_id = $1
             """,
             user_id,
             timeout=timeout,
         )
 
-        return sum(cls.from_record(record).amount for record in records)
+        if record is None or record["total_amount"] is None:
+            return 0
+
+        return record["total_amount"]

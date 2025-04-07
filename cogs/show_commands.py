@@ -378,6 +378,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
             ]
         ),
     )
+    @commands.is_slash_command()
     async def show_command(
         self, ctx: commands.SlashContext[utils.Bot], user: discord.Member | None = None
     ) -> None:
