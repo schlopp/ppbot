@@ -9,7 +9,7 @@ from . import utils
 
 
 class DonateCommandCog(vbu.Cog[utils.Bot]):
-    DONATION_LIMIT = 10_000_000
+    DONATION_LIMIT = 1000
 
     @commands.command(
         "donate",
@@ -71,19 +71,34 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                     f" you only have {utils.format_inches(pp.size.value)} lil bro"
                 )
 
+            relevant_received_donation_sum = (
+                await utils.Donation.fetch_relevant_received_donation_sum(
+                    db.conn, recipiant.id
+                )
+            )
+
+            if relevant_received_donation_sum >= self.DONATION_LIMIT:
+                raise commands.CheckFailure(
+                    f"{recipiant.mention} has already hit the daily donation limit"
+                    f"of {utils.format_inches(self.DONATION_LIMIT)}"
+                )
+
             interaction_id = uuid.uuid4().hex
 
-            if amount > self.DONATION_LIMIT:
+            if amount + relevant_received_donation_sum > self.DONATION_LIMIT:
                 embed = utils.Embed(color=utils.RED)
                 embed.description = (
-                    f"{ctx.author.mention} you can't donate that much bro the limit"
+                    f"{ctx.author.mention} you can't donate that much to {recipiant.mention} bro the limit"
                     f" is {utils.format_inches(self.DONATION_LIMIT)}"
                 )
+
+                if relevant_received_donation_sum:
+                    embed.description += f" and they already received {utils.format_inches(relevant_received_donation_sum)}"
 
                 components = discord.ui.MessageComponents(
                     discord.ui.ActionRow(
                         discord.ui.Button(
-                            label=f"Change amount to {utils.format_inches(self.DONATION_LIMIT, markdown=None)}",
+                            label=f"Change amount to {utils.format_inches(self.DONATION_LIMIT - relevant_received_donation_sum, markdown=None)}",
                             custom_id=f"{interaction_id}_DONATE",
                             style=discord.ButtonStyle.green,
                         ),
@@ -95,7 +110,7 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                     )
                 )
 
-                amount = self.DONATION_LIMIT
+                amount = self.DONATION_LIMIT - relevant_received_donation_sum
 
             else:
                 embed = utils.Embed()
