@@ -159,6 +159,10 @@ class CasinoSession(utils.Object):
             stakes = int(stakes_data)
         except ValueError:
             if stakes_data.strip().upper() not in {"MAX", "ALL", "EVERYTHING", "*"}:
+                await interaction.response.send_message(
+                    "That's not a valid amount to gamble lil bro try again",
+                    ephemeral=True,
+                )
                 self.state = CasinoState.MENU
                 return
 
