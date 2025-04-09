@@ -11,7 +11,7 @@ import discord
 from . import RED, BLUE
 
 
-_IntStrT_co = TypeVar("_IntStrT_co", str, int, covariant=True)
+_T_co = TypeVar("_T_co", covariant=True)
 
 
 Record = Mapping[str, Any]
@@ -402,24 +402,25 @@ class DatabaseWrapperObject(Object):
         await connection.execute(query, *set_arguments, *where_arguments)
 
 
-class DifferenceTracker(Object, Generic[_IntStrT_co]):
+class DifferenceTracker(Object, Generic[_T_co]):
     __slots__ = ("value", "__start_value", "column")
     _repr_attributes = ("value", "start_value", "difference", "column")
 
-    def __init__(self, start_value: _IntStrT_co, *, column: str | None = None) -> None:
-        self.value: _IntStrT_co = start_value
-        self.__start_value: _IntStrT_co = start_value
+    def __init__(self, start_value: _T_co, *, column: str | None = None) -> None:
+        self.value: _T_co = start_value
+        self.__start_value: _T_co = start_value
         self.column = column
 
     @property
-    def start_value(self) -> _IntStrT_co:
+    def start_value(self) -> _T_co:
         return self.__start_value
 
     @property
-    def difference(self) -> _IntStrT_co | None:
+    def difference(self) -> _T_co | None:
         if self.value == self.start_value:
             return None
         if isinstance(self.value, int):
+            assert isinstance(self.start_value, int)
             return self.value - self.start_value
         return self.value
 
