@@ -125,6 +125,7 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
             streaks = await utils.Streaks.fetch_from_user(
                 db.conn, ctx.author.id, edit=True
             )
+
             streaks.daily.value += 1
             await streaks.update(db.conn)
 
