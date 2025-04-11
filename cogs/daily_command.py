@@ -1,4 +1,5 @@
 import random
+from datetime import datetime, UTC
 
 import asyncpg
 from discord.ext import commands, vbu
@@ -108,7 +109,7 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
         category=utils.CommandCategory.GROWING_PP,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
-    @commands.cooldown(1, 60 * 60 * 24, commands.BucketType.user)
+    # @commands.cooldown(1, 60 * 60 * 24, commands.BucketType.user)
     @commands.is_slash_command()
     async def daily_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
         """
@@ -126,7 +127,17 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
                 db.conn, ctx.author.id, edit=True
             )
 
-            streaks.daily.value += 1
+            # store daily_expired as the property might change values throughout the
+            # span of the command
+            daily_expired = streaks.daily_expired
+
+            streaks.last_daily.value = datetime.now(UTC).replace(tzinfo=None)
+
+            if daily_expired:
+                streaks.daily.value = 1
+            else:
+                streaks.daily.value += 1
+
             await streaks.update(db.conn)
 
             reward_message = await self.give_reward(
@@ -134,7 +145,12 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
             )
 
             embed = utils.Embed()
-            embed.title = f"Day {streaks.daily.value} streak 🔥"
+
+            if daily_expired:
+                embed.title = f"Streak lost :( Back to day 1"
+            else:
+                embed.title = f"Day {streaks.daily.value} streak 🔥"
+
             embed.colour = utils.PINK
             embed.description = f"{ctx.author.mention}, you received {reward_message}!"
 

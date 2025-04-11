@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta, UTC
 from typing import Self
 
 import asyncpg
@@ -27,6 +27,12 @@ class Streaks(DatabaseWrapperObject):
         self.user_id = user_id
         self.daily = DifferenceTracker(daily, column="daily_streak")
         self.last_daily = DifferenceTracker(last_daily, column="last_daily")
+
+    @property
+    def daily_expired(self) -> bool:
+        return self.last_daily.value + timedelta(days=2) < datetime.now(UTC).replace(
+            tzinfo=None
+        )
 
     @classmethod
     async def fetch_from_user(

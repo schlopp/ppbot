@@ -159,7 +159,7 @@ class DatabaseWrapperObject(Object):
 
             assert tracker.column is not None
 
-            if isinstance(tracker.difference, int | str):
+            if isinstance(tracker.difference, int | str | bool | datetime):
                 update_values.append(f"{tracker.column}=${argument_position}")
             else:
                 raise TypeError(
@@ -462,4 +462,4 @@ class IntegerHolder(int, Object):
 
 def is_weekend() -> bool:
     """Returns true on friday, saturday and sunday (UTC)"""
-    return datetime.now(UTC).weekday() >= 4
+    return datetime.now(UTC).replace(tzinfo=None).weekday() >= 4

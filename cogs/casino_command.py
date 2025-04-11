@@ -2,7 +2,7 @@ import asyncio
 import enum
 import uuid
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Self
 
 import discord
@@ -44,7 +44,7 @@ class CasinoSession(utils.Object):
         self.game_embed = utils.Embed()
         self.game_components = discord.ui.MessageComponents()
         self.state = CasinoState.MENU
-        self.last_interaction: datetime | None = datetime.now()
+        self.last_interaction: datetime | None = datetime.now(UTC).replace(tzinfo=None)
         self.cache[ctx] = self
 
     @property
@@ -438,7 +438,7 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
 
         if casino_session.state in [CasinoState.MENU, CasinoState.CHANGING_STAKES]:
             if interaction_id == "STAKES":
-                casino_session.last_interaction = datetime.now()
+                casino_session.last_interaction = datetime.now(UTC).replace(tzinfo=None)
                 casino_session.state = CasinoState.CHANGING_STAKES
                 await interaction.response.send_modal(
                     discord.ui.Modal(
@@ -507,7 +507,7 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
                         Exception("The code fucked up"),
                     )
                     return
-                casino_session.last_interaction = datetime.now()
+                casino_session.last_interaction = datetime.now(UTC).replace(tzinfo=None)
                 casino_session.state = CasinoState.MENU
                 await casino_session.send(response=result_interaction.response)
                 return
@@ -523,7 +523,7 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
         if casino_session.ctx.author.id != interaction.user.id:
             return
 
-        casino_session.last_interaction = datetime.now()
+        casino_session.last_interaction = datetime.now(UTC).replace(tzinfo=None)
 
         if (
             casino_session.state == CasinoState.CHANGING_STAKES
@@ -556,7 +556,9 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
             if casino_session.last_interaction is None:
                 continue
 
-            if datetime.now() - casino_session.last_interaction < timedelta(seconds=30):
+            if datetime.now(UTC).replace(
+                tzinfo=None
+            ) - casino_session.last_interaction < timedelta(seconds=30):
                 continue
 
             self.bot.dispatch(
