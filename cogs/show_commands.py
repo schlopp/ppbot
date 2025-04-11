@@ -10,7 +10,7 @@ from . import utils
 
 
 class ShowCommandsCog(vbu.Cog[utils.Bot]):
-    REAL_LIFE_COMPARISONS = {
+    REAL_LIFE_COMPARISONS: dict[int, str] = {
         0: "your IRL pp",
         60: "the average door",
         4_133: "a football field",
@@ -26,23 +26,38 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         15_157_486_080: "the distance from the earth to the moon",
         5_984_252_000_000: "the distance from the earth to THE SUN",
     }
-    ITEM_COUNT_COMMENTS = {
-        0: "r u poor?",
-        1: "Not much bro",
-        5: "You must be new here",
-        10: "You're getting there",
-        20: "Not bad",
-        100: "That's pretty good",
-        200: "You're either rich, or don't know how to spend your inches wisely",
-        500: "God DAMN",
-        1000: "You must be a collector or sum",
-        5000: "Jesus fucking christ man",
-        10_000: "You use this bot way too fucking much",
-        20_000: "Are you mentally OK? Do u need a hug??",
-        100_000: "Dude just give up this is too much",
-        1_000_000: "Okay. You win. I give up. I fucking quit. You win the game. Fuck you.",
+    ITEM_COUNT_COMMENTS: dict[int, tuple[str, str]] = {
+        0: ("r u poor?", "r they poor?"),
+        1: ("Not much bro", "Not much"),
+        5: ("You must be new here", "They must be new here"),
+        10: ("You're getting there", "They're getting there"),
+        20: ("Not bad", "Not bad"),
+        100: ("That's pretty good", "That's pretty good"),
+        200: (
+            "You're either rich, or you don't know how to spend your inches wisely",
+            "They're either rich, or they don't know how to spend their inches wisely",
+        ),
+        500: ("God DAMN", "God DAMN"),
+        1000: ("You must be a collector or sum", "They must be a collector or sum"),
+        5000: ("Jesus fucking christ man", "Jesus fucking christ man"),
+        10_000: (
+            "You use this bot way too fucking much",
+            "They use this bot way too fucking much",
+        ),
+        20_000: (
+            "Are you mentally OK? Do u need a hug??",
+            "Are they mentally OK? Do they need a hug??",
+        ),
+        100_000: (
+            "Dude just give up this is too much",
+            "Dude tell them to just give up this is too much",
+        ),
+        1_000_000: (
+            "Okay. You win. I give up. I fucking quit. You win the game. Fuck you.",
+            "Okay. They win. I give up. I fucking quit. They win the game. Fuck em.",
+        ),
     }
-    BOOST_DESCRIPTIONS = {
+    BOOST_DESCRIPTIONS: dict[str, str] = {
         "voter": f"voting on [**top.gg**]({utils.VOTE_URL})",
         "weekend": "for playing during the weekend :)",
         "pp_bot_channel": "for being in a channel named after pp bot <:ppHappy:902894208703156257>",
@@ -73,15 +88,13 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         )
 
     async def _show_embed_factory(
-        self,
-        member: discord.Member | discord.User,
-        pp: utils.Pp,
+        self, member: discord.Member | discord.User, pp: utils.Pp, *, is_author: bool
     ) -> utils.Embed:
+        display_name = utils.clean(member.display_name)
+
         embed = utils.Embed()
         embed.colour = utils.BLUE
-        embed.title = utils.limit_text(
-            f"{pp.name.value} ({utils.clean(member.display_name)}'s pp)", 256
-        )
+        embed.title = utils.limit_text(f"{pp.name.value} ({display_name}'s pp)", 256)
         embed.description = f"8{'=' * min(pp.size.value // 50, 1000)}D"
 
         voted = await pp.has_voted()
@@ -102,6 +115,10 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
             boost_subdisplays.append(
                 f"vote on [**top.gg**]({utils.VOTE_URL}) for an extra **{utils.BoostType.VOTE.percentage}% boost!**"
             )
+            if not is_author:
+                boost_subdisplays[-1] = (
+                    f"tell {member.mention} to " + boost_subdisplays[-1]
+                )
 
         for boost, boost_percentage in boosts.items():
             boost_subdisplays.append(
@@ -112,22 +129,6 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         if boost_subdisplays:
             boost_display = utils.format_iterable(boost_subdisplays, joiner=" ╰ ")
             multiplier_display += f"\n{boost_display}"
-
-        # if await pp.has_voted():
-        #     multiplier_display = (
-        #         f"~~{utils.format_int(pp.multiplier.value)}x~~"
-        #         f" **{utils.format_int(full_multiplier)}**x multiplier"
-        #         f"\n ╰ [**voter:**]({utils.VOTE_URL}) your multiplier increases by"
-        #         f" {pp.VOTE_BOOST * 100}%"
-        #     )
-
-        # else:
-        #     multiplier_display = (
-        #         f"**{utils.format_int(pp.multiplier.value)}**x multiplier"
-        #         f"\n ╰ [**Vote now for a {pp.VOTE_BOOST * 100}% increase and a"
-        #         f" {utils.format_int(pp.get_full_multiplier(voted=True))}x multiplier!**"
-        #         f"]({utils.VOTE_URL})"
-        #     )
 
         embed.add_field(
             name="stats",
@@ -143,18 +144,19 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
 
         # easter egg xddd
         easter_egg_stats = [
-            f"you smell [**REALLY**]({utils.MEME_URL}) bad",
-            f"your parents [**dont love you**]({utils.MEME_URL})",
-            f"you've taken [**3 showers**]({utils.MEME_URL}) this year",
-            f"you will [**never find love**]({utils.MEME_URL})",
+            f"{"you smell" if is_author else f"{member.mention} smells"} [**REALLY**]({utils.MEME_URL}) bad",
+            f"{"your" if is_author else f"{member.mention}'s"} parents [**dont love you**]({utils.MEME_URL})",
+            f"{"you've" if is_author else f"{member.mention} has"} taken [**3 showers**]({utils.MEME_URL}) this year",
+            f"{"you" if is_author else member.mention} will [**never find love**]({utils.MEME_URL})",
         ]
 
-        if random.random() < 0.05:
+        if random.random() > 0.05:
             other_stats.append(random.choice(easter_egg_stats))
 
         if pp.digging_depth.value > 0:
             other_stats.append(
-                f"You've dug **{utils.format_int(pp.digging_depth.value)} feet** deep"
+                f"{"You've" if is_author else f"{member.mention} has"} dug"
+                f" **{utils.format_int(pp.digging_depth.value)} feet** deep"
             )
 
         if other_stats:
@@ -172,7 +174,10 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                 comparison_text = f"{utils.format_int(nearest_number - pp.size.value)} inches smaller than"
 
         embed.set_footer(
-            text=f"Your pp is {comparison_text} {self.REAL_LIFE_COMPARISONS[nearest_number]}"
+            text=(
+                f"{"Your" if is_author else f"{display_name}'s"} pp is"
+                f" {comparison_text} {self.REAL_LIFE_COMPARISONS[nearest_number]}"
+            )
         )
 
         return embed
@@ -181,10 +186,13 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         self,
         member: discord.Member | discord.User,
         inventory: list[utils.InventoryItem],
+        is_author: bool,
     ) -> utils.Embed:
+        display_name = utils.clean(member.display_name)
+
         embed = utils.Embed()
         embed.colour = utils.BLUE
-        embed.title = f"{utils.clean(member.display_name)}'s inventory"
+        embed.title = f"{display_name}'s inventory"
 
         categories: dict[str, list[utils.InventoryItem]] = {
             utils.ToolItem.category_name: [],
@@ -229,7 +237,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
 
         comment = self.ITEM_COUNT_COMMENTS[
             utils.find_nearest_number(self.ITEM_COUNT_COMMENTS, item_count)[0]
-        ]
+        ][0 if is_author else 1]
         embed.set_footer(
             text=f"{utils.format_int(item_count)} items in total. {comment}"
         )
@@ -241,9 +249,11 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         member: discord.Member | discord.User,
         inventory: list[utils.InventoryItem],
     ) -> utils.Embed:
+        display_name = utils.clean(member.display_name)
+
         embed = utils.Embed()
         embed.colour = utils.BLUE
-        embed.title = f"{utils.clean(member.display_name)}'s unlocked commands"
+        embed.title = f"{display_name}'s unlocked commands"
 
         unlocked_commands = [
             inv_item.item
@@ -327,7 +337,9 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                             {"user_id": member.id},
                             fetch_multiple_rows=True,
                         )
-                embed = self._inventory_embed_factory(member, inventory)
+                embed = self._inventory_embed_factory(
+                    member, inventory, is_author=ctx.author == member
+                )
                 interaction_id, components = self._component_factory(
                     current_page_id="INVENTORY"
                 )
@@ -343,7 +355,9 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                                 f"{member.mention} ain't got a pp :(", user=member
                             )
 
-                embed = await self._show_embed_factory(member, pp)
+                embed = await self._show_embed_factory(
+                    member, pp, is_author=ctx.author == member
+                )
                 interaction_id, components = self._component_factory(
                     current_page_id="SHOW"
                 )
@@ -399,7 +413,9 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                     f"{member.mention} ain't got a pp :(", user=member
                 )
 
-        embed = await self._show_embed_factory(member, pp)
+        embed = await self._show_embed_factory(
+            member, pp, is_author=ctx.author == member
+        )
 
         interaction_id, components = self._component_factory(current_page_id="SHOW")
         await ctx.interaction.response.send_message(embed=embed, components=components)
@@ -437,7 +453,9 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                 db.conn, {"user_id": ctx.author.id}, fetch_multiple_rows=True
             )
 
-        embed = self._inventory_embed_factory(member, inventory)
+        embed = self._inventory_embed_factory(
+            member, inventory, is_author=ctx.author == member
+        )
 
         interaction_id, components = self._component_factory(
             current_page_id="INVENTORY"

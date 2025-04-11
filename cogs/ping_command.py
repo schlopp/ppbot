@@ -9,7 +9,6 @@ from . import utils
 
 
 class PingCommandCog(vbu.Cog[utils.Bot]):
-    MAX_NAME_LENGTH = 32
 
     @commands.command(
         "ping",
