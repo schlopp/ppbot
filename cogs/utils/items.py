@@ -260,7 +260,7 @@ class InventoryItem(DatabaseWrapperObject):
 
     @cached_property
     def item(self) -> Item:
-        return ItemManager.get(self.id)
+        return ItemManager.get(self.id, possible_legacy=True)
 
     def format_item(
         self,

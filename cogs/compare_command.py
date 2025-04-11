@@ -1,7 +1,7 @@
 import asyncio
 import random
 import uuid
-from typing import Literal
+from typing import Literal, overload
 
 import discord
 from discord.ext import commands, vbu
@@ -9,12 +9,87 @@ from discord.ext import commands, vbu
 from . import utils
 
 
-class ShowCommandsCog(vbu.Cog[utils.Bot]):
+class CompareCommandCog(vbu.Cog[utils.Bot]):
     BOOST_DESCRIPTIONS: dict[str, str] = {
         "voter": f"voting on [**top.gg**]({utils.VOTE_URL})",
         "weekend": "for playing during the weekend :)",
         "pp_bot_channel": "for being in a channel named after pp bot <:ppHappy:902894208703156257>",
     }
+
+    @overload
+    def compare_amounts(
+        self,
+        author: discord.Member | discord.User,
+        opponent: discord.Member | discord.User,
+        author_amount: int,
+        opponent_amount: int,
+        *,
+        with_ratio: Literal[False] = False,
+    ) -> tuple[
+        discord.Member | discord.User, discord.Member | discord.User, int, str
+    ]: ...
+
+    @overload
+    def compare_amounts(
+        self,
+        author: discord.Member | discord.User,
+        opponent: discord.Member | discord.User,
+        author_amount: int,
+        opponent_amount: int,
+        *,
+        with_ratio: Literal[True],
+    ) -> tuple[
+        discord.Member | discord.User, discord.Member | discord.User, int, str, float
+    ]: ...
+
+    def compare_amounts(
+        self,
+        author: discord.Member | discord.User,
+        opponent: discord.Member | discord.User,
+        author_amount: int,
+        opponent_amount: int,
+        *,
+        with_ratio: bool = False,
+    ) -> (
+        tuple[discord.Member | discord.User, discord.Member | discord.User, int, str]
+        | tuple[
+            discord.Member | discord.User,
+            discord.Member | discord.User,
+            int,
+            str,
+            float,
+        ]
+    ):
+        """
+        Returns tuple[winner: discord.Member | discord.User, loser: discord.Member | discord.User, difference: int, percentage_difference: str]
+        """
+
+        if author_amount > opponent_amount:
+            winner = author
+            loser = opponent
+        else:
+            winner = opponent
+            loser = author
+
+        difference = abs(author_amount - opponent_amount)
+
+        ratio = max(author_amount, opponent_amount) / min(
+            author_amount, opponent_amount
+        )
+
+        percentage_difference_raw = ratio * 100 - 100
+        percentage_difference = f"{percentage_difference_raw:{'.1f' if percentage_difference_raw < 100 else '.0f'}}%"
+
+        if with_ratio:
+            return (
+                winner,
+                loser,
+                difference,
+                percentage_difference,
+                ratio,
+            )
+
+        return winner, loser, difference, percentage_difference
 
     def _component_factory(
         self, *, current_page_id: Literal["SHOW", "INVENTORY", "UNLOCKED_COMMANDS"]
@@ -332,133 +407,99 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
             )
 
     @commands.command(
-        "show",
+        "compare",
         utils.Command,
         category=utils.CommandCategory.STATS,
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
                 discord.ApplicationCommandOption(
-                    name="user",
+                    name="opponent",
                     type=discord.ApplicationCommandOptionType.user,
-                    description="Whoever's pp you want to take a peek at",
-                    required=False,
+                    description="Whoever's pp you want to compare with",
                 )
             ]
         ),
     )
     @commands.is_slash_command()
-    async def show_command(
-        self, ctx: commands.SlashContext[utils.Bot], user: discord.Member | None = None
+    async def compare_command(
+        self, ctx: commands.SlashContext[utils.Bot], opponent: discord.Member
     ) -> None:
         """
-        Show your pp to the whole wide world.
+        Compare your pp with someone else in the ultimate pp showdown
         """
 
-        member = user or ctx.author
+        opponent = opponent
+
+        if opponent == ctx.author:
+            raise commands.BadArgument("You can't compare against yourself silly!")
 
         async with utils.DatabaseWrapper() as db:
+            pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id)
+
             try:
-                pp = await utils.Pp.fetch_from_user(db.conn, member.id)
+                opponent_pp = await utils.Pp.fetch_from_user(db.conn, opponent.id)
             except utils.PpMissing:
-                if member == ctx.author:
-                    raise
                 raise utils.PpMissing(
-                    f"{member.mention} ain't got a pp :(", user=member
+                    f"{opponent.mention} ain't got a pp :(", user=opponent
                 )
 
-        embed = await self._show_embed_factory(
-            member, pp, is_author=ctx.author == member
+        display_name = utils.clean(ctx.author.display_name)
+        opponent_display_name = utils.clean(opponent.display_name)
+
+        embed = utils.Embed()
+        embed.title = f"{display_name} VS. {opponent_display_name}"
+
+        segments: list[tuple[str, str, str]] = []
+
+        # comparing size
+        winner, loser, difference, percentage_difference = self.compare_amounts(
+            ctx.author, opponent, pp.size.value, opponent_pp.size.value
         )
 
-        interaction_id, components = self._component_factory(current_page_id="SHOW")
-        await ctx.interaction.response.send_message(embed=embed, components=components)
+        match utils.find_nearest_number(utils.REAL_LIFE_COMPARISONS, difference):
+            case nearest_number, -1:
+                comparison_text = f"{utils.format_int(difference - nearest_number)} inches bigger than"
+            case nearest_number, 0:
+                comparison_text = f"the same size as"
+            case nearest_number, _:
+                comparison_text = f"{utils.format_int(nearest_number - difference)} inches smaller than"
 
-        await self.handle_tabs(
-            ctx, member, interaction_id, components=components, pp=pp
+        segments.append(
+            (
+                "size",
+                f"{winner.mention}'s pp is {utils.format_inches(difference)} bigger than {loser.mention}'s! `{percentage_difference} bigger`",
+                f"That's difference is {comparison_text} {utils.REAL_LIFE_COMPARISONS[nearest_number]}",
+            )
         )
 
-    @commands.command(
-        "inventory",
-        utils.Command,
-        category=utils.CommandCategory.STATS,
-        application_command_meta=commands.ApplicationCommandMeta(
-            options=[
-                discord.ApplicationCommandOption(
-                    name="user",
-                    type=discord.ApplicationCommandOptionType.user,
-                    description="Whoever's pp you want to take a peek at",
-                    required=False,
-                )
-            ]
-        ),
-    )
-    async def inventory_command(
-        self, ctx: commands.SlashContext[utils.Bot], user: discord.Member | None = None
-    ) -> None:
-        """
-        Check out what items are in your inventory.
-        """
+        # Comparing multiplier
+        winner, loser, difference, percentage_difference, ratio = self.compare_amounts(
+            ctx.author,
+            opponent,
+            pp.multiplier.value,
+            opponent_pp.multiplier.value,
+            with_ratio=True,
+        )
+        loser_display_name = (
+            display_name if loser == ctx.author else opponent_display_name
+        )
 
-        member = user or ctx.author
+        segments.append(
+            (
+                "multiplier",
+                f"{winner.mention}'s multiplier is **{ratio:{'.1f' if ratio < 100 else '.0f'}}x**"
+                f" bigger than {loser.mention}'s! `{percentage_difference} bigger`",
+                f"(NOT INCLUDING BOOSTS) {loser_display_name} will have to take {difference} pills to make up for that difference",
+            )
+        )
 
-        async with utils.DatabaseWrapper() as db:
-            inventory = await utils.InventoryItem.fetch(
-                db.conn, {"user_id": ctx.author.id}, fetch_multiple_rows=True
+        for title, comparison, subtext in segments:
+            embed.add_field(
+                name=title.upper(), value=f"{comparison}\n-# {subtext}", inline=False
             )
 
-        embed = self._inventory_embed_factory(
-            member, inventory, is_author=ctx.author == member
-        )
-
-        interaction_id, components = self._component_factory(
-            current_page_id="INVENTORY"
-        )
-        await ctx.interaction.response.send_message(embed=embed, components=components)
-
-        await self.handle_tabs(
-            ctx, member, interaction_id, components=components, inventory=inventory
-        )
-
-    @commands.command(
-        "unlocked-commands",
-        utils.Command,
-        category=utils.CommandCategory.STATS,
-        application_command_meta=commands.ApplicationCommandMeta(
-            options=[
-                discord.ApplicationCommandOption(
-                    name="user",
-                    type=discord.ApplicationCommandOptionType.user,
-                    description="Whoever's pp you want to take a peek at",
-                    required=False,
-                )
-            ]
-        ),
-    )
-    async def unlocked_commands_command(
-        self, ctx: commands.SlashContext[utils.Bot], user: discord.Member | None = None
-    ) -> None:
-        """
-        View all the commands you've unlocked.
-        """
-
-        member = user or ctx.author
-
-        async with utils.DatabaseWrapper() as db:
-            inventory = await utils.InventoryItem.fetch(
-                db.conn, {"user_id": member.id}, fetch_multiple_rows=True
-            )
-
-        embed = self._unlocked_commands_embed_factory(member, inventory)
-
-        interaction_id, components = self._component_factory(
-            current_page_id="UNLOCKED_COMMANDS"
-        )
-        await ctx.interaction.response.send_message(embed=embed, components=components)
-
-        await self.handle_tabs(
-            ctx, member, interaction_id, components=components, inventory=inventory
-        )
+        await ctx.interaction.response.send_message(embed=embed)
 
 
 async def setup(bot: utils.Bot):
-    await bot.add_cog(ShowCommandsCog(bot))
+    await bot.add_cog(CompareCommandCog(bot))
