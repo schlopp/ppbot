@@ -190,6 +190,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
             utils.ToolItem.category_name: [],
             utils.BuffItem.category_name: [],
             utils.UselessItem.category_name: [],
+            utils.LegacyItem.category_name: [],
         }
         sorted_inventory = sorted(
             inventory, key=lambda inv_item: inv_item.amount.value, reverse=True

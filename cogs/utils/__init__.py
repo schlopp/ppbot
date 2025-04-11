@@ -57,6 +57,7 @@ from .streaks import Streaks as Streaks
 from .items import (
     UnknownItemError as UnknownItemError,
     UselessItem as UselessItem,
+    LegacyItem as LegacyItem,
     MultiplierItem as MultiplierItem,
     BuffItem as BuffItem,
     ToolItem as ToolItem,

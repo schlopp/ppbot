@@ -4,7 +4,8 @@ import logging
 import re
 from datetime import timedelta
 from functools import cached_property
-from typing import Any, Literal
+from typing import Any, Literal, Self
+from string import ascii_letters, digits
 
 import toml
 import rust_utils  # pyright: ignore[reportMissingModuleSource]
@@ -67,6 +68,40 @@ class UselessItem(Object):
             full_markdown=full_markdown,
             article=article,
         )
+
+
+class LegacyItem(UselessItem):
+    """
+    For legacy items (usually from giveaways) / items that have not officially been added
+    """
+
+    __slots__ = ("id", "name", "plural", "description", "price")
+    _repr_attributes = __slots__
+    category = "LEGACY"
+    category_name = "Legacy Items"
+
+    def __init__(
+        self,
+        id: str,
+        *,
+        name: str,
+    ) -> None:
+        self.id = id
+        self.name = name
+        self.plural = name
+        self.indefinite_article = Article.INDEFINITE
+        self.description = "This is a legacy/unofficial item"
+        self.price = 0
+
+    @classmethod
+    def from_name(cls: type[Self], name: str) -> Self:
+        valid_id_chars = ascii_letters + digits + "_"
+        item_id = "".join(
+            char.upper()
+            for char in "_".join(name.replace("_", " ").split())
+            if char in valid_id_chars
+        )
+        return cls(item_id, name=name)
 
 
 class MultiplierItem(UselessItem):
@@ -202,7 +237,7 @@ class ToolItem(UselessItem):
         return format_slash_command(self.associated_command_name)
 
 
-Item = UselessItem | MultiplierItem | BuffItem | ToolItem
+Item = UselessItem | LegacyItem | MultiplierItem | BuffItem | ToolItem
 
 
 class InventoryItem(DatabaseWrapperObject):
@@ -317,6 +352,7 @@ class ItemManager:
     buffs: dict[str, BuffItem] = {}
     tools: dict[str, ToolItem] = {}
     useless: dict[str, UselessItem] = {}
+    legacy: dict[str, LegacyItem] = {}
     items_by_name: dict[str, Item] = {}
     _MATCH_SLASH_COMMANDS_PATTERN = re.compile(r"<\/[A-z](?:[A-z]|[0-9]|-|\s)*>")
     _logger = logging.getLogger("vbu.bot.cog.utils.ItemManager")
@@ -344,14 +380,39 @@ class ItemManager:
         item_data["indefinite_article"] = indefinite_article
 
     @classmethod
-    def get(cls, item_key: str) -> Item:
-        try:
-            return cls.items[item_key]
-        except KeyError:
-            try:
-                return cls.items_by_name[item_key]
-            except KeyError:
-                raise UnknownItemError(repr(item_key))
+    def get(
+        cls,
+        item_key: str,
+        *,
+        possible_legacy: bool = False,
+        attempt_capitalised_id: bool = False,
+    ) -> Item:
+        """
+        note: when possible_legacy=True and a possibly unregistered legacy item
+        is given, item_key should be the item's name, not ID
+        note: attempt_capitalised_id should really only be used for data transfers,
+        dont use it in code where you could just.. type the ID in capital letters?
+        """
+
+        item_id = item_key
+        if attempt_capitalised_id:
+            item_id = item_id.capitalize()
+
+        item = cls.items.get(item_id, cls.items_by_name.get(item_key))
+
+        if item is None:
+            if possible_legacy:
+                item = LegacyItem.from_name(item_key)
+
+                cls.items[item.id] = item
+                cls.items_by_name[item.name] = item
+                cls.legacy[item.id] = item
+
+                return item
+
+            raise UnknownItemError(repr(item_key))
+
+        return item
 
     @classmethod
     def get_command_tool(cls, command_name: str) -> ToolItem:
@@ -375,7 +436,10 @@ class ItemManager:
             cls.items[item.id] = item
             cls.items_by_name[item.name] = item
 
-            if isinstance(item, MultiplierItem):
+            if isinstance(item, LegacyItem):
+                cls.legacy[item.id] = item
+
+            elif isinstance(item, MultiplierItem):
                 cls.multipliers[item.id] = item
 
             elif isinstance(item, BuffItem):
@@ -396,7 +460,10 @@ class ItemManager:
 
         cls.items_by_name.pop(item.name)
 
-        if isinstance(item, MultiplierItem):
+        if isinstance(item, LegacyItem):
+            cls.multipliers.pop(item.id)
+
+        elif isinstance(item, MultiplierItem):
             cls.multipliers.pop(item.id)
 
         elif isinstance(item, BuffItem):
