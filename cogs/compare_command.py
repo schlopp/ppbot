@@ -73,12 +73,16 @@ class CompareCommandCog(vbu.Cog[utils.Bot]):
 
         difference = abs(author_amount - opponent_amount)
 
-        ratio = max(author_amount, opponent_amount) / min(
-            author_amount, opponent_amount
-        )
+        try:
+            ratio = max(author_amount, opponent_amount) / min(
+                author_amount, opponent_amount
+            )
 
-        percentage_difference_raw = ratio * 100 - 100
-        percentage_difference = f"{percentage_difference_raw:{'.1f' if percentage_difference_raw < 100 else '.0f'}}%"
+            percentage_difference_raw = ratio * 100 - 100
+            percentage_difference = f"{percentage_difference_raw:{'.1f' if percentage_difference_raw < 100 else '.0f'}}%"
+        except ZeroDivisionError:
+            ratio = float("inf")
+            percentage_difference = "literally infinity%"
 
         if with_ratio:
             return (
@@ -443,6 +447,24 @@ class CompareCommandCog(vbu.Cog[utils.Bot]):
                     f"{opponent.mention} ain't got a pp :(", user=opponent
                 )
 
+            inventory = await utils.InventoryItem.fetch(
+                db.conn,
+                {"user_id": ctx.author.id},
+                fetch_multiple_rows=True,
+            )
+            item_count = 0
+            for item in inventory:
+                item_count += item.amount.value
+
+            opponent_inventory = await utils.InventoryItem.fetch(
+                db.conn,
+                {"user_id": opponent.id},
+                fetch_multiple_rows=True,
+            )
+            opponent_item_count = 0
+            for item in opponent_inventory:
+                opponent_item_count += item.amount.value
+
         display_name = utils.clean(ctx.author.display_name)
         opponent_display_name = utils.clean(opponent.display_name)
 
@@ -468,7 +490,7 @@ class CompareCommandCog(vbu.Cog[utils.Bot]):
             (
                 "size",
                 f"{winner.mention}'s pp is {utils.format_inches(difference)} bigger than {loser.mention}'s! `{percentage_difference} bigger`",
-                f"That's difference is {comparison_text} {utils.REAL_LIFE_COMPARISONS[nearest_number]}",
+                f"That difference is {comparison_text} {utils.REAL_LIFE_COMPARISONS[nearest_number]}",
             )
         )
 
@@ -489,7 +511,37 @@ class CompareCommandCog(vbu.Cog[utils.Bot]):
                 "multiplier",
                 f"{winner.mention}'s multiplier is **{ratio:{'.1f' if ratio < 100 else '.0f'}}x**"
                 f" bigger than {loser.mention}'s! `{percentage_difference} bigger`",
-                f"(NOT INCLUDING BOOSTS) {loser_display_name} will have to take {difference} pills to make up for that difference",
+                (
+                    f"(NOT INCLUDING BOOSTS) {loser_display_name} will have to take"
+                    f" {utils.format_int(difference)} pills to make up for that difference"
+                ),
+            )
+        )
+
+        # Comparing item count
+        winner, loser, difference, percentage_difference = self.compare_amounts(
+            ctx.author, opponent, item_count, opponent_item_count
+        )
+
+        if winner == ctx.author:
+            winner_display_name = display_name
+            winner_item_count = item_count
+        else:
+            winner_display_name = opponent_display_name
+            winner_item_count = opponent_item_count
+
+        comment = utils.ITEM_COUNT_COMMENTS[
+            utils.find_nearest_number(utils.ITEM_COUNT_COMMENTS, winner_item_count)[0]
+        ][1]
+
+        segments.append(
+            (
+                "items",
+                f"{winner.mention} has {utils.format_int(difference)} more items than {loser.mention}! `{percentage_difference} more`",
+                (
+                    f"{winner_display_name} has a total of"
+                    f" {utils.format_int(winner_item_count)} items. {comment}"
+                ),
             )
         )
 
