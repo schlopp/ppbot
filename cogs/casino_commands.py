@@ -203,6 +203,7 @@ class CasinoSession(utils.Object):
         response: discord.InteractionResponse | None = None,
         defer: bool = False,
         external_leave: bool = False,
+        entrance: bool = False,
     ) -> None:
         if external_leave:
             await self.ctx.interaction.delete_original_message()
@@ -213,17 +214,20 @@ class CasinoSession(utils.Object):
             if response is not None:
                 if not defer:
                     await response.edit_message(
-                        embed=embed or self.generate_embed(), components=components
+                        embed=embed or self.generate_embed(entrance=entrance),
+                        components=components,
                     )
                     return
                 await response.defer_update()
             if self.ctx.interaction.response.is_done():
                 await self.ctx.interaction.edit_original_message(
-                    embed=embed or self.generate_embed(), components=components
+                    embed=embed or self.generate_embed(entrance=entrance),
+                    components=components,
                 )
                 return
             await self.ctx.interaction.response.send_message(
-                embed=embed or self.generate_embed(), components=components
+                embed=embed or self.generate_embed(entrance=entrance),
+                components=components,
             )
             return
         if self.state == CasinoState.PLAYING_DICE:
@@ -411,7 +415,7 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
                 "You're still in the casino, and can't do anything else until you leave!",
                 casino_id=casino_session.id,
             ):
-                await casino_session.send()
+                await casino_session.send(entrance=True)
 
                 interaction: discord.ComponentInteraction | None
                 error: commands.CommandError | None
@@ -424,6 +428,19 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
                     response=interaction.response if interaction is not None else None,
                 )
                 await pp.update(db.conn)
+
+    @commands.command(
+        "gamble",
+        utils.Command,
+        category=utils.CommandCategory.GAMBLING,
+        application_command_meta=commands.ApplicationCommandMeta(),
+    )
+    @commands.is_slash_command()
+    async def gamble_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
+        """
+        (same command as /casino) Visit the casino and gamble your shit away
+        """
+        await self.casino_command.invoke(ctx)
 
     @vbu.Cog.listener("on_component_interaction")
     async def casino_component_interaction_handler(
