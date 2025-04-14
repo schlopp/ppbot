@@ -674,7 +674,7 @@ def handle_database_timeout(
 
     if error.casino_id is None:
         return embed, None
-    
+
     embed.description += (
         "\n-# If the button doesn't do anything,"
         " it means you've already left the casino and you can all ur commands again"
