@@ -67,7 +67,7 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
         embed.title = random.choice(titles)
         embed.description = f"**Fun Fact:** {payload["fact"]}"
 
-        await ctx.send(embed=embed)
+        await ctx.interaction.response.send_message(embed=embed)
 
     @commands.command(
         "bird",
@@ -81,21 +81,20 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
         Bird pics for bird lovers
         """
 
-        while True:
-            await self.send_animal_embed(
-                ctx,
-                "bird",
-                [
-                    "birb pic for u!",
-                    "yes yes bird yes",
-                    "nice feathered lad",
-                    "round birb detected",
-                    "caw caw",
-                    "chirp chirp",
-                    "i require this birb",
-                    "This bird knows state secrets and must be watched.",
-                ],
-            )
+        await self.send_animal_embed(
+            ctx,
+            "bird",
+            [
+                "birb pic for u!",
+                "yes yes bird yes",
+                "nice feathered lad",
+                "round birb detected",
+                "caw caw",
+                "chirp chirp",
+                "i require this birb",
+                "This bird knows state secrets and must be watched.",
+            ],
+        )
 
     @commands.command(
         "cat",
@@ -109,21 +108,20 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
         mrowww mrow cute cat pictures
         """
 
-        while True:
-            await self.send_animal_embed(
-                ctx,
-                "cat",
-                [
-                    "cat pic for u!",
-                    "yes yes cat yes",
-                    "nice cat there",
-                    "chonky loaf",
-                    "mrow",
-                    "meow meow",
-                    "i must acquire this cat",
-                    "This cat runs an underground crime syndicate.",
-                ],
-            )
+        await self.send_animal_embed(
+            ctx,
+            "cat",
+            [
+                "cat pic for u!",
+                "yes yes cat yes",
+                "nice cat there",
+                "chonky loaf",
+                "mrow",
+                "meow meow",
+                "i must acquire this cat",
+                "This cat runs an underground crime syndicate.",
+            ],
+        )
 
     @commands.command(
         "dog",
@@ -137,21 +135,20 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
         Cute dog pics!!
         """
 
-        while True:
-            await self.send_animal_embed(
-                ctx,
-                "dog",
-                [
-                    "dog pic for u!",
-                    "yes yes dog yes",
-                    "nice dog there",
-                    "big ol pup",
-                    "rawr",
-                    "woof woof",
-                    "i want this dog",
-                    "This dog is wanted for manslaughter in 38 states.",
-                ],
-            )
+        await self.send_animal_embed(
+            ctx,
+            "dog",
+            [
+                "dog pic for u!",
+                "yes yes dog yes",
+                "nice dog there",
+                "big ol pup",
+                "rawr",
+                "woof woof",
+                "i want this dog",
+                "This dog is wanted for manslaughter in 38 states.",
+            ],
+        )
 
     @commands.command(
         "fox",
@@ -165,21 +162,20 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
         BIG fox pictures. BIG
         """
 
-        while True:
-            await self.send_animal_embed(
-                ctx,
-                "fox",
-                [
-                    "fox pic for u!",
-                    "yes yes fox yes",
-                    "spicy woodland dog",
-                    "look at this orange rascal",
-                    "yip yip",
-                    "sneaky squeaky",
-                    "i would follow this fox into the forest, no questions asked",
-                    "This fox has three fake passports and zero regrets.",
-                ],
-            )
+        await self.send_animal_embed(
+            ctx,
+            "fox",
+            [
+                "fox pic for u!",
+                "yes yes fox yes",
+                "spicy woodland dog",
+                "look at this orange rascal",
+                "yip yip",
+                "sneaky squeaky",
+                "i would follow this fox into the forest, no questions asked",
+                "This fox has three fake passports and zero regrets.",
+            ],
+        )
 
     @commands.command(
         "kangaroo",
@@ -193,21 +189,20 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
         Pics of big jumpy guys jumping around
         """
 
-        while True:
-            await self.send_animal_embed(
-                ctx,
-                "kangaroo",
-                [
-                    "kangaroo pic for u!",
-                    "yes yes roo yes",
-                    "pocket puppy",
-                    "look at this buff jumper",
-                    "boing boing",
-                    "thump thump",
-                    "i would let this kangaroo file my taxes",
-                    "This kangaroo is banned from five boxing rings and one Outback Steakhouse.",
-                ],
-            )
+        await self.send_animal_embed(
+            ctx,
+            "kangaroo",
+            [
+                "kangaroo pic for u!",
+                "yes yes roo yes",
+                "pocket puppy",
+                "look at this buff jumper",
+                "boing boing",
+                "thump thump",
+                "i would let this kangaroo file my taxes",
+                "This kangaroo is banned from five boxing rings and one Outback Steakhouse.",
+            ],
+        )
 
     @commands.command(
         "koala",
@@ -221,21 +216,20 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
         Cool koala pics
         """
 
-        while True:
-            await self.send_animal_embed(
-                ctx,
-                "koala",
-                [
-                    "koala pic for u!",
-                    "yes yes koala yes",
-                    "eucalyptus gremlin",
-                    "look at this sleepy menace",
-                    "nom nom leaf",
-                    "climb climb nap",
-                    "i trust this koala with my deepest secrets",
-                    "This koala owes me $20 and pretends not to remember.",
-                ],
-            )
+        await self.send_animal_embed(
+            ctx,
+            "koala",
+            [
+                "koala pic for u!",
+                "yes yes koala yes",
+                "eucalyptus gremlin",
+                "look at this sleepy menace",
+                "nom nom leaf",
+                "climb climb nap",
+                "i trust this koala with my deepest secrets",
+                "This koala owes me $20 and pretends not to remember.",
+            ],
+        )
 
     @commands.command(
         "panda",
@@ -249,21 +243,20 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
         cute little (big) pandas
         """
 
-        while True:
-            await self.send_animal_embed(
-                ctx,
-                "panda",
-                [
-                    "panda pic for u!",
-                    "yes yes panda yes",
-                    "monochrome chaos bear",
-                    "look at this bamboo addict",
-                    "roll roll",
-                    "nom nom crunch",
-                    "i would commit tax fraud for this panda",
-                    "This panda has diplomatic immunity and no one knows why.",
-                ],
-            )
+        await self.send_animal_embed(
+            ctx,
+            "panda",
+            [
+                "panda pic for u!",
+                "yes yes panda yes",
+                "monochrome chaos bear",
+                "look at this bamboo addict",
+                "roll roll",
+                "nom nom crunch",
+                "i would commit tax fraud for this panda",
+                "This panda has diplomatic immunity and no one knows why.",
+            ],
+        )
 
     @commands.command(
         "raccoon",
@@ -277,21 +270,20 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
         pics of little trash bears
         """
 
-        while True:
-            await self.send_animal_embed(
-                ctx,
-                "raccoon",
-                [
-                    "raccoon pic for u!",
-                    "yes yes raccoon yes",
-                    "tiny bandit",
-                    "look at this fuzzy dumpster wizard",
-                    "skitter skitter",
-                    "snatch and dash",
-                    "i would rob a convenience store with this raccoon",
-                    "This raccoon has five aliases and a court date in Nevada.",
-                ],
-            )
+        await self.send_animal_embed(
+            ctx,
+            "raccoon",
+            [
+                "raccoon pic for u!",
+                "yes yes raccoon yes",
+                "tiny bandit",
+                "look at this fuzzy dumpster wizard",
+                "skitter skitter",
+                "snatch and dash",
+                "i would rob a convenience store with this raccoon",
+                "This raccoon has five aliases and a court date in Nevada.",
+            ],
+        )
 
     @commands.command(
         "red-panda",
@@ -305,21 +297,20 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
         pics of pandas.. but red!!
         """
 
-        while True:
-            await self.send_animal_embed(
-                ctx,
-                "red_panda",
-                [
-                    "red panda pic for u!",
-                    "yes yes red panda yes",
-                    "fire fox IRL",
-                    "look at this fluffy tree gremlin",
-                    "wiggle wiggle",
-                    "sniff sniff snoot",
-                    "i would protect this red panda with my life and legal team",
-                    "This red panda is on an international watchlist for being too adorable to trust.",
-                ],
-            )
+        await self.send_animal_embed(
+            ctx,
+            "red_panda",
+            [
+                "red panda pic for u!",
+                "yes yes red panda yes",
+                "fire fox IRL",
+                "look at this fluffy tree gremlin",
+                "wiggle wiggle",
+                "sniff sniff snoot",
+                "i would protect this red panda with my life and legal team",
+                "This red panda is on an international watchlist for being too adorable to trust.",
+            ],
+        )
 
 
 async def setup(bot: utils.Bot):
