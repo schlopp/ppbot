@@ -674,11 +674,16 @@ def handle_database_timeout(
 
     if error.casino_id is None:
         return embed, None
+    
+    embed.description += (
+        "\n-# If the button doesn't do anything,"
+        " it means you've already left the casino and you can all ur commands again"
+    )
 
     return embed, discord.ui.MessageComponents(
         discord.ui.ActionRow(
             discord.ui.Button(
-                label="Leave Casino (TODO)",
+                label="Leave Casino NOW!!!",
                 style=discord.ButtonStyle.red,
                 custom_id=f"{error.casino_id}_EXTERNAL_LEAVE",
             )
