@@ -41,7 +41,12 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         )
 
     async def _show_embed_factory(
-        self, member: discord.Member | discord.User, pp: utils.Pp, *, is_author: bool
+        self,
+        member: discord.Member | discord.User,
+        pp: utils.Pp,
+        streaks: utils.Streaks,
+        *,
+        is_author: bool,
     ) -> utils.Embed:
         display_name = utils.clean(member.display_name)
 
@@ -95,6 +100,18 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
 
         other_stats: list[str] = []
 
+        if pp.digging_depth.value > 0:
+            other_stats.append(
+                f"{"You've" if is_author else f"{member.mention} has"} dug"
+                f" **{utils.format_int(pp.digging_depth.value)} feet** deep"
+            )
+
+        if streaks.daily.value > 0 and not streaks.daily_expired:
+            other_stats.append(
+                f"{"You have" if is_author else f"{member.mention} has"} a daily streak"
+                f" of **{streaks.daily.value}**"
+            )
+
         # easter egg xddd
         easter_egg_stats = [
             f"{"you smell" if is_author else f"{member.mention} smells"} [**REALLY**]({utils.MEME_URL}) bad",
@@ -105,12 +122,6 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
 
         if random.random() > 0.05:
             other_stats.append(random.choice(easter_egg_stats))
-
-        if pp.digging_depth.value > 0:
-            other_stats.append(
-                f"{"You've" if is_author else f"{member.mention} has"} dug"
-                f" **{utils.format_int(pp.digging_depth.value)} feet** deep"
-            )
 
         if other_stats:
             embed.add_field(
@@ -266,6 +277,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         interaction_id: str,
         components: discord.ui.MessageComponents,
         pp: utils.Pp | None = None,
+        streaks: utils.Streaks | None = None,
         inventory: list[utils.InventoryItem] | None = None,
     ) -> None:
         embed = None
@@ -297,19 +309,24 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                     current_page_id="INVENTORY"
                 )
             elif action == "SHOW":
-                if pp is None:
+                if pp is None or streaks is None:
                     async with utils.DatabaseWrapper() as db:
-                        try:
-                            pp = await utils.Pp.fetch_from_user(db.conn, member.id)
-                        except utils.PpMissing:
-                            if member == ctx.author:
-                                raise
-                            raise utils.PpMissing(
-                                f"{member.mention} ain't got a pp :(", user=member
+                        if pp is None:
+                            try:
+                                pp = await utils.Pp.fetch_from_user(db.conn, member.id)
+                            except utils.PpMissing:
+                                if member == ctx.author:
+                                    raise
+                                raise utils.PpMissing(
+                                    f"{member.mention} ain't got a pp :(", user=member
+                                )
+                        if streaks is None:
+                            streaks = await utils.Streaks.fetch_from_user(
+                                db.conn, member.id
                             )
 
                 embed = await self._show_embed_factory(
-                    member, pp, is_author=ctx.author == member
+                    member, pp, streaks, is_author=ctx.author == member
                 )
                 interaction_id, components = self._component_factory(
                     current_page_id="SHOW"
@@ -365,16 +382,17 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                 raise utils.PpMissing(
                     f"{member.mention} ain't got a pp :(", user=member
                 )
+            streaks = await utils.Streaks.fetch_from_user(db.conn, member.id)
 
         embed = await self._show_embed_factory(
-            member, pp, is_author=ctx.author == member
+            member, pp, streaks, is_author=ctx.author == member
         )
 
         interaction_id, components = self._component_factory(current_page_id="SHOW")
         await ctx.interaction.response.send_message(embed=embed, components=components)
 
         await self.handle_tabs(
-            ctx, member, interaction_id, components=components, pp=pp
+            ctx, member, interaction_id, components=components, pp=pp, streaks=streaks
         )
 
     @commands.command(
