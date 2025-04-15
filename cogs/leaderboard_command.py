@@ -341,7 +341,10 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
                 )
             except asyncio.TimeoutError:
                 components.disable_components()
-                await ctx.interaction.edit_original_message(components=components)
+                try:
+                    await ctx.interaction.edit_original_message(components=components)
+                except discord.HTTPException:
+                    pass
                 break
 
             category = interaction.values[0]

@@ -157,10 +157,13 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                     timeout=10,
                 )
             except asyncio.TimeoutError:
-                await ctx.interaction.edit_original_message(
-                    embed=utils.Embed.as_timeout("Donation cancelled"),
-                    components=components.disable_components(),
-                )
+                try:
+                    await ctx.interaction.edit_original_message(
+                        embed=utils.Embed.as_timeout("Donation cancelled"),
+                        components=components.disable_components(),
+                    )
+                except discord.HTTPException:
+                    pass
                 return
 
             if action == "CANCEL_DONATION":

@@ -289,10 +289,13 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                         timeout=180,
                     )
                 except asyncio.TimeoutError:
-                    await ctx.interaction.edit_original_message(
-                        embed=utils.Embed.as_timeout("Purchase failed"),
-                        components=components.disable_components(),
-                    )
+                    try:
+                        await ctx.interaction.edit_original_message(
+                            embed=utils.Embed.as_timeout("Purchase failed"),
+                            components=components.disable_components(),
+                        )
+                    except:
+                        pass
                     return
 
                 _, action = component_interaction.custom_id.split("_", 1)
@@ -427,10 +430,13 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                     timeout=180,
                 )
             except asyncio.TimeoutError:
-                await ctx.interaction.edit_original_message(
-                    embed=utils.Embed.as_timeout("Purchase failed"),
-                    components=components.disable_components(),
-                )
+                try:
+                    await ctx.interaction.edit_original_message(
+                        embed=utils.Embed.as_timeout("Purchase failed"),
+                        components=components.disable_components(),
+                    )
+                except discord.HTTPException:
+                    pass
                 return
 
             _, action = component_interaction.custom_id.split("_", 1)
