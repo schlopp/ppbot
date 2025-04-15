@@ -206,7 +206,10 @@ class CasinoSession(utils.Object):
         entrance: bool = False,
     ) -> None:
         if external_leave:
-            await self.ctx.interaction.delete_original_message()
+            try:
+                await self.ctx.interaction.delete_original_message()
+            except discord.HTTPException:
+                pass
         if self.state in [CasinoState.MENU, CasinoState.CHANGING_STAKES]:
             components = self.generate_menu_components()
             if disable:
@@ -423,6 +426,7 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
                     "casino_leave",
                     check=lambda s, _, _1: s is casino_session,
                 )
+                self.logger.warning(f"leaving casino! {error}")
                 await casino_session.close(
                     error,
                     response=interaction.response if interaction is not None else None,
