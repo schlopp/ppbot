@@ -88,6 +88,8 @@ from .helpers import (
 from .cards import Rank as Rank, Suit as Suit, Deck as Deck, Hand as Hand
 from .bot import DatabaseWrapper as DatabaseWrapper, Bot as Bot
 from .command import (
+    ExtendBucketType as ExtendBucketType,
+    CooldownFactory as CooldownFactory,
     RedisCooldownMapping as RedisCooldownMapping,
     CommandCategory as CommandCategory,
     Command as Command,

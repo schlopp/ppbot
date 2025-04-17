@@ -2,7 +2,7 @@ from __future__ import annotations
 import time
 from datetime import timezone
 from enum import Enum
-from typing import Any, cast
+from typing import Any, cast, Callable, Coroutine
 
 import discord
 from discord.ext import commands, vbu
@@ -10,7 +10,20 @@ from discord.ext import commands, vbu
 from . import Bot
 
 
+type ExtendBucketType = commands.BucketType | Callable[
+    [discord.Message | discord.Interaction], Any
+]
+type CooldownFactory = Callable[
+    [commands.Context[Bot]],
+    Coroutine[Any, Any, tuple[commands.Cooldown, ExtendBucketType]],
+]
+
+
 class RedisCooldownMapping(commands.CooldownMapping):
+
+    def __init__(self, original: commands.Cooldown | None, type: ExtendBucketType):
+        super().__init__(original, type)  # pyright: ignore[reportArgumentType]
+
     def redis_bucket_key(
         self,
         ctx: commands.Context[Bot],
@@ -108,25 +121,46 @@ class Command(commands.Command):
     _buckets: RedisCooldownMapping
 
     def __init__(
-        self, func, *, category: CommandCategory = CommandCategory.OTHER, **kwargs
+        self,
+        func,
+        *,
+        category: CommandCategory = CommandCategory.OTHER,
+        cooldown_factory: CooldownFactory | None = None,
+        **kwargs,
     ):
         super().__init__(func, **kwargs)
         self.category = category
+
+        try:
+            self._cooldown_factory = cast(
+                CooldownFactory | None, func.__commands_cooldown_factory
+            )
+        except AttributeError:
+            self._cooldown_factory = cooldown_factory
+
         self._buckets = RedisCooldownMapping(
             self._buckets._cooldown, self._buckets._type
         )
 
+    async def _get_buckets(self, ctx: commands.Context[Bot]) -> RedisCooldownMapping:
+        if self._cooldown_factory is not None:
+            cooldown, bucket_type = await self._cooldown_factory(ctx)
+            print(cooldown, bucket_type)
+            return RedisCooldownMapping(cooldown, bucket_type)
+        return self._buckets
+
     async def _async_prepare_cooldowns(self, ctx: commands.Context[Bot]) -> None:
         assert isinstance(ctx.command, Command)
-        if self._buckets.valid:
+        buckets = await self._get_buckets(ctx)
+        if buckets.valid:
             dt = (ctx.message.edited_at or ctx.message.created_at) if ctx.message else discord.utils.snowflake_time(ctx.interaction.id)  # type: ignore
             current = dt.replace(tzinfo=timezone.utc).timestamp()
-            cooldown, retry_after = await self._buckets.redis_update_rate_limit(
-                self._buckets.redis_bucket_key(ctx, self._buckets.get_message(ctx)),
+            cooldown, retry_after = await buckets.redis_update_rate_limit(
+                buckets.redis_bucket_key(ctx, buckets.get_message(ctx)),
                 current,
             )
             if retry_after:
-                raise commands.CommandOnCooldown(cooldown, retry_after, self._buckets.type)  # type: ignore
+                raise commands.CommandOnCooldown(cooldown, retry_after, buckets.type)  # type: ignore
 
     async def _prepare_text(self, ctx: commands.Context[Bot]) -> None:
         ctx.command = self
@@ -184,15 +218,16 @@ class Command(commands.Command):
         raise NotImplementedError("Use async_is_on_cooldown instead.")
 
     async def async_is_on_cooldown(self, ctx: commands.Context[Bot]) -> bool:
-        if not self._buckets.valid:
+        buckets = await self._get_buckets(ctx)
+        if not buckets.valid:
             return False
         dt = (ctx.message.edited_at or ctx.message.created_at) if ctx.message else discord.utils.snowflake_time(ctx.interaction.id)  # type: ignore
         current = dt.replace(tzinfo=timezone.utc).timestamp()
         async with vbu.Redis() as redis:
             return (
-                await self._buckets.redis_get_bucket(
+                await buckets.redis_get_bucket(
                     redis,
-                    self._buckets.redis_bucket_key(ctx, self._buckets.get_message(ctx)),
+                    buckets.redis_bucket_key(ctx, buckets.get_message(ctx)),
                     current,
                 )
             )[0] == 0
@@ -201,20 +236,22 @@ class Command(commands.Command):
         raise NotImplementedError("Use async_reset_cooldown instead.")
 
     async def async_reset_cooldown(self, ctx: commands.Context[Bot]) -> None:
-        if self._buckets.valid:
-            await self._buckets.redis_reset(
-                self._buckets.redis_bucket_key(ctx, self._buckets.get_message(ctx))
+        buckets = await self._get_buckets(ctx)
+        if buckets.valid:
+            await buckets.redis_reset(
+                buckets.redis_bucket_key(ctx, buckets.get_message(ctx))
             )
 
     def get_cooldown_retry_after(self, *_, **_1):
         raise NotImplementedError("Use async_get_cooldown_retry_after instead.")
 
     async def async_get_cooldown_retry_after(self, ctx: commands.Context[Bot]):
-        if self._buckets.valid:
+        buckets = await self._get_buckets(ctx)
+        if buckets.valid:
             dt = (ctx.message.edited_at or ctx.message.created_at) if ctx.message else discord.utils.snowflake_time(ctx.interaction.id)  # type: ignore
             current = dt.replace(tzinfo=timezone.utc).timestamp()
-            return await self._buckets.redis_get_retry_after(
-                self._buckets.redis_bucket_key(ctx, self._buckets.get_message(ctx)),
+            return await buckets.redis_get_retry_after(
+                buckets.redis_bucket_key(ctx, buckets.get_message(ctx)),
                 current,
             )
 
