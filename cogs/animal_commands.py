@@ -62,7 +62,6 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
         payload = await self.fetch_animal(animal)
 
         embed = utils.Embed()
-        print(payload)
         embed.set_image(url=payload["image"])
         embed.title = random.choice(titles)
         embed.description = f"**Fun Fact:** {payload["fact"]}"
