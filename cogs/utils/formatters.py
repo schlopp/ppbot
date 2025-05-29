@@ -279,9 +279,9 @@ def format_amount(
 ) -> str:
     """
     Example:
-        format_amounts('knife', 'knives', 1, full_markdown=True}) -> "a **knife**"
+        format_amount('knife', 'knives', 1, full_markdown=True}) -> "a **knife**"
 
-        format_amounts('knife', 'knives', 2}) -> "**2** knives"
+        format_amount('knife', 'knives', 2}) -> "**2** knives"
     """
 
     if amount == 1:
