@@ -109,7 +109,10 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
         category=utils.CommandCategory.GROWING_PP,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
-    # @commands.cooldown(1, 60 * 60 * 24, commands.BucketType.user)
+    @utils.Command.tiered_cooldown(
+        default=60 * 60 * 24,
+        voter=commands.Cooldown(2, 60 * 60 * 24),
+    )
     @commands.is_slash_command()
     async def daily_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
         """

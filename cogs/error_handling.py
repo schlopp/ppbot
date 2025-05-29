@@ -538,10 +538,12 @@ class ErrorHandler(vbu.Cog):
             logger.error(line)
 
 
-@ErrorHandler.command_error_response(commands.CommandOnCooldown)
+@ErrorHandler.command_error_component_response(
+    commands.CommandOnCooldown, utils.CommandOnCooldown
+)
 def handle_command_error(
-    ctx: vbu.Context, error: commands.CommandOnCooldown
-) -> utils.Embed:
+    ctx: vbu.Context, error: commands.CommandOnCooldown | utils.CommandOnCooldown
+) -> tuple[utils.Embed, discord.ui.MessageComponents | None]:
     embed = ErrorHandler.error_embed_factory(ctx)
     embed.title = random.choice(
         [
@@ -555,29 +557,35 @@ def handle_command_error(
         ]
     )
 
-    if error.cooldown.rate == 1:
-        cooldown = utils.format_time(error.cooldown.per)
+    if isinstance(error, utils.CommandOnCooldown):
+        formatted_tiers = error.format_tiers()
     else:
-        cooldown = "{rate} times per {per}".format(
-            rate=utils.format_int(error.cooldown.rate),
-            per=utils.format_time(error.cooldown.per),
-        )
-
-    if ctx.command is None:
-        cooldown_label = "Cooldown"
-    else:
-        cooldown_label = f"{utils.format_slash_command(ctx.command.name)} cooldown"
+        cooldown = utils.format_cooldown(error.cooldown)
+        formatted_tiers = f"Cooldown: {cooldown}"
 
     embed.description = (
-        "You can use this command again in **{time_left}**"
-        "\n\n{cooldown_label}: `{cooldown}`"
+        "You can use this command again in **{time_left}**" "\n\n{formatted_tiers}"
     ).format(
         time_left=utils.format_time(error.retry_after, max_decimals=1),
-        cooldown_label=cooldown_label,
-        cooldown=cooldown,
+        formatted_tiers=formatted_tiers,
     )
 
-    return embed
+    if isinstance(error, utils.CommandOnCooldown) and error.tier == "default":
+        embed.description += (
+            f"\n\n[**Vote NOW**]({utils.VOTE_URL}) to reduce your cooldown time!"
+        )
+        return embed, discord.ui.MessageComponents(
+            discord.ui.ActionRow(
+                discord.ui.Button(
+                    label="Vote!!!",
+                    style=discord.ButtonStyle.url,
+                    url=utils.VOTE_URL,
+                    emoji="<:ppPog:902894209130967110>",
+                )
+            )
+        )
+
+    return embed, None
 
 
 @ErrorHandler.command_error_response(utils.MissingTool)

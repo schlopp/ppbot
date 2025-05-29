@@ -30,7 +30,6 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
             ]
         ),
     )
-    # @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.is_slash_command()
     async def donate_command(
         self,

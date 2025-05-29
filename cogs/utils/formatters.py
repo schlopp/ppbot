@@ -4,6 +4,8 @@ from collections.abc import Iterable
 from datetime import timedelta
 from typing import Any, Literal, overload
 
+from discord.ext import commands
+
 from . import MEME_URL
 
 
@@ -193,6 +195,15 @@ def format_time(
         return f"{', '.join(durations)} and {last_duration}"
 
     return last_duration
+
+
+def format_cooldown(__cooldown: commands.Cooldown, /) -> str:
+    if __cooldown.rate == 1:
+        return format_time(timedelta(seconds=__cooldown.per))
+
+    return (
+        f"{__cooldown.rate} times per {format_time(timedelta(seconds=__cooldown.per))}"
+    )
 
 
 def format_iterable(

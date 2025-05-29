@@ -61,6 +61,7 @@ from .formatters import (
     format_int as format_int,
     format_inches as format_inches,
     format_time as format_time,
+    format_cooldown as format_cooldown,
     format_iterable as format_iterable,
     format_ordinal as format_ordinal,
     format_amount as format_amount,
@@ -90,6 +91,8 @@ from .bot import DatabaseWrapper as DatabaseWrapper, Bot as Bot
 from .command import (
     ExtendBucketType as ExtendBucketType,
     CooldownFactory as CooldownFactory,
+    CooldownTierInfoDict as CooldownTierInfoDict,
+    CommandOnCooldown as CommandOnCooldown,
     RedisCooldownMapping as RedisCooldownMapping,
     CommandCategory as CommandCategory,
     Command as Command,

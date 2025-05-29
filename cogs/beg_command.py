@@ -120,18 +120,16 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
 
         await minigame.start(interaction)
 
-    @staticmethod
-    async def beg_cooldown_factory(ctx: commands.Context[Bot]):
-        return commands.Cooldown(1, 10), commands.BucketType.user
-
     @commands.command(
         "beg",
         utils.Command,
         category=utils.CommandCategory.GROWING_PP,
-        cooldown_factory=beg_cooldown_factory,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
-    # @commands.cooldown(1, 20, commands.BucketType.user)
+    @utils.Command.tiered_cooldown(
+        default=30,
+        voter=10,
+    )
     @commands.is_slash_command()
     async def beg_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
         """

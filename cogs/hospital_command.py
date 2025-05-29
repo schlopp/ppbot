@@ -5,7 +5,7 @@ from . import utils
 
 
 class HospitalCommandCog(vbu.Cog[utils.Bot]):
-    MIN_SIZE = 50
+    MIN_SIZE = 100
     REWARD_RANGE = range(25, MIN_SIZE + 1)
     SUCCESS_RATE = 0.8
 
@@ -16,7 +16,10 @@ class HospitalCommandCog(vbu.Cog[utils.Bot]):
         category=utils.CommandCategory.GROWING_PP,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
-    @commands.cooldown(1, 60 * 5, commands.BucketType.user)
+    @utils.Command.tiered_cooldown(
+        default=60 * 5,
+        voter=30 * 2,
+    )
     @commands.is_slash_command()
     async def hospital_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
         """
@@ -73,7 +76,7 @@ class HospitalCommandCog(vbu.Cog[utils.Bot]):
                     name="FAILED",
                     value=(
                         "The operation failed."
-                        f" Your pp snapped and you lost {pp.format_growth()} 😭"
+                        f" Your pp snapped and you {pp.format_growth(prefixed=True)} 😭"
                         f" It is now {pp.format_growth(pp.size.value)}."
                     ),
                 )
