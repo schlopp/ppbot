@@ -2,12 +2,12 @@ from __future__ import annotations
 import time
 from datetime import timezone
 from enum import Enum
-from typing import Any, cast, Callable, Coroutine
+from typing import Any, cast, Callable, Coroutine, Self, TypedDict
 
 import discord
 from discord.ext import commands, vbu
 
-from . import Bot
+from . import Bot, format_cooldown, VOTE_URL
 
 
 type ExtendBucketType = commands.BucketType | Callable[
@@ -117,7 +117,66 @@ class CommandCategory(Enum):
     HELP = "help & info"
 
 
+class CooldownTierInfoDict(TypedDict):
+    default: commands.Cooldown
+    voter: commands.Cooldown
+
+
+class CommandOnCooldown(commands.CommandOnCooldown):
+    def __init__(
+        self,
+        cooldown: commands.Cooldown,
+        retry_after: float,
+        type: commands.BucketType,
+        *,
+        tier_info: CooldownTierInfoDict | None = None,
+    ) -> None:
+        super().__init__(cooldown, retry_after, type)
+
+        self.tier_info = tier_info
+
+    @property
+    def tier(self) -> str:
+        if self.tier_info is None:
+            return "default"
+
+        for tier_name, tier_cooldown in self.tier_info.items():
+            assert isinstance(tier_cooldown, commands.Cooldown)
+            if (
+                tier_cooldown.rate == self.cooldown.rate
+                and tier_cooldown.per == self.cooldown.per
+            ):
+                return tier_name
+
+        raise Exception(f"No tier matches cooldown {self.cooldown}")
+
+    def format_tiers(self) -> str:
+        if self.tier_info is None:
+            return f"Cooldown: `{format_cooldown(self.cooldown)}`"
+
+        tiers: list[str] = []
+        for tier_name, tier_cooldown in self.tier_info.items():
+            assert isinstance(tier_cooldown, commands.Cooldown)
+
+            if tier_name == "voter":
+                tier_name = f"[**{tier_name}**]({VOTE_URL})"
+
+            tier = f"{tier_name} cooldown: `{format_cooldown(tier_cooldown)}`"
+
+            if (
+                tier_cooldown.rate == self.cooldown.rate
+                and tier_cooldown.per == self.cooldown.per
+            ):
+                tier += " (This is you!)"
+
+            tiers.append(tier)
+
+        return "\n".join(tiers)
+
+
 class Command(commands.Command):
+    category: CommandCategory
+    _cooldown_factory: CooldownFactory | None
     _buckets: RedisCooldownMapping
 
     def __init__(
@@ -126,6 +185,7 @@ class Command(commands.Command):
         *,
         category: CommandCategory = CommandCategory.OTHER,
         cooldown_factory: CooldownFactory | None = None,
+        cooldown_tier_info: CooldownTierInfoDict | None = None,
         **kwargs,
     ):
         super().__init__(func, **kwargs)
@@ -133,19 +193,39 @@ class Command(commands.Command):
 
         try:
             self._cooldown_factory = cast(
-                CooldownFactory | None, func.__commands_cooldown_factory
+                CooldownFactory | None, func.__commands_cooldown_factory__
             )
         except AttributeError:
             self._cooldown_factory = cooldown_factory
+
+        try:
+            self._cooldown_tier_info = cast(
+                CooldownTierInfoDict | None, func.__commands_cooldown_tier_info__
+            )
+        except AttributeError:
+            self._cooldown_tier_info = cooldown_tier_info
 
         self._buckets = RedisCooldownMapping(
             self._buckets._cooldown, self._buckets._type
         )
 
+    def _ensure_assignment_on_copy[CommandT: commands.Command](
+        self: Self, other: CommandT
+    ) -> CommandT:
+        super()._ensure_assignment_on_copy(other)
+
+        try:
+            other._cooldown_factory = (  # pyright: ignore[reportAttributeAccessIssue]
+                self._cooldown_factory
+            )
+        except AttributeError:
+            pass
+
+        return other
+
     async def _get_buckets(self, ctx: commands.Context[Bot]) -> RedisCooldownMapping:
         if self._cooldown_factory is not None:
             cooldown, bucket_type = await self._cooldown_factory(ctx)
-            print(cooldown, bucket_type)
             return RedisCooldownMapping(cooldown, bucket_type)
         return self._buckets
 
@@ -160,7 +240,7 @@ class Command(commands.Command):
                 current,
             )
             if retry_after:
-                raise commands.CommandOnCooldown(cooldown, retry_after, buckets.type)  # type: ignore
+                raise CommandOnCooldown(cooldown, retry_after, buckets.type, tier_info=self._cooldown_tier_info)  # type: ignore
 
     async def _prepare_text(self, ctx: commands.Context[Bot]) -> None:
         ctx.command = self
@@ -256,3 +336,64 @@ class Command(commands.Command):
             )
 
         return 0.0
+
+    @classmethod
+    def cooldown_factory[T](
+        cls: type[Self],
+        cooldown_factory: CooldownFactory,
+        *,
+        cooldown_tier_info: CooldownTierInfoDict | None = None,
+    ) -> Callable[[T], T]:
+        def decorator(
+            func: Self | Callable[..., Coroutine[Any, Any, Any]],
+        ) -> Self | Callable[..., Coroutine[Any, Any, Any]]:
+            if isinstance(func, cls):
+                func._cooldown_factory = cooldown_factory
+                func._cooldown_tier_info = cooldown_tier_info
+            else:
+                func.__commands_cooldown_factory__ = (  # pyright: ignore[reportAttributeAccessIssue, reportFunctionMemberAccess]
+                    cooldown_factory
+                )
+                func.__commands_cooldown_tier_info__ = (  # pyright: ignore[reportAttributeAccessIssue, reportFunctionMemberAccess]
+                    cooldown_tier_info
+                )
+            return func
+
+        return decorator  # type: ignore
+
+    @classmethod
+    def tiered_cooldown(
+        cls: type[Self],
+        *,
+        default: commands.Cooldown | int,
+        voter: commands.Cooldown | int,
+    ):
+
+        if isinstance(default, commands.Cooldown):
+            default = default
+        else:
+            default = commands.Cooldown(1, default)
+
+        if isinstance(voter, commands.Cooldown):
+            voter = voter
+        else:
+            voter = commands.Cooldown(1, voter)
+
+        cooldown_tier_info: CooldownTierInfoDict = {
+            "default": default,
+            "voter": voter,
+        }
+
+        async def cooldown_factory(
+            ctx: commands.Context[Bot],
+        ) -> tuple[commands.Cooldown, ExtendBucketType]:
+            if await vbu.user_has_voted(ctx.author.id):
+                tier = voter
+            else:
+                tier = default
+
+            return tier, commands.BucketType.user
+
+        return cls.cooldown_factory(
+            cooldown_factory, cooldown_tier_info=cooldown_tier_info
+        )
