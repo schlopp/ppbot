@@ -1,11 +1,14 @@
+import asyncio
 import random
 
+import discord
 from discord.ext import commands, vbu
 
 from . import utils
 
 
 class HelpCommandsCog(vbu.Cog[utils.Bot]):
+    INVITE_URL = "https://discord.com/api/oauth2/authorize?client_id=735147633076863027&permissions=517543939136&scope=bot%20applications.commands"
     QUOTES = [
         "wtf is this bot",
         "i love my wife",
@@ -85,6 +88,72 @@ class HelpCommandsCog(vbu.Cog[utils.Bot]):
                 await ctx.interaction.followup.send(
                     embed=self.generate_new_user_embed(), ephemeral=True
                 )
+
+    @commands.command(
+        "invite",
+        utils.Command,
+        category=utils.CommandCategory.HELP,
+        application_command_meta=commands.ApplicationCommandMeta(),
+    )
+    @commands.is_slash_command()
+    async def invite_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
+        """
+        Invite pp bot to your server!! NOW!!!!!!
+        """
+
+        embed = utils.Embed(color=utils.PINK)
+        embed.description = (
+            f"**INVITE ME !!! [PLEASE!!!!!!!!!!!]({self.INVITE_URL})"
+            " I WANNA BE IN YOUR SERVER!!!!**"
+        )
+
+        action_row = discord.ui.ActionRow(
+            discord.ui.Button(
+                label="Invite me!!!",
+                emoji="<:ppMalding:902894208795435031>",
+                style=discord.ButtonStyle.url,
+                url=self.INVITE_URL,
+            )
+        )
+
+        components = discord.ui.MessageComponents(action_row)
+
+        await ctx.interaction.response.send_message(
+            embed=embed,
+            components=components,
+        )
+
+        await asyncio.sleep(2)
+
+        action_row.add_component(
+            discord.ui.Button(
+                label="Invite me (evil version)",
+                emoji="<:ppevil:871396299830861884>",
+                style=discord.ButtonStyle.url,
+                url=self.INVITE_URL,
+            )
+        )
+
+        try:
+            await ctx.interaction.edit_original_message(components=components)
+        except discord.HTTPException:
+            pass
+
+        await asyncio.sleep(5)
+
+        action_row.add_component(
+            discord.ui.Button(
+                label="Invite me (SUPER evil version)",
+                emoji="<:ppevil:871396299830861884>",
+                style=discord.ButtonStyle.url,
+                url=self.INVITE_URL,
+            )
+        )
+
+        try:
+            await ctx.interaction.edit_original_message(components=components)
+        except discord.HTTPException:
+            pass
 
 
 async def setup(bot: utils.Bot):
