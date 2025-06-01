@@ -201,9 +201,11 @@ def format_cooldown(__cooldown: commands.Cooldown, /) -> str:
     if __cooldown.rate == 1:
         return format_time(timedelta(seconds=__cooldown.per))
 
-    return (
-        f"{__cooldown.rate} times per {format_time(timedelta(seconds=__cooldown.per))}"
-    )
+    per = format_time(timedelta(seconds=__cooldown.per))
+    if per.startswith("1 "):
+        per = per[2:]
+
+    return f"{__cooldown.rate} times per {per}"
 
 
 def format_iterable(

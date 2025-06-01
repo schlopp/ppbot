@@ -16,8 +16,10 @@ CREATE TABLE IF NOT EXISTS pps (
     pp_multiplier BIGINT NOT NULL DEFAULT 1,
     pp_size BIGINT NOT NULL DEFAULT 0,
     pp_name TEXT NOT NULL DEFAULT 'Unnamed Pp',
-    digging_depth INTEGER NOT NULL DEFAULT 0
+    digging_depth INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT timezone('UTC', now())
 );
+-- ALTER TABLE pps ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT timezone('UTC', now());
 
 
 CREATE TABLE IF NOT EXISTS inventories (
@@ -31,14 +33,14 @@ CREATE TABLE IF NOT EXISTS inventories (
 CREATE TABLE IF NOT EXISTS streaks (
     user_id BIGINT PRIMARY KEY,
     daily_streak SMALLINT NOT NULL DEFAULT 0,
-    last_daily TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    last_daily TIMESTAMP NOT NULL DEFAULT timezone('UTC', now())
 );
 
 
 CREATE TABLE IF NOT EXISTS donations (
     recipiant_id BIGINT NOT NULL,
     donor_id BIGINT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT timezone('UTC', now()),
     amount INTEGER NOT NULL DEFAULT 0
 );
 

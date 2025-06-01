@@ -78,7 +78,7 @@ class Donation(DatabaseWrapperObject):
             SELECT sum(amount) AS total_amount
             FROM {cls._table}
             WHERE recipiant_id = $1
-            AND created_at > CURRENT_TIMESTAMP - INTERVAL '24 hours'
+            AND created_at > timezone('UTC', now()) - INTERVAL '24 hours'
             """,
             user_id,
             timeout=timeout,

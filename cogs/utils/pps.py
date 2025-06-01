@@ -1,6 +1,7 @@
 import asyncio
 import enum
 import math
+from datetime import datetime, timedelta, UTC
 from decimal import Decimal
 from typing import Self, Literal
 
@@ -50,7 +51,7 @@ class DatabaseTimeout(commands.CheckFailure):
 
 
 class Pp(DatabaseWrapperObject):
-    __slots__ = ("user_id", "multiplier", "size", "name", "digging_depth")
+    __slots__ = ("user_id", "multiplier", "size", "name", "digging_depth", "created_at")
     _repr_attributes = __slots__
     _table = "pps"
     _columns = {
@@ -59,19 +60,31 @@ class Pp(DatabaseWrapperObject):
         "pp_size": "size",
         "pp_name": "name",
         "digging_depth": "digging_depth",
+        "created_at": "created_at",
     }
     _column_attributes = {attribute: column for column, attribute in _columns.items()}
     _identifier_attributes = ("user_id",)
     _trackers = ("multiplier", "size", "name", "digging_depth")
 
     def __init__(
-        self, user_id: int, multiplier: int, size: int, name: str, digging_depth: int
+        self,
+        user_id: int,
+        multiplier: int,
+        size: int,
+        name: str,
+        digging_depth: int,
+        created_at: datetime,
     ) -> None:
         self.user_id = user_id
         self.multiplier = DifferenceTracker(multiplier, column="pp_multiplier")
         self.size = DifferenceTracker(size, column="pp_size")
         self.name = DifferenceTracker(name, column="pp_name")
         self.digging_depth = DifferenceTracker(digging_depth, column="digging_depth")
+        self.created_at = created_at
+
+    @property
+    def age(self) -> timedelta:
+        return datetime.now(UTC).replace(tzinfo=None) - self.created_at
 
     def get_full_multiplier(
         self, *, voted: bool, channel_name: str | None = None
