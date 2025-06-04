@@ -191,3 +191,50 @@ class Pp(DatabaseWrapperObject):
             prefix
             + f"**[{format_int(growth)}]({MEME_URL}){in_between} inch{'' if growth == 1 else 'es'}**"
         )
+
+
+class PpExtras(DatabaseWrapperObject):
+    __slots__ = ("user_id", "is_og")
+    _repr_attributes = __slots__
+    _table = "pps"
+    _columns = {
+        "user_id": "user_id",
+        "is_og": "is_og",
+    }
+    _column_attributes = {attribute: column for column, attribute in _columns.items()}
+    _identifier_attributes = ("user_id",)
+    _trackers = ("is_og",)
+
+    def __init__(
+        self,
+        user_id: int,
+        is_og: bool,
+    ) -> None:
+        self.user_id = user_id
+        self.multiplier = DifferenceTracker(is_og, column="is_og")
+
+
+    @classmethod
+    async def fetch_from_user(
+        cls,
+        connection: asyncpg.Connection,
+        user_id: int,
+        *,
+        edit: bool = False,
+        timeout: float | None = 2,
+    ) -> Self:
+        try:
+            return await cls.fetch(
+                connection,
+                {"user_id": user_id},
+                lock=RowLevelLockMode.FOR_UPDATE if edit else None,
+                timeout=timeout,
+                insert_if_not_found=True
+            )
+        except asyncio.TimeoutError:
+            reason, casino_id = DatabaseTimeoutManager.get_reason(user_id)
+            raise DatabaseTimeout(
+                DatabaseTimeoutManager.get_notification(user_id)[0],
+                reason=reason,
+                casino_id=casino_id,
+            )

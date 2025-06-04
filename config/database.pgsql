@@ -19,8 +19,11 @@ CREATE TABLE IF NOT EXISTS pps (
     digging_depth INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT timezone('UTC', now())
 );
--- ALTER TABLE pps ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT timezone('UTC', now());
 
+CREATE TABLE IF NOT EXISTS pp_extras (
+    user_id BIGINT PRIMARY KEY,
+    is_og BOOLEAN DEFAULT FALSE
+);
 
 CREATE TABLE IF NOT EXISTS inventories (
     user_id BIGINT,
