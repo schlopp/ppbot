@@ -121,6 +121,7 @@ from .items import (
 from .pps import (
     BoostType as BoostType,
     Pp as Pp,
+    PpExtras as PpExtras,
     DatabaseTimeout as DatabaseTimeout,
 )
 from .paginator import (

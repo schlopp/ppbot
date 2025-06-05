@@ -213,7 +213,6 @@ class PpExtras(DatabaseWrapperObject):
         self.user_id = user_id
         self.multiplier = DifferenceTracker(is_og, column="is_og")
 
-
     @classmethod
     async def fetch_from_user(
         cls,
@@ -229,7 +228,7 @@ class PpExtras(DatabaseWrapperObject):
                 {"user_id": user_id},
                 lock=RowLevelLockMode.FOR_UPDATE if edit else None,
                 timeout=timeout,
-                insert_if_not_found=True
+                insert_if_not_found=True,
             )
         except asyncio.TimeoutError:
             reason, casino_id = DatabaseTimeoutManager.get_reason(user_id)

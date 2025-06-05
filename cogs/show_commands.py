@@ -44,6 +44,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         self,
         member: discord.Member | discord.User,
         pp: utils.Pp,
+        pp_extras: utils.PpExtras,
         streaks: utils.Streaks,
         *,
         is_author: bool,
@@ -99,6 +100,11 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         )
 
         other_stats: list[str] = []
+
+        if pp_extras.is_og:
+            other_stats.append("You're an OG pp bot player")
+        else:
+            other_stats.append(f"You've been playing for {utils.format_time(pp.age)}")
 
         if pp.digging_depth.value > 0:
             other_stats.append(
@@ -277,6 +283,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         interaction_id: str,
         components: discord.ui.MessageComponents,
         pp: utils.Pp | None = None,
+        pp_extras: utils.PpExtras | None = None,
         streaks: utils.Streaks | None = None,
         inventory: list[utils.InventoryItem] | None = None,
     ) -> None:
@@ -312,7 +319,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                     current_page_id="INVENTORY"
                 )
             elif action == "SHOW":
-                if pp is None or streaks is None:
+                if pp is None or pp_extras is None or streaks is None:
                     async with utils.DatabaseWrapper() as db:
                         if pp is None:
                             try:
@@ -323,13 +330,17 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                                 raise utils.PpMissing(
                                     f"{member.mention} ain't got a pp :(", user=member
                                 )
+                        if pp_extras is None:
+                            pp_extras = await utils.PpExtras.fetch_from_user(
+                                db.conn, member.id
+                            )
                         if streaks is None:
                             streaks = await utils.Streaks.fetch_from_user(
                                 db.conn, member.id
                             )
 
                 embed = await self._show_embed_factory(
-                    member, pp, streaks, is_author=ctx.author == member
+                    member, pp, pp_extras, streaks, is_author=ctx.author == member
                 )
                 interaction_id, components = self._component_factory(
                     current_page_id="SHOW"
@@ -385,10 +396,11 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                 raise utils.PpMissing(
                     f"{member.mention} ain't got a pp :(", user=member
                 )
+            pp_extras = await utils.PpExtras.fetch_from_user(db.conn, member.id)
             streaks = await utils.Streaks.fetch_from_user(db.conn, member.id)
 
         embed = await self._show_embed_factory(
-            member, pp, streaks, is_author=ctx.author == member
+            member, pp, pp_extras, streaks, is_author=ctx.author == member
         )
 
         interaction_id, components = self._component_factory(current_page_id="SHOW")
