@@ -196,7 +196,7 @@ class Pp(DatabaseWrapperObject):
 class PpExtras(DatabaseWrapperObject):
     __slots__ = ("user_id", "is_og")
     _repr_attributes = __slots__
-    _table = "pps"
+    _table = "pp_extras"
     _columns = {
         "user_id": "user_id",
         "is_og": "is_og",
@@ -211,7 +211,7 @@ class PpExtras(DatabaseWrapperObject):
         is_og: bool,
     ) -> None:
         self.user_id = user_id
-        self.multiplier = DifferenceTracker(is_og, column="is_og")
+        self.is_og = DifferenceTracker(is_og, column="is_og")
 
     @classmethod
     async def fetch_from_user(
