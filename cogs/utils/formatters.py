@@ -172,7 +172,7 @@ def format_time(
             and biggest_unit == smallest_unit
             and (seconds * 10**max_decimals) // time_unit_value
         ):
-            suffix = "s"
+            suffix = "s" if not adjective else ""
             durations.append(
                 f"{seconds / time_unit_value:,.{max_decimals}f} {time_unit}{suffix}"
             )
