@@ -269,7 +269,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
             embed.add_field(
                 name=category,
                 value="\n".join(
-                    f"{tool.associated_command_link} (from **{tool.name}**)"
+                    f"{tool.associated_command_link} (requires **{tool.name}**)"
                     + em_space_character * 2
                     + zero_width_character
                     for tool in tools
