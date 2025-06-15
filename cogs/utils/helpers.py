@@ -109,6 +109,7 @@ class Embed(discord.Embed):
         "💸 **SPECIAL DEAL!** boosting [the pp bot discord server](https://discord.gg/ppbot) now gives you a **100x multiplier!**",
         "[Voting gives you a **4x boost** and other perks!](https://top.gg/bot/735147633076863027/vote)",
         "[Voting reduces your cooldowns!](https://top.gg/bot/735147633076863027/vote)",
+        "When you're in a channel named `pp-bot` you get a **bonus multiplier!**",
     ]
 
     def __init__(self, *args, color=BLUE, **kwargs) -> None:
