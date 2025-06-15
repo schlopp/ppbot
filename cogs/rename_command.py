@@ -18,7 +18,7 @@ class RenameCommandCog(vbu.Cog[utils.Bot]):
                 discord.ApplicationCommandOption(
                     name="name",
                     type=discord.ApplicationCommandOptionType.string,
-                    description="Your new name",
+                    description="Give your pp a brand new name",
                 )
             ]
         ),
