@@ -7,23 +7,23 @@ from discord.ext import commands, vbu
 class CommandHandlerCog(vbu.Cog):
     EMBED_DESCRIPTION = textwrap.dedent(
         """
-    # The largest update in pp bot history is coming...
+        # The largest update in pp bot history is coming...
 
-    In a few hours, the biggest pp bot update **ever** will be released.
+        In a few hours, the biggest pp bot update **ever** will be released.
 
-    - All commands will **run faster** and **look better**
-    - All commands have been reworked to be **user-friendly**
-    - **BRAND NEW** `/casino`
-    - **BRAND NEW MINIGAMES** FOR `/beg` `/fish` `/hunt`
-    - And **SO MUCH MORE**
+        - All commands will **run faster** and **look better**
+        - All commands have been reworked to be **user-friendly**
+        - **BRAND NEW** `/casino`
+        - **BRAND NEW MINIGAMES** FOR `/beg` `/fish` `/hunt`
+        - And **SO MUCH MORE**
 
-    ‎ 
-    [**Join our Discord**](https://discord.gg/ppbot) and be the first to know when the update launches!!
+        ‎ 
+        [**Join our Discord**](https://discord.gg/ppbot) and be the first to know when the update launches!!
 
-    -# Thank you all so much for the support I've received over the last few years. I haven't updated pp bot in years but from now on updates will be regular and on a monthly basis. - schlöpp
+        -# Thank you all so much for the support I've received over the last few years. I haven't updated pp bot in years but from now on updates will be regular and on a monthly basis. - schlöpp
 
-    [**TRIPLE MULTIPLIER EVENT AND HUGE GIVEAWAY**](https://discord.gg) **TO CELEBRATE THE NEW UPDATE!**
-    """.strip(
+        [**TRIPLE MULTIPLIER EVENT AND HUGE GIVEAWAY**](https://discord.gg) **TO CELEBRATE THE NEW UPDATE!**
+        """.strip(
             "\n"
         )
     )

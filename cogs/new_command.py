@@ -55,9 +55,7 @@ class NewCommandCog(vbu.Cog[utils.Bot]):
                 " these pills increase your multiplier,"
                 " which makes you get more inches when using commands :)"
                 "\n\n"
-                "eventually you'll be able to buy some items that unlock new pp-growing commands."
-                f" check {utils.format_slash_command('unlocked-commands')}"
-                " to see what items unlock which commands"
+                f"check out the size of your pp and other stats with {utils.format_slash_command("show")}!!!"
             )
             await ctx.interaction.followup.send(embed=embed, ephemeral=True)
 

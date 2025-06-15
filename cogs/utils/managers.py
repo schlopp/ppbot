@@ -175,32 +175,3 @@ async def wait_for_component_interaction(
 
     found_action = component_interaction.custom_id.split("_", 1)[1]
     return component_interaction, found_action
-
-
-class SlashCommandMappingManager:
-    slash_command_ids: dict[str, int] = {}
-
-    @classmethod
-    async def load(cls, bot: Bot) -> None:
-        app_commands = await bot.fetch_global_application_commands()
-        cls.slash_command_ids.clear()
-
-        for app_command in app_commands:
-            if app_command.type != discord.ApplicationCommandType.chat_input:
-                continue
-
-            assert app_command.id is not None
-            cls.slash_command_ids[app_command.name] = app_command.id
-
-    @classmethod
-    def format_slash_command(cls, command_name: str) -> str:
-        command_base = command_name.split()[0]
-
-        try:
-            return f"</{command_name}:{cls.slash_command_ids[command_base]}>"
-        except KeyError:
-            return f"/{command_name}"
-
-
-def format_slash_command(command_name: str) -> str:
-    return SlashCommandMappingManager.format_slash_command(command_name)

@@ -8,7 +8,7 @@ from typing import Generic, TypeVar, Any, Literal, overload, cast, Self
 import asyncpg
 import discord
 
-from . import RED, BLUE
+from . import RED, BLUE, Bot
 
 
 _T_co = TypeVar("_T_co", covariant=True)
@@ -66,8 +66,50 @@ def find_nearest_number(
     return nearest_number, -1
 
 
+# Located outside of .managers as .Embed is dependant on it
+class SlashCommandMappingManager:
+    slash_command_ids: dict[str, int] = {}
+
+    @classmethod
+    async def load(cls, bot: Bot) -> None:
+        app_commands = await bot.fetch_global_application_commands()
+        cls.slash_command_ids.clear()
+
+        for app_command in app_commands:
+            if app_command.type != discord.ApplicationCommandType.chat_input:
+                continue
+
+            assert app_command.id is not None
+            cls.slash_command_ids[app_command.name] = app_command.id
+
+    @classmethod
+    def format_slash_command(cls, command_name: str) -> str:
+        command_base = command_name.split()[0]
+
+        try:
+            return f"</{command_name}:{cls.slash_command_ids[command_base]}>"
+        except KeyError:
+            return f"/{command_name}"
+
+
+def format_slash_command(command_name: str) -> str:
+    return SlashCommandMappingManager.format_slash_command(command_name)
+
+
 class Embed(discord.Embed):
-    TIPS = ["There is no tip, take off your clothes."]
+    TIPS = [
+        "There is no tip, take off your clothes.",
+        "If you say pp 666 times at 3:00 AM, the pp monster appears",
+        "Tools in the shop unlock commands!",
+        "Multipliers in the shop increase the amount of inches you get!",
+        "There's a small chance of an event happening upon using a command!",
+        f"You can see the leaderboard by using the {format_slash_command("leaderboard")} command!",
+        "Join the official [**pp bot server!**](https://discord.gg/ppbot)",
+        "Click on my profile to add pp bot to your server!",
+        "💸 **SPECIAL DEAL!** boosting [the pp bot discord server](https://discord.gg/ppbot) now gives you a **100x multiplier!**",
+        "[Voting gives you a **4x boost** and other perks!](https://top.gg/bot/735147633076863027/vote)",
+        "[Voting reduces your cooldowns!](https://top.gg/bot/735147633076863027/vote)",
+    ]
 
     def __init__(self, *args, color=BLUE, **kwargs) -> None:
         super().__init__(*args, color=color, **kwargs)
