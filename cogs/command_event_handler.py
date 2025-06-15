@@ -29,6 +29,19 @@ class CommandEventHandlerCog(vbu.Cog):
         await ctx.interaction.followup.send(embed=embed, ephemeral=True)
 
     @vbu.Cog.listener("on_command")
+    async def log_command(
+        self, ctx: commands.Context[vbu.Bot] | commands.SlashContext[vbu.Bot]
+    ):
+        if ctx.command is None:
+            return
+
+        async with (
+            utils.DatabaseWrapper() as db,
+            db.conn.transaction(),
+        ):
+            await utils.CommandLog.increment(db.conn, ctx.command.name)
+
+    @vbu.Cog.listener("on_command")
     async def give_relevant_tips(
         self, ctx: commands.Context[vbu.Bot] | commands.SlashContext[vbu.Bot]
     ):

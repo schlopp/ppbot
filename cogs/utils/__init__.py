@@ -105,6 +105,7 @@ from .managers import (
     DatabaseTimeoutManager as DatabaseTimeoutManager,
     wait_for_component_interaction as wait_for_component_interaction,
 )
+from .command_logs import CommandLog as CommandLog
 from .streaks import Streaks as Streaks
 from .items import (
     UnknownItemError as UnknownItemError,

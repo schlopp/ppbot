@@ -48,6 +48,14 @@ CREATE TABLE IF NOT EXISTS donations (
 );
 
 
+CREATE TABLE IF NOT EXISTS command_logs (
+    command_name TEXT,
+    timeframe TIMESTAMP DEFAULT timezone('UTC', date_trunc('hour', now())),
+    usage INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (command_name, timeframe)
+);
+
+
 -- CREATE TABLE IF NOT EXISTS role_list(
 --     guild_id BIGINT,
 --     role_id BIGINT,
