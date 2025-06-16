@@ -1,4 +1,5 @@
 import random
+from string import ascii_letters, digits
 
 import discord
 from discord.ext import commands, vbu
@@ -8,6 +9,7 @@ from . import utils
 
 class RenameCommandCog(vbu.Cog[utils.Bot]):
     MAX_NAME_LENGTH = 32
+    VALID_CHARACTERS = ascii_letters + digits + "_. "
 
     @commands.command(
         "rename",
@@ -45,6 +47,13 @@ class RenameCommandCog(vbu.Cog[utils.Bot]):
                 raise commands.BadArgument(
                     f"That name is {len(name)} characters long,"
                     f" but the max is {self.MAX_NAME_LENGTH}"
+                )
+
+            if not all(char in self.VALID_CHARACTERS for char in name):
+                raise commands.BadArgument(
+                    "Sorry bro but ur name can only contain uppercase letters `(A-Z)`,"
+                    " lowercase letters `(a-z)`, numbers `(0-9)`, the period `(.)`,"
+                    " the underscore `(_)`, and spaces `( )`"
                 )
 
             if pp.name.value == name:
