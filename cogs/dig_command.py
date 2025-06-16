@@ -286,7 +286,7 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
 
                 embed.description += (
                     "\n\n<:shovel:1258091579843809321> You've dug"
-                    f" **{utils.format_int(pp.digging_depth.value)}** feet deep"
+                    f" **{utils.format_int(pp.digging_depth.value)}** feet deep in total"
                 )
 
                 if not new_rewards:
