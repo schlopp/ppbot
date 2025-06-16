@@ -107,7 +107,7 @@ class Embed(discord.Embed):
         "Join the official [**pp bot server!**](https://discord.gg/ppbot)",
         "Click on my profile to add pp bot to your server!",
         "💸 **SPECIAL DEAL!** boosting [the pp bot discord server](https://discord.gg/ppbot) now gives you a **100x multiplier!**",
-        "[Voting gives you a **4x boost** and other perks!](https://top.gg/bot/735147633076863027/vote)",
+        "[Voting gives you a **300% boost** and other perks!](https://top.gg/bot/735147633076863027/vote)",
         "[Voting reduces your cooldowns!](https://top.gg/bot/735147633076863027/vote)",
         "When you're in a channel named `pp-bot` you get a **bonus multiplier!**",
     ]

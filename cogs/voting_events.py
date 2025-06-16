@@ -203,12 +203,13 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
                                 (
                                     "It's been {duration} and we still can't give you your"
                                     " voting gift. {reason}"
-                                    "\nSucks to suck, atleast you get the **{boost_percentage}%"
-                                    " BOOST** :)"
+                                    "\nSucks to suck, atleast you get the [**{boost_percentage}%"
+                                    " BOOST**]({meme_url}) :)"
                                 ).format(
                                     duration=utils.format_time(timeout),
                                     reason=error.reason,
                                     boost_percentage=utils.BoostType.VOTE.percentage,
+                                    meme_url=utils.MEME_URL,
                                 )
                             )
                         except discord.HTTPException as error:
@@ -258,11 +259,12 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
         )
         embed.description = (
             "Here's {reward} as a gift :))"
-            "\nYou're also getting a **{boost_percentage}% BOOST** for the next 12 hours"
-            " until you vote again <:ppHappy:902894208703156257>"
+            "\nYou're also getting a [**{boost_percentage}% BOOST**]({meme_url}) for the"
+            " next 12 hours until you vote again <:ppHappy:902894208703156257>"
         ).format(
             reward=pp.format_growth(),
             boost_percentage=utils.BoostType.VOTE.percentage,
+            meme_url=utils.MEME_URL,
         )
 
         async with vbu.Redis() as redis:
