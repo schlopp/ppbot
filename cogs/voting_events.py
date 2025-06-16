@@ -170,6 +170,7 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
             # they've already commited to WATCHING A MANDATORY
             # 15 SECOND ADVERTISEMENT for nothing. Wtf
             except utils.PpMissing:
+                await transaction.rollback()
                 return
 
             except utils.DatabaseTimeout as error:
@@ -184,8 +185,8 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
                     await dm_channel.send(
                         (
                             "We can't give you your voting gift <:ppMalding:902894208795435031>"
-                            " {reason} We'll try to send your reward again in"
-                            " {duration} <:ppHappy:902894208703156257>"
+                            " {reason} We'll wait another {duration}"
+                            " before we give up <:ppHappy:902894208703156257>"
                         ).format(
                             reason=error.reason,
                             duration=utils.format_time(timeout),

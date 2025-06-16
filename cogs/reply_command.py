@@ -20,6 +20,7 @@ class ReplyCommandCog(vbu.Cog[utils.Bot]):
         ),
     )
     @commands.is_slash_command()
+    @commands.guild_only()
     async def reply_command(
         self, ctx: commands.SlashContext[utils.Bot], content: str
     ) -> None:
@@ -27,8 +28,7 @@ class ReplyCommandCog(vbu.Cog[utils.Bot]):
         Only used to reply to pp bot events/minigames!
         """
 
-        if not isinstance(ctx.channel, discord.TextChannel):
-            return
+        assert ctx.channel is not None
 
         try:
             future, check = utils.ReplyManager.active_listeners[ctx.channel]

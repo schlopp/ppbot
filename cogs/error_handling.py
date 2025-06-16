@@ -181,7 +181,9 @@ class ErrorHandler(vbu.Cog):
         ),
         (
             commands.NoPrivateMessage,
-            lambda ctx, error: ("This command can't be run in DMs."),
+            lambda ctx, error: (
+                "Bro don't u have friends? This command can't be run in DMs."
+            ),
         ),
         (
             commands.PrivateMessageOnly,

@@ -19,7 +19,7 @@ class ReplyManager:
     DEFAULT_TIMEOUT = 30
 
     active_listeners: dict[
-        discord.TextChannel,
+        discord.interactions.InteractionChannel | discord.Member | discord.User,
         tuple[
             asyncio.Future[tuple[commands.SlashContext[Bot], str]],
             Callable[[commands.SlashContext[Bot], str], bool],
@@ -29,7 +29,9 @@ class ReplyManager:
     @classmethod
     async def wait_for_reply(
         cls,
-        channel: discord.TextChannel,
+        channel: (
+            discord.interactions.InteractionChannel | discord.Member | discord.User
+        ),
         *,
         check: Callable[
             [commands.SlashContext[Bot], str], bool

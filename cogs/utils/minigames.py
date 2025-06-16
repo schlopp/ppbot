@@ -137,7 +137,8 @@ class ReverseMinigame(Minigame[ReverseContextDict]):
         embed.title = "MINIGAME - REVERSE"
 
         try:
-            assert isinstance(interaction.channel, discord.TextChannel)
+            # assert isinstance(interaction.channel, discord.TextChannel)
+            assert interaction.channel is not None
             reply_context, reply = await ReplyManager.wait_for_reply(
                 interaction.channel, check=lambda ctx, _: ctx.author == interaction.user
             )
@@ -214,7 +215,8 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
         embed.title = "MINIGAME - REPEAT"
 
         try:
-            assert isinstance(interaction.channel, discord.TextChannel)
+            # assert isinstance(interaction.channel, discord.TextChannel)
+            assert interaction.channel is not None
             reply_context, reply = await ReplyManager.wait_for_reply(
                 interaction.channel, check=lambda ctx, _: ctx.author == interaction.user
             )
@@ -304,7 +306,8 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
 
         await interaction.response.send_message(embed=embed)
 
-        assert isinstance(interaction.channel, discord.TextChannel)
+        # assert isinstance(interaction.channel, discord.TextChannel)
+        assert interaction.channel is not None
 
         embed = Embed()
         embed.title = "MINIGAME - FILL IN THE BLANK"
