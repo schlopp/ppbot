@@ -162,6 +162,16 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
                 pp = await utils.Pp.fetch_from_user(
                     db.conn, user.id, edit=True, timeout=timeout
                 )
+
+            # i can't believe i actually ran into this edge case
+            # like seriously WHO IS VOTING FOR A BOT THEY HAVEN'T
+            # EVEN USED ONCE? it doesn't make fucking sense. I
+            # shouldn't have to check if an account exists when
+            # they've already commited to WATCHING A MANDATORY
+            # 15 SECOND ADVERTISEMENT for nothing. Wtf
+            except utils.PpMissing:
+                return
+
             except utils.DatabaseTimeout as error:
                 await transaction.rollback()
                 transaction = db.conn.transaction()
