@@ -20,7 +20,6 @@ class ReplyCommandCog(vbu.Cog[utils.Bot]):
         ),
     )
     @commands.is_slash_command()
-    @commands.guild_only()
     async def reply_command(
         self, ctx: commands.SlashContext[utils.Bot], content: str
     ) -> None:
