@@ -56,13 +56,13 @@ class CommandEventHandlerCog(vbu.Cog):
             except utils.DatabaseTimeout:
                 return
 
-            if utils.ChangelogManager.is_old_version(
+            if not utils.ChangelogManager.is_old_version(
                 pp_extras.last_played_version.value
             ):
-                pp_extras.last_played_version.value = (
-                    utils.ChangelogManager.latest_version
-                )
-                await pp_extras.update(db.conn)
+                return
+
+            pp_extras.last_played_version.value = utils.ChangelogManager.latest_version
+            await pp_extras.update(db.conn)
 
         embed = utils.Embed(color=utils.PINK)
         latest_version = utils.ChangelogManager.latest_version
