@@ -44,14 +44,14 @@ class DepthRewardType(enum.Enum):
         "treasure chest", "treasure chests", "treasure chest!", (10, 30), 20
     )
     AWESOME_TREASURE_CHEST = DepthReward(
-        "SUPER MEGA AWESOME TREASURE CHEST",
+        "A SUPER MEGA AWESOME TREASURE CHEST",
         "SUPER MEGA AWESOME TREASURE CHESTS",
         "SUPER MEGA AWESOME TREASURE CHEST!!",
         (30, 60),
         45,
     )
     GIFT_FROM_THE_PP_GODS = DepthReward(
-        "<:ppEvil:902894209160347708> gift from the pp gods <:ppEvil:902894209160347708>",
+        "<:ppEvil:902894209160347708> a gift from the pp gods <:ppEvil:902894209160347708>",
         "<:ppEvil:902894209160347708> gifts from the pp gods <:ppEvil:902894209160347708>",
         "gifts from the pp gods",
         (60, 90),

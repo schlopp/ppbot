@@ -31,7 +31,7 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
         self,
         user: discord.User | discord.Member,
         *,
-        bot_down: bool = False,
+        late: bool = False,
     ) -> None:
         self.logger.info(f"Sending reminder to {user} ({user.id})")
         dm_channel = user.dm_channel or await user.create_dm()
@@ -52,7 +52,7 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
             f" voting boost back!"
         )
 
-        if bot_down:
+        if late:
             embed.set_footer(
                 text="This notification is late because the bot was down earlier :("
             )
@@ -80,7 +80,7 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
             async with vbu.Redis() as redis:
                 await redis.delete(f"reminders:voting:{user.id}")
 
-            await self._send_reminder(user, bot_down=bot_down)
+            await self._send_reminder(user, late=late)
 
         self.bot.loop.create_task(reminder())
 
