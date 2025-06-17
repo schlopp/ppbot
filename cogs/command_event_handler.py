@@ -62,6 +62,15 @@ class CommandEventHandlerCog(vbu.Cog):
                 pp_extras.last_played_version.value = (
                     utils.ChangelogManager.latest_version
                 )
+                await pp_extras.update(db.conn)
+
+        embed = utils.Embed(color=utils.PINK)
+        latest_version = utils.ChangelogManager.latest_version
+        version_changelog = utils.ChangelogManager.changelog[latest_version]
+
+        embed.set_author(name=f"NEW PP BOT UPDATE - V{latest_version}")
+        embed.title = version_changelog["title"]
+        embed.description = version_changelog["description"]
 
     @vbu.Cog.listener("on_command")
     async def give_relevant_tips(
