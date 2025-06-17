@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS pps (
 CREATE TABLE IF NOT EXISTS pp_extras (
     user_id BIGINT PRIMARY KEY,
     is_og BOOLEAN DEFAULT FALSE,
-    last_played_version TExT,
+    last_played_version TEXT
 );
 
 CREATE TABLE IF NOT EXISTS inventories (
