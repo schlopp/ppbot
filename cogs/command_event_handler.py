@@ -72,6 +72,19 @@ class CommandEventHandlerCog(vbu.Cog):
         embed.title = version_changelog["title"]
         embed.description = version_changelog["description"]
 
+        tries = 0
+        while True:
+            if ctx.interaction.response.is_done():
+                break
+
+            tries += 1
+            if tries == 3:
+                return
+
+            await asyncio.sleep(1)
+
+        await ctx.interaction.followup.send(embed=embed, ephemeral=True)
+
     @vbu.Cog.listener("on_command")
     async def give_relevant_tips(
         self, ctx: commands.Context[vbu.Bot] | commands.SlashContext[vbu.Bot]
