@@ -1,9 +1,12 @@
 from __future__ import annotations
 import asyncio
+import logging
 import random
 from collections.abc import Callable
+from typing import TypedDict
 
 import discord
+import toml
 from discord.ext import commands
 
 from . import MEME_URL, Bot, Object
@@ -177,3 +180,35 @@ async def wait_for_component_interaction(
 
     found_action = component_interaction.custom_id.split("_", 1)[1]
     return component_interaction, found_action
+
+
+class VersionChangelogDict(TypedDict):
+    title: str
+    description: str
+
+
+class ChangelogManager:
+    CHANGELOG_PATH = "config/changelog.toml"
+    latest_version: str = ""
+    changelog: dict[str, VersionChangelogDict] = {}
+    _logger = logging.getLogger("vbu.bot.cog.utils.ChangelogManager")
+
+    @classmethod
+    def is_old_version(cls, __version: str, /) -> bool:
+        version = tuple(int(x) for x in __version.split("."))
+        current_version = tuple(int(x) for x in cls.latest_version.split("."))
+
+        # Do this because (2,0) > (2,) and such cases
+        max_segments = max(len(version), len(current_version))
+        version += (0,) * (max_segments - len(version))
+        current_version += (0,) * (max_segments - len(current_version))
+
+        return current_version > version
+
+    @classmethod
+    def load(cls) -> None:
+        changelog_data = toml.load(cls.CHANGELOG_PATH)
+        cls.latest_version = changelog_data.pop("latest_version")
+        cls._logger.info(f" * Loaded latest version as {cls.latest_version}")
+        cls.changelog = changelog_data
+        cls._logger.info(f" * Loaded changelogs for {", ".join(cls.changelog)}")

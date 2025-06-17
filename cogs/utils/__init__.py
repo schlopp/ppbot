@@ -104,6 +104,7 @@ from .managers import (
     ReplyManager as ReplyManager,
     DatabaseTimeoutManager as DatabaseTimeoutManager,
     wait_for_component_interaction as wait_for_component_interaction,
+    ChangelogManager as ChangelogManager,
 )
 from .command_logs import CommandLog as CommandLog
 from .streaks import Streaks as Streaks

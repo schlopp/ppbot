@@ -42,6 +42,28 @@ class CommandEventHandlerCog(vbu.Cog):
             await utils.CommandLog.increment(db.conn, ctx.command.name)
 
     @vbu.Cog.listener("on_command")
+    async def give_changelog_updates(
+        self, ctx: commands.Context[vbu.Bot] | commands.SlashContext[vbu.Bot]
+    ):
+        if not isinstance(ctx, commands.SlashContext):
+            return
+
+        async with utils.DatabaseWrapper() as db:
+            try:
+                pp_extras = await utils.PpExtras.fetch_from_user(
+                    db.conn, user_id=ctx.author.id, edit=True
+                )
+            except utils.DatabaseTimeout:
+                return
+
+            if utils.ChangelogManager.is_old_version(
+                pp_extras.last_played_version.value
+            ):
+                pp_extras.last_played_version.value = (
+                    utils.ChangelogManager.latest_version
+                )
+
+    @vbu.Cog.listener("on_command")
     async def give_relevant_tips(
         self, ctx: commands.Context[vbu.Bot] | commands.SlashContext[vbu.Bot]
     ):
@@ -57,7 +79,7 @@ class CommandEventHandlerCog(vbu.Cog):
         async with utils.DatabaseWrapper() as db:
             try:
                 pp = await utils.Pp.fetch_from_user(db.conn, user_id=ctx.author.id)
-            except utils.PpMissing:
+            except (utils.PpMissing, utils.DatabaseTimeout):
                 return
 
         # Do this because interactions can only be responded to once and

@@ -200,18 +200,23 @@ class PpExtras(DatabaseWrapperObject):
     _columns = {
         "user_id": "user_id",
         "is_og": "is_og",
+        "last_played_version": "last_played_version",
     }
     _column_attributes = {attribute: column for column, attribute in _columns.items()}
     _identifier_attributes = ("user_id",)
-    _trackers = ("is_og",)
+    _trackers = ("is_og", "last_played_version")
 
     def __init__(
         self,
         user_id: int,
         is_og: bool,
+        last_played_version: str,
     ) -> None:
         self.user_id = user_id
         self.is_og = DifferenceTracker(is_og, column="is_og")
+        self.last_played_version = DifferenceTracker(
+            last_played_version, column="last_played_version"
+        )
 
     @classmethod
     async def fetch_from_user(

@@ -22,6 +22,9 @@ class LoadingCog(vbu.Cog[utils.Bot]):
         utils.MinigameDialogueManager.load()
         self.logger.info(" * Loading MinigameDialogueManager... success")
 
+        utils.ChangelogManager.load()
+        self.logger.info(" * Loading ChangelogManager... success")
+
     @vbu.Cog.listener("on_ready")
     async def load_async_managers(self) -> None:
         self.logger.info("Loading ASYNC managers...")
