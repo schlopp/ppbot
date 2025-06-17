@@ -194,7 +194,10 @@ class ChangelogManager:
     _logger = logging.getLogger("vbu.bot.cog.utils.ChangelogManager")
 
     @classmethod
-    def is_old_version(cls, __version: str, /) -> bool:
+    def is_old_version(cls, __version: str | None, /) -> bool:
+        if __version is None:
+            return True
+
         version = tuple(int(x) for x in __version.split("."))
         current_version = tuple(int(x) for x in cls.latest_version.split("."))
 

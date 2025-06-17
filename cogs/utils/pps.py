@@ -210,7 +210,7 @@ class PpExtras(DatabaseWrapperObject):
         self,
         user_id: int,
         is_og: bool,
-        last_played_version: str,
+        last_played_version: str | None,
     ) -> None:
         self.user_id = user_id
         self.is_og = DifferenceTracker(is_og, column="is_og")

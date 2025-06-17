@@ -462,7 +462,7 @@ class DifferenceTracker(Object, Generic[_T_co]):
     def difference(self) -> _T_co | None:
         if self.value == self.start_value:
             return None
-        if isinstance(self.value, int):
+        if isinstance(self.value, int) and isinstance(self.start_value, int):
             assert isinstance(self.start_value, int)
             return self.value - self.start_value
         return self.value
