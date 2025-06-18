@@ -156,7 +156,7 @@ class HuntCommandCog(vbu.Cog[utils.Bot]):
 
                 embed.colour = utils.GREEN
                 embed.description = (
-                    f"**{ctx.author.mention}** {option} and for {pp.format_growth()}!"
+                    f"**{ctx.author.mention}** {option} and took {pp.format_growth()}!"
                 )
 
             else:

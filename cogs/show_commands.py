@@ -105,7 +105,8 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
             other_stats.append(f"You're an [**OG pp bot player**]({utils.MEME_URL})")
         else:
             other_stats.append(
-                f"You've been playing for {utils.format_time(pp.age, smallest_unit='day')}"
+                f"{"You've" if is_author else f"{member.mention} has"}"
+                f" been playing for {utils.format_time(pp.age, smallest_unit='day')}"
             )
 
         if pp.digging_depth.value > 0:

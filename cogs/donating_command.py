@@ -9,7 +9,7 @@ from . import utils
 
 
 class DonateCommandCog(vbu.Cog[utils.Bot]):
-    DONATION_LIMIT = 1000
+    DONATION_LIMIT = 100_000_000
 
     @commands.command(
         "donate",
@@ -153,7 +153,7 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                     interaction_id,
                     users=[ctx.author],
                     actions=["DONATE", "CANCEL_DONATION"],
-                    timeout=10,
+                    timeout=20,
                 )
             except asyncio.TimeoutError:
                 try:
