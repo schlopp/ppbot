@@ -9,7 +9,8 @@ from . import utils
 
 class RenameCommandCog(vbu.Cog[utils.Bot]):
     MAX_NAME_LENGTH = 32
-    VALID_CHARACTERS = ascii_letters + digits + "_.-/ "
+    VALID_SPECIAL_CHARACTERS = "_.-/()'\"!"
+    VALID_CHARACTERS = ascii_letters + digits + VALID_SPECIAL_CHARACTERS
 
     @commands.command(
         "rename",
@@ -50,8 +51,8 @@ class RenameCommandCog(vbu.Cog[utils.Bot]):
             if not all(char in self.VALID_CHARACTERS for char in name):
                 raise commands.BadArgument(
                     "Sorry bro but ur name can only contain uppercase letters `(A-Z)`,"
-                    " lowercase letters `(a-z)`, numbers `(0-9)`, the period `(.)`,"
-                    " the underscore `(_)`, the dash `(-)`, the forward slash `(/)` and spaces `( )`"
+                    " lowercase letters `(a-z)`, numbers `(0-9)` and these special characters: "
+                    + " ".join(f"`{char}`" for char in self.VALID_SPECIAL_CHARACTERS)
                 )
 
             name = name.strip("_-")
