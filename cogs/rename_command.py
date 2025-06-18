@@ -48,14 +48,18 @@ class RenameCommandCog(vbu.Cog[utils.Bot]):
                     f" but the max is {self.MAX_NAME_LENGTH}"
                 )
 
+            if name.startswith(tuple("_-")) or name.endswith(tuple("_-")):
+                raise commands.BadArgument(
+                    "Sorry bro but ur name can't start or end with"
+                    " an underscore `(_)` or a dash `(-)`"
+                )
+
             if not all(char in self.VALID_CHARACTERS for char in name):
                 raise commands.BadArgument(
                     "Sorry bro but ur name can only contain uppercase letters `(A-Z)`,"
                     " lowercase letters `(a-z)`, numbers `(0-9)` and these special characters: "
                     + " ".join(f"`{char}`" for char in self.VALID_SPECIAL_CHARACTERS)
                 )
-
-            name = name.strip("_-")
 
             if pp.name.value == name:
                 raise commands.BadArgument("Bro that's literally the same name lmao")
