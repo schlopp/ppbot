@@ -9,7 +9,7 @@ from . import utils
 
 class RenameCommandCog(vbu.Cog[utils.Bot]):
     MAX_NAME_LENGTH = 32
-    VALID_SPECIAL_CHARACTERS = "_.-/()'\"!"
+    VALID_SPECIAL_CHARACTERS = "_.,-|/(){};:'\"!?^&"
     VALID_CHARACTERS = ascii_letters + digits + VALID_SPECIAL_CHARACTERS
 
     @commands.command(
