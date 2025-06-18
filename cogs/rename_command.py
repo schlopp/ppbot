@@ -9,7 +9,7 @@ from . import utils
 
 class RenameCommandCog(vbu.Cog[utils.Bot]):
     MAX_NAME_LENGTH = 32
-    VALID_CHARACTERS = ascii_letters + digits + "_. "
+    VALID_CHARACTERS = ascii_letters + digits + "_.-/ "
 
     @commands.command(
         "rename",
@@ -41,8 +41,6 @@ class RenameCommandCog(vbu.Cog[utils.Bot]):
         ):
             pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
 
-            name = utils.clean(name)
-
             if len(name) > self.MAX_NAME_LENGTH:
                 raise commands.BadArgument(
                     f"That name is {len(name)} characters long,"
@@ -53,8 +51,10 @@ class RenameCommandCog(vbu.Cog[utils.Bot]):
                 raise commands.BadArgument(
                     "Sorry bro but ur name can only contain uppercase letters `(A-Z)`,"
                     " lowercase letters `(a-z)`, numbers `(0-9)`, the period `(.)`,"
-                    " the underscore `(_)`, and spaces `( )`"
+                    " the underscore `(_)`, the dash `(-)`, the forward slash `(/)` and spaces `( )`"
                 )
+
+            name = name.strip("_-")
 
             if pp.name.value == name:
                 raise commands.BadArgument("Bro that's literally the same name lmao")
