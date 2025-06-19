@@ -165,7 +165,7 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
                     random.randint(1, 15), voted=await pp.has_voted()
                 )
                 embed.colour = utils.GREEN
-                embed.description = f"**{donator}** donated {pp.format_growth()} inches to {ctx.author.mention}"
+                embed.description = f"**{donator}** donated {pp.format_growth()} to {ctx.author.mention}"
 
             elif activity == Activity.REJECTION:
                 embed.colour = utils.BLUE

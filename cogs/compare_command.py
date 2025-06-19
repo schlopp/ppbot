@@ -159,11 +159,11 @@ class CompareCommandCog(vbu.Cog[utils.Bot]):
 
         match utils.find_nearest_number(utils.REAL_LIFE_COMPARISONS, difference):
             case nearest_number, -1:
-                comparison_text = f"{utils.format_int(difference - nearest_number)} inches bigger than"
+                comparison_text = f"{utils.format_inches(difference - nearest_number)} bigger than"
             case nearest_number, 0:
                 comparison_text = f"the same size as"
             case nearest_number, _:
-                comparison_text = f"{utils.format_int(nearest_number - difference)} inches smaller than"
+                comparison_text = f"{utils.format_inches(nearest_number - difference)} smaller than"
 
         segments.append(
             (
