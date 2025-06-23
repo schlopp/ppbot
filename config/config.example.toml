@@ -51,6 +51,7 @@ bot_support_role_id = 0  # The ID used to determine whether or not the user is p
 # Data used to send API requests to whatever service. If these are set, vote links will be added via the `/vote` command.
 [bot_listing_api_keys]
     override_bot_id = 0  # Overrides the bot ID in methods such as bot.get_user_topgg_vote, and disables posting data to bot listing sites. Useful for testing on different bot accounts.
+    enable_vote_command = false
     topgg_token = ""  # The token used to post data to top.gg.
     discordbotlist_token = ""  # The token used to post data to discordbotlist.com.
 
