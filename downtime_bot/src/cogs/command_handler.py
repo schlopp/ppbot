@@ -30,6 +30,16 @@ class CommandHandlerCog(vbu.Cog):
     async def respond(
         self, ctx: commands.Context[vbu.Bot] | commands.SlashContext[vbu.Bot]
     ):
+        invoked_with = ctx.invoked_with
+        if invoked_with is not None:
+            self.logger.info(
+                f"{ctx.author.name} stopped by to say hi :) [invoked with {invoked_with}]"
+            )
+        else:
+            self.logger.info(
+                f"{ctx.author.name} stopped by to say hi without a known command :)"
+            )
+
         embed = discord.Embed()
         embed.set_author(name="THE GREAT PP BOT REVAMP")
         embed.description = self.EMBED_DESCRIPTION
