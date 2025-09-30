@@ -7,27 +7,25 @@ from discord.ext import commands, vbu
 class CommandHandlerCog(vbu.Cog):
     EMBED_DESCRIPTION = textwrap.dedent(
         """
-        # The largest update in pp bot history is coming...
+        # [The largest update in pp bot history is coming...](https://discord.gg/ppbot)
 
-        In a few hours, the biggest pp bot update **ever** will be released.
-
+        In a few days, the biggest pp bot update **ever** will be released.
         - All commands will **run faster** and **look better**
         - All commands have been reworked to be **user-friendly**
         - **BRAND NEW** `/casino`
         - **BRAND NEW MINIGAMES** FOR `/beg` `/fish` `/hunt`
         - And **SO MUCH MORE**
 
-        ‎ 
         [**Join our Discord**](https://discord.gg/ppbot) and be the first to know when the update launches!!
 
-        -# Thank you all so much for the support I've received over the last few years. I haven't updated pp bot in years but from now on updates will be regular and on a monthly basis. - schlöpp
+        -# Thank you all so much for the support I've received over the last few years. I haven't updated pp bot in years but from now on updates will be regular and on a monthly basis. - [schlöpp](https://github.com/schlopp)
 
-        [**TRIPLE MULTIPLIER EVENT AND HUGE GIVEAWAY**](https://discord.gg) **TO CELEBRATE THE NEW UPDATE!**
+        <:ppEvil:902894209160347708> [**TRIPLE MULTIPLIER EVENT AND HUGE GIVEAWAY**](https://discord.gg) **TO CELEBRATE THE NEW UPDATE!** <:ppEvil:902894209160347708>
         """.strip(
             "\n"
         )
     )
-    IMAGE_URL = "https://media.discordapp.net/attachments/959818177926275082/1382715249098231920/ppbot_update1.png"
+    # IMAGE_URL = "https://media.discordapp.net/attachments/959818177926275082/1382715249098231920/ppbot_update1.png"
 
     async def respond(
         self, ctx: commands.Context[vbu.Bot] | commands.SlashContext[vbu.Bot]
@@ -39,7 +37,7 @@ class CommandHandlerCog(vbu.Cog):
         await ctx.send(
             "im so sorry but we can't run that command right now :(", embed=embed
         )
-        embed.set_image(url=self.IMAGE_URL)
+        # embed.set_image(url=self.IMAGE_URL)
 
     @vbu.Cog.listener("command")
     async def on_command(
@@ -53,7 +51,6 @@ class CommandHandlerCog(vbu.Cog):
         ctx: commands.Context[vbu.Bot] | commands.SlashContext[vbu.Bot],
         command_error: commands.CommandError,
     ):
-        print(1)
         await self.respond(ctx)
 
 
