@@ -155,6 +155,97 @@ class HelpCommandsCog(vbu.Cog[utils.Bot]):
         except discord.HTTPException:
             pass
 
+    @commands.command(
+        "vote",
+        utils.Command,
+        category=utils.CommandCategory.HELP,
+        application_command_meta=commands.ApplicationCommandMeta(),
+    )
+    @commands.is_slash_command()
+    async def vote_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
+        """
+        Vote and get 4x MULTIPLIER INCREASE!!! (free ofcourse)
+        """
+
+        embed = utils.Embed(color=utils.PINK)
+        embed.description = (
+            f"**VOTE NOW !!! [PLEASE!!!!!!!!!!!]({utils.VOTE_URL})"
+            " I WANNA BE VOTED FOR!!!!**"
+            "\n\n"
+            "Voting is free and gives you:"
+            f"\n- a [**300% multiplier increasse**]({utils.VOTE_URL})"
+            f"\n- [**shorter cooldowns**]({utils.VOTE_URL})"
+            f"\n- {random.choice([
+                "love from your parents",
+                "two packs of Malboro Reds",
+                "a discord kitten",
+                "a girlfriend (real)",
+                "free head whenever u want",
+                "a new therapist",
+                "pp bot bathwater",
+                "5 big booms",
+            ])}"
+        )
+
+        action_row = discord.ui.ActionRow(
+            discord.ui.Button(
+                label="Vote!!!",
+                emoji="<:ppMalding:902894208795435031>",
+                style=discord.ButtonStyle.url,
+                url=utils.VOTE_URL,
+            )
+        )
+
+        components = discord.ui.MessageComponents(action_row)
+
+        await ctx.interaction.response.send_message(
+            embed=embed,
+            components=components,
+        )
+
+        await asyncio.sleep(2)
+
+        action_row.add_component(
+            discord.ui.Button(
+                label="vote (evil version)",
+                emoji="<:ppevil:871396299830861884>",
+                style=discord.ButtonStyle.url,
+                url=utils.VOTE_URL,
+            )
+        )
+
+        try:
+            await ctx.interaction.edit_original_message(components=components)
+        except discord.HTTPException:
+            pass
+
+        await asyncio.sleep(5)
+
+        action_row.add_component(
+            discord.ui.Button(
+                label="vote (SUPER evil version)",
+                emoji="<:ppevil:871396299830861884>",
+                style=discord.ButtonStyle.url,
+                url=utils.VOTE_URL,
+            )
+        )
+
+        try:
+            await ctx.interaction.edit_original_message(components=components)
+        except discord.HTTPException:
+            pass
+
+        await asyncio.sleep(10)
+
+        action_row.components.pop()
+        action_row.components.pop()
+
+        try:
+            await ctx.interaction.edit_original_message(components=components)
+        except discord.HTTPException:
+            pass
+
+
 
 async def setup(bot: utils.Bot):
     await bot.add_cog(HelpCommandsCog(bot))
