@@ -396,7 +396,7 @@ class ItemManager:
 
         item_id = item_key
         if attempt_capitalised_id:
-            item_id = item_id.capitalize()
+            item_id = "_".join(item_id.capitalize().split())
 
         item = cls.items.get(item_id, cls.items_by_name.get(item_key))
 
