@@ -246,6 +246,5 @@ class HelpCommandsCog(vbu.Cog[utils.Bot]):
             pass
 
 
-
 async def setup(bot: utils.Bot):
     await bot.add_cog(HelpCommandsCog(bot))
