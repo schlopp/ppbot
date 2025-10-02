@@ -137,7 +137,7 @@ class HelpCommandsCog(vbu.Cog[utils.Bot]):
         try:
             await ctx.interaction.edit_original_message(components=components)
         except discord.HTTPException:
-            pass
+            return
 
         await asyncio.sleep(5)
 
@@ -153,7 +153,7 @@ class HelpCommandsCog(vbu.Cog[utils.Bot]):
         try:
             await ctx.interaction.edit_original_message(components=components)
         except discord.HTTPException:
-            pass
+            return
 
     @commands.command(
         "vote",
@@ -173,7 +173,7 @@ class HelpCommandsCog(vbu.Cog[utils.Bot]):
             " I WANNA BE VOTED FOR!!!!**"
             "\n\n"
             "Voting is free and gives you:"
-            f"\n- a [**300% multiplier increasse**]({utils.VOTE_URL})"
+            f"\n- a [**300% multiplier increase**]({utils.VOTE_URL})"
             f"\n- [**shorter cooldowns**]({utils.VOTE_URL})"
             f"\n- {random.choice([
                 "love from your parents",
@@ -217,7 +217,7 @@ class HelpCommandsCog(vbu.Cog[utils.Bot]):
         try:
             await ctx.interaction.edit_original_message(components=components)
         except discord.HTTPException:
-            pass
+            return
 
         await asyncio.sleep(5)
 
@@ -233,7 +233,7 @@ class HelpCommandsCog(vbu.Cog[utils.Bot]):
         try:
             await ctx.interaction.edit_original_message(components=components)
         except discord.HTTPException:
-            pass
+            return
 
         await asyncio.sleep(10)
 
@@ -243,7 +243,99 @@ class HelpCommandsCog(vbu.Cog[utils.Bot]):
         try:
             await ctx.interaction.edit_original_message(components=components)
         except discord.HTTPException:
-            pass
+            return
+
+    @commands.command(
+        "server",
+        utils.Command,
+        category=utils.CommandCategory.HELP,
+        application_command_meta=commands.ApplicationCommandMeta(),
+    )
+    @commands.is_slash_command()
+    async def server_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
+        """
+        Join the official pp bot Discord server for updates giveaways and leaks!!
+        """
+
+        embed = utils.Embed(color=utils.PINK)
+        embed.description = (
+            f"**[JOIN THE PP CULT!!!](https://discord.gg/ppbot)"
+            " WE WANT YOU!!!!!**"
+            "\n\n"
+            "Joining our server gives you:"
+            f"\n- [**early-access**](https://discord.gg/ppbot) to pp bot updates"
+            f"\n- exclusive [**giveaways**](https://discord.gg/ppbot)"
+            f"\n- update [**leaks**](https://discord.gg/ppbot)"
+            f"\n- {random.choice([
+                "love from your parents",
+                "two packs of Malboro Reds",
+                "a discord kitten",
+                "a girlfriend (real)",
+                "free head whenever u want",
+                "a new therapist",
+                "pp bot bathwater",
+                "5 big booms",
+            ])}"
+        )
+
+        action_row = discord.ui.ActionRow(
+            discord.ui.Button(
+                label="JOIN!!!",
+                emoji="<:ppMalding:902894208795435031>",
+                style=discord.ButtonStyle.url,
+                url="https://discord.gg/ppbot",
+            )
+        )
+
+        components = discord.ui.MessageComponents(action_row)
+
+        await ctx.interaction.response.send_message(
+            "discord.gg/ppbot",
+            embed=embed,
+            components=components,
+        )
+
+        await asyncio.sleep(2)
+
+        action_row.add_component(
+            discord.ui.Button(
+                label="join (evil version)",
+                emoji="<:ppevil:871396299830861884>",
+                style=discord.ButtonStyle.url,
+                url="https://discord.gg/ppbot",
+            )
+        )
+
+        try:
+            await ctx.interaction.edit_original_message(components=components)
+        except discord.HTTPException:
+            return
+
+        await asyncio.sleep(5)
+
+        action_row.add_component(
+            discord.ui.Button(
+                label="join (SUPER evil version)",
+                emoji="<:ppevil:871396299830861884>",
+                style=discord.ButtonStyle.url,
+                url="https://discord.gg/ppbot",
+            )
+        )
+
+        try:
+            await ctx.interaction.edit_original_message(components=components)
+        except discord.HTTPException:
+            return
+
+        await asyncio.sleep(10)
+
+        action_row.components.pop()
+        action_row.components.pop()
+
+        try:
+            await ctx.interaction.edit_original_message(components=components)
+        except discord.HTTPException:
+            return
 
 
 async def setup(bot: utils.Bot):
