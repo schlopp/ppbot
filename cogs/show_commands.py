@@ -10,12 +10,6 @@ from . import utils
 
 
 class ShowCommandsCog(vbu.Cog[utils.Bot]):
-    BOOST_DESCRIPTIONS: dict[str, str] = {
-        "voter": f"voting on [**top.gg**]({utils.VOTE_URL})",
-        "weekend": "for playing during the weekend :)",
-        "pp_bot_channel": "for being in a channel named after pp bot <:ppHappy:902894208703156257>",
-    }
-
     def _component_factory(
         self, *, current_page_id: Literal["SHOW", "INVENTORY", "UNLOCKED_COMMANDS"]
     ) -> tuple[str, discord.ui.MessageComponents]:
@@ -46,6 +40,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         pp: utils.Pp,
         pp_extras: utils.PpExtras,
         streaks: utils.Streaks,
+        channel: utils.InteractionChannel | str | None,
         *,
         is_author: bool,
     ) -> utils.Embed:
@@ -57,7 +52,9 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         embed.description = f"8{'=' * min(pp.size.value // 50, 1000)}D"
 
         voted = await pp.has_voted()
-        full_multiplier, boosts, total_boost = pp.get_full_multiplier(voted=voted)
+        full_multiplier, boosts, total_boost = pp.get_full_multiplier(
+            voted=voted, channel=channel
+        )
 
         if total_boost != 1:
             multiplier_display = (
@@ -72,21 +69,26 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
 
         if not voted:
             boost_subdisplays.append(
-                f"vote on [**top.gg**]({utils.VOTE_URL}) for an extra **{utils.BoostType.VOTE.percentage}% boost!**"
+                f"vote on [**top.gg**]({utils.VOTE_URL}) for an extra **{utils.BoostType.VOTER.percentage}% boost!**"
             )
             if not is_author:
                 boost_subdisplays[-1] = (
                     f"tell {member.mention} to " + boost_subdisplays[-1]
                 )
 
-        for boost, boost_percentage in boosts.items():
+        for boost in boosts:
             boost_subdisplays.append(
-                f"**[{boost} bonus:]({utils.MEME_URL}) +{int(boost_percentage * 100)}%**"
-                f" for {self.BOOST_DESCRIPTIONS.get(boost, '???')}"
+                f"**[{boost.value[1]} bonus:]({utils.MEME_URL}) +{boost.percentage}%**"
+                f" {boost.value[2] or '???'}"
             )
 
         if boost_subdisplays:
-            boost_display = utils.format_iterable(boost_subdisplays, joiner=" ╰ ")
+            zero_width_character = "​"
+            em_space_character = " "
+            boost_display = utils.format_iterable(
+                boost_subdisplays,
+                joiner=f"-# {zero_width_character}   ╰ ",
+            )
             multiplier_display += f"\n{boost_display}"
 
         embed.add_field(
@@ -162,6 +164,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         self,
         member: discord.Member | discord.User,
         inventory: list[utils.InventoryItem],
+        *,
         is_author: bool,
     ) -> utils.Embed:
         display_name = utils.clean(member.display_name)
@@ -346,7 +349,12 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                             )
 
                 embed = await self._show_embed_factory(
-                    member, pp, pp_extras, streaks, is_author=ctx.author == member
+                    member,
+                    pp,
+                    pp_extras,
+                    streaks,
+                    ctx.channel,
+                    is_author=ctx.author == member,
                 )
                 interaction_id, components = self._component_factory(
                     current_page_id="SHOW"
@@ -406,7 +414,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
             streaks = await utils.Streaks.fetch_from_user(db.conn, member.id)
 
         embed = await self._show_embed_factory(
-            member, pp, pp_extras, streaks, is_author=ctx.author == member
+            member, pp, pp_extras, streaks, ctx.channel, is_author=ctx.author == member
         )
 
         interaction_id, components = self._component_factory(current_page_id="SHOW")

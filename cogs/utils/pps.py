@@ -6,14 +6,16 @@ from decimal import Decimal
 from typing import Self, Literal
 
 import asyncpg
+import discord
 from discord.ext import commands, vbu
 
 from . import (
-    Object,
+    InteractionChannel,
     DatabaseWrapperObject,
     DifferenceTracker,
     format_int,
     MEME_URL,
+    VOTE_URL,
     MarkdownFormat,
     RowLevelLockMode,
     RecordNotFoundError,
@@ -24,17 +26,22 @@ from . import (
 )
 
 
-BoostLiteral = Literal["voter", "weekend", "pp_bot_channel"]
+NEW_UPDATE_EVENT_LIVE = True
 
 
 class BoostType(enum.Enum):
-    VOTE = Decimal("3")
-    WEEKEND = Decimal(".5")
-    PP_BOT_CHANNEL = Decimal(".10")
+    VOTER = (Decimal("3"), "voter", f"for voting on [**top.gg**]({VOTE_URL})")
+    NEW_UPDATE_EVENT = (Decimal("3"), "NEW UPDATE", "from the **NEW UPDATE EVENT**")
+    WEEKEND = (Decimal(".5"), "weekend", "for playing during the weekend :)")
+    PP_BOT_CHANNEL = (
+        Decimal(".10"),
+        "#pp-bot",
+        "for being in a channel named after pp bot <:ppHappy:902894208703156257>",
+    )
 
     @property
     def percentage(self) -> int:
-        return int(self.value * 100)
+        return int(self.value[0] * 100)
 
 
 class DatabaseTimeout(commands.CheckFailure):
@@ -87,27 +94,40 @@ class Pp(DatabaseWrapperObject):
         return datetime.now(UTC).replace(tzinfo=None) - self.created_at
 
     def get_full_multiplier(
-        self, *, voted: bool, channel_name: str | None = None
-    ) -> tuple[int, dict[BoostLiteral, int | Decimal], int | Decimal]:
-        """Returns `(full_multiplier: int, boosts: dict[boost: L[...], boost_percentage: int | Decimal], total_boost: int | Decimal)`"""
-        boosts: dict[BoostLiteral, int | Decimal] = {}
+        self,
+        *,
+        voted: bool,
+        channel: str | InteractionChannel | None,
+    ) -> tuple[int, list[BoostType], int | Decimal]:
+        """Returns `(full_multiplier: int, boosts: list[BoostType], total_boost: int | Decimal)`"""
+        boosts: list[BoostType] = []
 
         multiplier = self.multiplier.value
 
         if voted:
-            boosts["voter"] = BoostType.VOTE.value
+            boosts.append(BoostType.VOTER)
+
+        channel_name = None
+        if channel is not None:
+            if not isinstance(channel, str):
+                channel_name = getattr(channel, "name", None)
+            if not isinstance(channel_name, str):  # accounting for getattr giving Any
+                channel_name = None
+
+        if NEW_UPDATE_EVENT_LIVE:
+            boosts.append(BoostType.NEW_UPDATE_EVENT)
+
+        if is_weekend():
+            boosts.append(BoostType.WEEKEND)
 
         if channel_name is not None and (
             "pp-bot" in channel_name or "ppbot" in channel_name
         ):
-            boosts["pp_bot_channel"] = BoostType.PP_BOT_CHANNEL.value
-
-        if is_weekend():
-            boosts["weekend"] = BoostType.WEEKEND.value
+            boosts.append(BoostType.PP_BOT_CHANNEL)
 
         total_boost = 1
-        for multiplier_percentage in boosts.values():
-            total_boost += multiplier_percentage
+        for boost in boosts:
+            total_boost += boost.value[0]
 
         return math.ceil(multiplier * total_boost), boosts, total_boost
 
@@ -147,8 +167,14 @@ class Pp(DatabaseWrapperObject):
         self.size.value += growth
         return growth
 
-    def grow_with_multipliers(self, growth: int, *, voted: bool) -> int:
-        growth *= self.get_full_multiplier(voted=voted)[0]
+    def grow_with_multipliers(
+        self,
+        growth: int,
+        *,
+        voted: bool,
+        channel: str | InteractionChannel | None,
+    ) -> int:
+        growth *= self.get_full_multiplier(voted=voted, channel=channel)[0]
         self.size.value += growth
         return growth
 

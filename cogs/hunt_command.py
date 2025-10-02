@@ -61,6 +61,7 @@ class HuntCommandCog(vbu.Cog[utils.Bot]):
             connection=connection,
             pp=pp,
             context=minigame_type.generate_random_dialogue("hunt"),
+            channel=interaction.channel,
         )
 
         await minigame.start(interaction)
@@ -150,8 +151,7 @@ class HuntCommandCog(vbu.Cog[utils.Bot]):
             elif activity == Activity.SUCCESS:
                 option, growth = self.get_hunting_option()
                 pp.grow_with_multipliers(
-                    growth,
-                    voted=await pp.has_voted(),
+                    growth, voted=await pp.has_voted(), channel=ctx.channel
                 )
 
                 embed.colour = utils.GREEN

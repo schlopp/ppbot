@@ -54,6 +54,20 @@ ITEM_COUNT_COMMENTS: dict[int, tuple[str, str]] = {
     ),
 }
 
+InteractionChannel = (
+    discord.abc.Messageable
+    | discord.PartialMessageable
+    | discord.Thread
+    | discord.VoiceChannel
+    | discord.StageChannel
+    | discord.TextChannel
+    | discord.CategoryChannel
+    | discord.StoreChannel
+    | discord.Thread
+    | discord.PartialMessageable
+    | discord.ForumChannel
+)
+
 from .bot import DatabaseWrapper as DatabaseWrapper, Bot as Bot
 from .formatters import (
     IntFormatType as IntFormatType,

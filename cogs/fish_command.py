@@ -63,6 +63,7 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
             connection=connection,
             pp=pp,
             context=minigame_type.generate_random_dialogue("fish"),
+            channel=interaction.channel,
         )
 
         await minigame.start(interaction)
@@ -151,8 +152,7 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
             elif activity == Activity.SUCCESS:
                 growth = random.randint(1, 15)
                 pp.grow_with_multipliers(
-                    growth,
-                    voted=await pp.has_voted(),
+                    growth, voted=await pp.has_voted(), channel=ctx.channel
                 )
 
                 worth = growth / 15

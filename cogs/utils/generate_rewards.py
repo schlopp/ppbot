@@ -3,13 +3,15 @@ import random
 from collections.abc import Callable
 
 import asyncpg
+import discord
 
-from . import Pp, InventoryItem, ItemManager, format_iterable
+from . import InteractionChannel, Pp, InventoryItem, ItemManager, format_iterable
 
 
 async def give_random_reward(
     connection: asyncpg.Connection,
     pp: Pp,
+    channel: InteractionChannel | str | None,
     *,
     growth_range: tuple[int, int],
     max_item_reward_price: int,
@@ -23,8 +25,7 @@ async def give_random_reward(
     segments: list[str] = []
 
     growth = pp.grow_with_multipliers(
-        random.randint(*growth_range),
-        voted=await pp.has_voted(),
+        random.randint(*growth_range), voted=await pp.has_voted(), channel=channel
     )
     await pp.update(connection)
     segments.append(pp.format_growth())

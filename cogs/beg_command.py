@@ -116,6 +116,7 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
             connection=connection,
             pp=pp,
             context=minigame_type.generate_random_dialogue("beg"),
+            channel=interaction.channel,
         )
 
         await minigame.start(interaction)
@@ -162,7 +163,9 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
 
             if activity == Activity.DONATION:
                 pp.grow_with_multipliers(
-                    random.randint(1, 15), voted=await pp.has_voted()
+                    random.randint(1, 15),
+                    voted=await pp.has_voted(),
+                    channel=ctx.channel,
                 )
                 embed.colour = utils.GREEN
                 embed.description = f"**{donator}** donated {pp.format_growth()} to {ctx.author.mention}"

@@ -11,6 +11,7 @@ import discord
 import toml
 
 from . import (
+    InteractionChannel,
     Bot,
     Object,
     Pp,
@@ -44,12 +45,14 @@ class Minigame(Generic[_MinigameContextDictT], Object):
         connection: asyncpg.Connection,
         pp: Pp,
         context: _MinigameContextDictT,
+        channel: InteractionChannel | str | None,
     ) -> None:
         self.bot = bot
         self.connection = connection
         self.pp = pp
         self._id = uuid.uuid4().hex
         self.context = context
+        self.channel = channel
 
     @classmethod
     def generate_random_dialogue(cls, section: str = "global") -> _MinigameContextDictT:
@@ -59,6 +62,7 @@ class Minigame(Generic[_MinigameContextDictT], Object):
         message, _, _ = await give_random_reward(
             self.connection,
             self.pp,
+            self.channel,
             growth_range=(30, 60),
             max_item_reward_price=self.MAXIMUM_ITEM_REWARD_PRICE,
         )
@@ -378,8 +382,11 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
         connection: asyncpg.Connection,
         pp: Pp,
         context: ClickThatButtonContextDict,
+        channel: InteractionChannel | str | None,
     ) -> None:
-        super().__init__(bot=bot, connection=connection, pp=pp, context=context)
+        super().__init__(
+            bot=bot, connection=connection, pp=pp, context=context, channel=channel
+        )
 
         self._components = discord.ui.MessageComponents(
             *(

@@ -9,7 +9,7 @@ import discord
 import toml
 from discord.ext import commands
 
-from . import MEME_URL, Bot, Object
+from . import InteractionChannel, MEME_URL, Bot, Object
 
 
 class DuplicateReplyListenerError(Exception):
@@ -22,7 +22,7 @@ class ReplyManager:
     DEFAULT_TIMEOUT = 30
 
     active_listeners: dict[
-        discord.interactions.InteractionChannel | discord.Member | discord.User,
+        InteractionChannel | discord.Member | discord.User,
         tuple[
             asyncio.Future[tuple[commands.SlashContext[Bot], str]],
             Callable[[commands.SlashContext[Bot], str], bool],
@@ -32,9 +32,7 @@ class ReplyManager:
     @classmethod
     async def wait_for_reply(
         cls,
-        channel: (
-            discord.interactions.InteractionChannel | discord.Member | discord.User
-        ),
+        channel: InteractionChannel | discord.Member | discord.User,
         *,
         check: Callable[
             [commands.SlashContext[Bot], str], bool

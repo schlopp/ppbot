@@ -2,6 +2,7 @@ import random
 from datetime import datetime, UTC
 
 import asyncpg
+import discord
 from discord.ext import commands, vbu
 
 from . import utils
@@ -64,7 +65,12 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
     LOOP_STREAK_REWARD = 50
 
     async def give_reward(
-        self, pp: utils.Pp, streak: int, *, connection: asyncpg.Connection
+        self,
+        pp: utils.Pp,
+        channel: utils.InteractionChannel | str | None,
+        streak: int,
+        *,
+        connection: asyncpg.Connection,
     ) -> str:
         reward_message_chunks: list[str] = []
 
@@ -73,6 +79,7 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
                 DailyCommandCog.MIN_DAILY_GROWTH, DailyCommandCog.MAX_DAILY_GROWTH
             ),
             voted=await pp.has_voted(),
+            channel=channel,
         )
         reward_message_chunks.append(pp.format_growth())
         await pp.update(connection)
@@ -144,7 +151,7 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
             await streaks.update(db.conn)
 
             reward_message = await self.give_reward(
-                pp, streaks.daily.value, connection=db.conn
+                pp, ctx.channel, streaks.daily.value, connection=db.conn
             )
 
             embed = utils.Embed()

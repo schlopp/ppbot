@@ -48,7 +48,7 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
         )
 
         embed.description = (
-            f"[**Vote now**]({utils.VOTE_URL}) to get your **{utils.BoostType.VOTE.percentage}%**"
+            f"[**Vote now**]({utils.VOTE_URL}) to get your **{utils.BoostType.VOTER.percentage}%**"
             f" voting boost back!"
         )
 
@@ -208,7 +208,7 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
                                 ).format(
                                     duration=utils.format_time(timeout),
                                     reason=error.reason,
-                                    boost_percentage=utils.BoostType.VOTE.percentage,
+                                    boost_percentage=utils.BoostType.VOTER.percentage,
                                     meme_url=utils.MEME_URL,
                                 )
                             )
@@ -238,6 +238,7 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
                 pp.grow_with_multipliers(
                     random.randint(self.MIN_VOTE_GROWTH, self.MAX_VOTE_GROWTH),
                     voted=await pp.has_voted(),
+                    channel=None,
                 )
                 await pp.update(db.conn)
             except:
@@ -263,7 +264,7 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
             " next 12 hours until you vote again <:ppHappy:902894208703156257>"
         ).format(
             reward=pp.format_growth(),
-            boost_percentage=utils.BoostType.VOTE.percentage,
+            boost_percentage=utils.BoostType.VOTER.percentage,
             meme_url=utils.MEME_URL,
         )
 

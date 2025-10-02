@@ -35,7 +35,7 @@ class HospitalCommandCog(vbu.Cog[utils.Bot]):
             pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
 
             voted = await pp.has_voted()
-            multiplier = pp.get_full_multiplier(voted=voted)[0]
+            multiplier = pp.get_full_multiplier(voted=voted, channel=ctx.channel)[0]
 
             min_size = self.MIN_SIZE * multiplier
 

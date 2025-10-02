@@ -192,6 +192,7 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
             connection=connection,
             pp=pp,
             context=minigame_type.generate_random_dialogue("dig"),
+            channel=interaction.channel,
         )
 
         await minigame.start(interaction)
@@ -260,7 +261,9 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
 
                 if activity in {Activity.SUCCESS_GROW, Activity.SHOVEL_BREAK}:
                     growth = random.randint(30, 60)
-                    pp.grow_with_multipliers(growth, voted=await pp.has_voted())
+                    pp.grow_with_multipliers(
+                        growth, voted=await pp.has_voted(), channel=ctx.channel
+                    )
 
                     embed.colour = utils.GREEN
                     embed.description = embed.description.format(
@@ -320,6 +323,7 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
                             message, _, _ = await utils.give_random_reward(
                                 db.conn,
                                 pp,
+                                ctx.channel,
                                 growth_range=reward.value.growth_range,
                                 max_item_reward_price=reward.value.max_item_value,
                             )
@@ -333,6 +337,7 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
                             message, _, _ = await utils.give_random_reward(
                                 db.conn,
                                 pp,
+                                ctx.channel,
                                 growth_range=reward.value.growth_range,
                                 max_item_reward_price=reward.value.max_item_value,
                             )
