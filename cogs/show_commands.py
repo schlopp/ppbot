@@ -102,7 +102,10 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         other_stats: list[str] = []
 
         if pp_extras.is_og.value:
-            other_stats.append(f"You're an [**OG pp bot player**]({utils.MEME_URL})")
+            other_stats.append(
+                f"{"You're" if is_author else f"{member.mention} is"}"
+                f" [**OG pp bot player**]({utils.MEME_URL})"
+            )
         else:
             other_stats.append(
                 f"{"You've" if is_author else f"{member.mention} has"}"
