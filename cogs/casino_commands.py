@@ -426,7 +426,7 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
                     "casino_leave",
                     check=lambda s, _, _1: s is casino_session,
                 )
-                
+
                 await casino_session.close(
                     error,
                     response=interaction.response if interaction is not None else None,
