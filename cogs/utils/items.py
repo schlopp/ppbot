@@ -52,6 +52,7 @@ class UselessItem(Object):
         self.indefinite_article = indefinite_article
         self.description = description
         self.price = price
+        self.purchasable = purchasable
 
     def format_amount(
         self,
@@ -111,6 +112,7 @@ class LegacyItem(UselessItem):
         self.indefinite_article = indefinite_article
         self.description = description
         self.price = price
+        self.purchasable = purchasable
         self.season = season
 
     @classmethod

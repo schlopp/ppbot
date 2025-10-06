@@ -308,7 +308,16 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                     await component_interaction.response.edit_message(**kwargs)
 
             elif not item_object.purchasable:
-                raise NotImplementedError("Item not purchasable")
+                embed = utils.Embed()
+                embed.colour = utils.RED
+                embed.title = "Purchase failed: Not for sale"
+                embed.description = (
+                    f"The item {utils.clean(item)!r} isn't for sale!"
+                )
+
+                await ctx.interaction.response.send_message(embed=embed)
+                return
+
 
             else:
                 item_object = utils.ItemManager.get(item)
