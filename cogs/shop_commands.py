@@ -138,7 +138,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             [
                 item
                 for item in utils.ItemManager.items.values()
-                if not isinstance(item, utils.BuffItem)
+                if not isinstance(item, utils.BuffItem) and not isinstance(item, utils.LegacyItem)
             ],
             categories={
                 ItemClass.category: ItemClass.category_name
@@ -202,6 +202,8 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             if (
                 item not in utils.ItemManager.items
                 and item not in utils.ItemManager.items_by_name
+                and not isinstance(item, utils.BuffItem)
+                and not isinstance(item, utils.LegacyItem)
             ):
                 embed = utils.Embed()
                 embed.colour = utils.RED
