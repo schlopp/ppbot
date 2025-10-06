@@ -195,10 +195,11 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
 
             interaction_id = uuid.uuid4().hex
 
-            if (
-                item not in utils.ItemManager.items
-                and item not in utils.ItemManager.items_by_name
-            ):
+            item_object = utils.ItemManager.items.get(
+                item, utils.ItemManager.items_by_name.get(item, None)
+            )
+
+            if item_object is None:
                 embed = utils.Embed()
                 embed.colour = utils.RED
                 embed.title = "Purchase failed: Unknown item"
@@ -232,6 +233,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                             ),
                         )
                         for item in utils.ItemManager.items.values()
+                        if item.purchasable
                     }
                 ).most_common(3)
 
@@ -304,6 +306,9 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
 
                 async def responder(**kwargs) -> None:
                     await component_interaction.response.edit_message(**kwargs)
+
+            elif not item_object.purchasable:
+                raise NotImplementedError("Item not purchasable")
 
             else:
                 item_object = utils.ItemManager.get(item)
