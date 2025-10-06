@@ -275,7 +275,7 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
             # Disable reminder component of previous vote notification
             if vote_reminder_data is not None:
                 message_id = int(vote_reminder_data.split(":")[1])
-                message = dm_channel.get_partial_message(message_id)
+                message = dm_channel.get_partial_message(message_id)  # ! might break
                 components = self.vote_acknowledgement_component_factory()
                 components.disable_components()
                 await message.edit(components=components)
@@ -285,11 +285,16 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
                     embed=embed,
                     components=self.vote_acknowledgement_component_factory(),
                 )
+
             except discord.HTTPException as error:
                 self.logger.info(
                     f"Could'nt DM vote acknowledgement to user {user} ({user.id}): {error}"
                 )
                 return
+
+            self.logger.info(
+                f"Successfully DM'd vote acknowledgement to user {user} ({user.id})"
+            )
             await redis.set(
                 f"pending-interactions:vote-reminder:{user.id}",
                 f"{vote_timestamp}:{message.id}",
