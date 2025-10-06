@@ -312,7 +312,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                 embed.colour = utils.RED
                 embed.title = "Purchase failed: Not for sale"
                 embed.description = (
-                    f"The item {utils.clean(item)!r} isn't for sale!"
+                    f"The item **{item_object.name}** isn't for sale!"
                 )
 
                 await ctx.interaction.response.send_message(embed=embed)
@@ -523,13 +523,14 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
                     value=item.id,
                 )
                 for item in utils.ItemManager.items.values()
-                if not item_value
+                if (not item_value
                 or item_value in item.name.lower()
                 or item_value in item.id.lower()
                 or SequenceMatcher(None, item_value, item.name.lower()).quick_ratio()
                 > 0.7
                 or SequenceMatcher(None, item_value, item.id.lower()).quick_ratio()
                 > 0.7
+                ) and item.purchasable
             ]
         )
 
