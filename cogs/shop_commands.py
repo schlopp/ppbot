@@ -506,7 +506,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             [
                 discord.ApplicationCommandOptionChoice(
                     name=(
-                        f"{item.name} ({utils.format_inches(item.price)})"
+                        f"{item.name} ({utils.format_inches(item.price, markdown=None)})"
                         if not isinstance(item, utils.MultiplierItem)
                         else item.name
                     ),
