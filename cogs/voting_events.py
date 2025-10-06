@@ -297,5 +297,8 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
 
 
 async def setup(bot: utils.Bot):
+    if not bot.config["topgg_webhook"]["enabled"]:
+        return
+
     if not bot.shard_ids or 0 in bot.shard_ids:
         await bot.add_cog(VotingEventsCog(bot))
