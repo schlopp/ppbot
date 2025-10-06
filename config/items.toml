@@ -4,6 +4,7 @@
     indefinite_article = "none"
     description = "I LOVE DRUGS!!!"
     price = 60
+    purchasable = true
     gain = 1
 
     [multipliers.STRONG_PILLS]
@@ -11,6 +12,7 @@
     indefinite_article = "none"
     description = "I think there's some cocaine and some sildenafil in these..."
     price = 500
+    purchasable = true
     gain = 20
 
 [buffs]
@@ -19,6 +21,7 @@
     indefinite_article = "none"
     description = "Definitely not cocaine, trust me."
     price = 500
+    purchasable = false
     duration = 0.5
     cooldown = 12
     multiplier = 0.05
@@ -28,6 +31,7 @@
     plural = "apples"
     description = "An apple a day keeps the doctor away!"
     price = 1000
+    purchasable = false
     duration = 0.5
     specified_details = ["Gives all </hospital> surgeries a **100% success rate**"]
 
@@ -37,6 +41,7 @@
     plural = "fishing rods"
     description = "Perfect for fishing pps."
     price = 250
+    purchasable = true
     associated_command_name = "fish"
 
     [tools.RIFLE]
@@ -44,6 +49,7 @@
     plural = "rifles"
     description = "Ever wanted to kill hobos and steal their pps?"
     price = 1000
+    purchasable = true
     associated_command_name = "hunt"
 
     [tools.SHOVEL]
@@ -51,6 +57,7 @@
     plural = "fragile shovels"
     description = "This shovel is super fragile, so ONLY buy it if ur loaded as fuck"
     price = 25_000
+    purchasable = true
     associated_command_name = "dig"
 
 
@@ -60,21 +67,32 @@
     plural = "bronze coins"
     description = "Completely worthless. Doesn't do anything. Don't buy this."
     price = 1000
+    purchasable = true
 
     [useless.GOLDEN_COIN]
     name = "golden coin"
     plural = "bronze coins"
     description = "This coin is also completely useless. It doesn't do anything, and it's even more expensive. Why on earth would you buy this?"
     price = 100_000
+    purchasable = true
 
     [useless.COOKIE]
     name = "cookie"
     plural = "cookies"
     description = "A nice, tasty chocolate chip cookie."
     price = 50
+    purchasable = true
 
     [useless.KNIFE]
     name = "knife"
     plural = "knives"
     description = "Sometimes drastic measures are needed..."
     price = 50
+    purchasable = true
+
+[legacy]
+    [legacy.DISCORDGGPPBOT]
+    name = "discord.gg/ppbot"
+    description = "This is a sign to join :eyes:"
+    purchasable = false
+    season = "2022"

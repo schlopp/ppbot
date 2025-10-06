@@ -27,7 +27,7 @@ class UnknownItemError(Exception):
 
 
 class UselessItem(Object):
-    __slots__ = ("id", "name", "plural", "description", "price")
+    __slots__ = ("id", "name", "plural", "description", "price", "purchasable")
     _repr_attributes = __slots__
     category = "USELESS"
     category_name = "Useless Items"
@@ -44,6 +44,7 @@ class UselessItem(Object):
         ) = Article.INDEFINITE,
         description: str,
         price: int,
+        purchasable: bool,
     ) -> None:
         self.id = id
         self.name = name
@@ -75,7 +76,7 @@ class LegacyItem(UselessItem):
     For legacy items (usually from giveaways) / items that have not officially been added
     """
 
-    __slots__ = ("id", "name", "plural", "description", "price")
+    __slots__ = ("id", "name", "plural", "indefinite_article", "description", "price", "purchasable", "season")
     _repr_attributes = __slots__
     category = "LEGACY"
     category_name = "Legacy Items"
@@ -85,13 +86,24 @@ class LegacyItem(UselessItem):
         id: str,
         *,
         name: str,
+        plural: str | None = None,
+        indefinite_article: (
+            Literal[Article.INDEFINITE_A, Article.INDEFINITE_AN, Article.INDEFINITE]
+            | None
+        ) = Article.INDEFINITE,
+        description: str = "This is a legacy/exclusive item.",
+        price: int = 0,
+        purchasable: bool = False,
+        season: str = "???",
     ) -> None:
         self.id = id
         self.name = name
-        self.plural = name
-        self.indefinite_article = Article.INDEFINITE
-        self.description = "This is a legacy/unofficial item"
-        self.price = 0
+        self.plural = plural or name
+        self.indefinite_article = indefinite_article
+        self.description = description
+        self.price = price
+        self.season = season
+
 
     @classmethod
     def from_name(cls: type[Self], name: str) -> Self:
@@ -105,7 +117,7 @@ class LegacyItem(UselessItem):
 
 
 class MultiplierItem(UselessItem):
-    __slots__ = ("id", "name", "plural", "description", "price", "gain")
+    __slots__ = ("id", "name", "plural", "description", "price", "purchasable", "gain")
     _repr_attributes = __slots__
     category = "MUTLIPLIER"
     category_name = "Multipliers"
@@ -122,6 +134,7 @@ class MultiplierItem(UselessItem):
         ) = Article.INDEFINITE,
         description: str,
         price: int,
+        purchasable: bool,
         gain: int,
     ) -> None:
         self.id = id
@@ -130,6 +143,7 @@ class MultiplierItem(UselessItem):
         self.indefinite_article = indefinite_article
         self.description = description
         self.price = price
+        self.purchasable = purchasable
         self.gain = gain
 
     def compute_cost(
@@ -155,6 +169,7 @@ class BuffItem(UselessItem):
         "plural",
         "description",
         "price",
+        "purchasable",
         "duration",
         "cooldown",
         "multiplier",
@@ -176,6 +191,7 @@ class BuffItem(UselessItem):
         ) = Article.INDEFINITE,
         description: str,
         price: int,
+        purchasable: bool,
         duration: timedelta,
         cooldown: timedelta | None,
         multiplier: float | None,
@@ -187,6 +203,7 @@ class BuffItem(UselessItem):
         self.indefinite_article = indefinite_article
         self.description = description
         self.price = price
+        self.purchasable = purchasable
         self.multiplier = multiplier
         self.duration = duration
         self.cooldown = cooldown
@@ -203,7 +220,7 @@ class ToolItem(UselessItem):
         "name",
         "plural",
         "description",
-        "price",
+        "price", "purchasable",
         "associated_command_name",
     )
     _repr_attributes = __slots__
@@ -222,6 +239,7 @@ class ToolItem(UselessItem):
         ) = Article.INDEFINITE,
         description: str,
         price: int,
+        purchasable: bool,
         associated_command_name: str,
     ) -> None:
         self.id = id
@@ -230,6 +248,7 @@ class ToolItem(UselessItem):
         self.indefinite_article = indefinite_article
         self.description = description
         self.price = price
+        self.purchasable = purchasable
         self.associated_command_name = associated_command_name
 
     @property
@@ -509,6 +528,7 @@ class ItemManager:
                 indefinite_article=item.get("indefinite_article", Article.INDEFINITE),
                 description=item["description"],
                 price=item["price"],
+                purchasable=item["purchasable"],
                 duration=timedelta(hours=item["duration"]),
                 cooldown=(
                     timedelta(hours=item["cooldown"])
@@ -533,6 +553,12 @@ class ItemManager:
             new_item = UselessItem(item_id, **item)
             new_items.append(new_item)
             cls._logger.info(f" * Loaded useless item {new_item.id!r}")
+
+        for item_id, item in item_data["legacy"].items():
+            cls._format_indefinite_article(item)
+            new_item = LegacyItem(item_id, **item)
+            new_items.append(new_item)
+            cls._logger.info(f" * Loaded legacy item {new_item.id!r}")
 
         cls.items.clear()
         cls.add(*new_items)
