@@ -76,7 +76,16 @@ class LegacyItem(UselessItem):
     For legacy items (usually from giveaways) / items that have not officially been added
     """
 
-    __slots__ = ("id", "name", "plural", "indefinite_article", "description", "price", "purchasable", "season")
+    __slots__ = (
+        "id",
+        "name",
+        "plural",
+        "indefinite_article",
+        "description",
+        "price",
+        "purchasable",
+        "season",
+    )
     _repr_attributes = __slots__
     category = "LEGACY"
     category_name = "Legacy Items"
@@ -103,7 +112,6 @@ class LegacyItem(UselessItem):
         self.description = description
         self.price = price
         self.season = season
-
 
     @classmethod
     def from_name(cls: type[Self], name: str) -> Self:
@@ -220,7 +228,8 @@ class ToolItem(UselessItem):
         "name",
         "plural",
         "description",
-        "price", "purchasable",
+        "price",
+        "purchasable",
         "associated_command_name",
     )
     _repr_attributes = __slots__

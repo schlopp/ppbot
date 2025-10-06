@@ -135,11 +135,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
 
         paginator = utils.CategorisedPaginator(
             self.bot,
-            [
-                item
-                for item in utils.ItemManager.items.values()
-                if item.purchasable
-            ],
+            [item for item in utils.ItemManager.items.values() if item.purchasable],
             categories={
                 ItemClass.category: ItemClass.category_name
                 for ItemClass in [
