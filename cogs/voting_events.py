@@ -15,6 +15,44 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
 
     def __init__(self, bot: utils.Bot, logger_name: str | None = None):
         super().__init__(bot, logger_name)
+        self._scheduled_reminders: dict[
+            discord.User | discord.Member, asyncio.Task[None]
+        ] = {}
+
+        if self.bot.is_ready():
+            self.bot.loop.create_task(self.reschedule_existing_reminders())
+
+    async def cancel_reminders(self) -> None:
+        for user, reminder in self._scheduled_reminders.items():
+            self.logger.info(f"Cancelling scheduled reminder for {user} ({user.id})")
+            reminder.cancel(f"Cancelled for user {user} ({user.id})")
+        self._scheduled_reminders.clear()
+
+    async def cog_unload(self) -> None:
+        await self.cancel_reminders()
+
+    async def reschedule_existing_reminders(self) -> None:
+        await self.cancel_reminders()
+
+        async with vbu.Redis() as redis:
+            async for reminder_key in redis.pool.iscan(match="reminders:voting:*"):
+                user_id = int(reminder_key.split(b":")[-1])
+                user = await self.bot.fetch_user(user_id)
+
+                reminder_timestamp_data = await redis.get(reminder_key)
+                assert reminder_timestamp_data
+
+                reminder_timestamp = int(reminder_timestamp_data)
+
+                reminder = self._schedule_reminder(user, reminder_timestamp)
+                if reminder is None:
+                    self.logger.error(
+                        f"Scheduling reminder failed, even after cancelling all reminders."
+                        f" (SHOULD NOT BE POSSIBLE) - {user} ({user.id})"
+                    )
+                    continue
+
+                self._scheduled_reminders[user] = reminder
 
     def vote_acknowledgement_component_factory(self) -> discord.ui.MessageComponents:
         return discord.ui.MessageComponents(
@@ -63,9 +101,13 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
         self,
         user: discord.User | discord.Member,
         timestamp: float,
-        *,
-        bot_down: bool = False,
-    ) -> None:
+    ) -> asyncio.Task[None] | None:
+        if user in self._scheduled_reminders:
+            self.logger.info(
+                f"Refused to schedule reminder for {user} ({user.id}) at {timestamp} (UNIX) - reminder already registered"
+            )
+            return
+
         self.logger.info(
             f"Scheduling reminder for {user} ({user.id}) at {timestamp} (UNIX)"
         )
@@ -82,20 +124,13 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
 
             await self._send_reminder(user, late=late)
 
-        self.bot.loop.create_task(reminder())
+        scheduled_reminder = self.bot.loop.create_task(reminder())
+        self._scheduled_reminders[user] = scheduled_reminder
+        return scheduled_reminder
 
     @vbu.Cog.listener("on_ready")
-    async def reschedule_existing_reminders(self) -> None:
-        async with vbu.Redis() as redis:
-            async for reminder_key in redis.pool.iscan(match="reminders:voting:*"):
-                user_id = int(reminder_key.split(b":")[-1])
-                user = await self.bot.fetch_user(user_id)
-
-                reminder_timestamp_data = await redis.get(reminder_key)
-                assert reminder_timestamp_data
-
-                reminder_timestamp = int(reminder_timestamp_data)
-                self._schedule_reminder(user, reminder_timestamp, bot_down=True)
+    async def reschedule_on_ready(self) -> None:
+        await self.reschedule_existing_reminders()
 
     @vbu.Cog.listener("on_component_interaction")
     async def handle_vote_reminder_button_interaction(
@@ -125,13 +160,22 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
 
             vote_timestamp = int(vote_reminder_data.split(":")[0])
             next_vote_timestamp = vote_timestamp + timedelta(hours=12).seconds
-            self._schedule_reminder(user, next_vote_timestamp)
+            reminder = self._schedule_reminder(user, next_vote_timestamp)
 
-            await redis.set(f"reminders:voting:{user.id}", str(next_vote_timestamp))
 
             components = self.vote_acknowledgement_component_factory()
             components.disable_components()
             await component_interaction.response.edit_message(components=components)
+
+            if reminder is None:
+                await component_interaction.followup.send(
+                    "It seems there's already a reminder coming your way soon."
+                    " Thank u so much for ur support :)",
+                    ephemeral=True,
+                )
+                return
+
+            await redis.set(f"reminders:voting:{user.id}", str(next_vote_timestamp))
 
             if next_vote_timestamp > time.time():
                 await component_interaction.followup.send(
