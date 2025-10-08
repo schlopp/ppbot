@@ -162,7 +162,6 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
             next_vote_timestamp = vote_timestamp + timedelta(hours=12).seconds
             reminder = self._schedule_reminder(user, next_vote_timestamp)
 
-
             components = self.vote_acknowledgement_component_factory()
             components.disable_components()
             await component_interaction.response.edit_message(components=components)
