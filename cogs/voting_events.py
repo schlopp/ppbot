@@ -126,6 +126,9 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
 
         scheduled_reminder = self.bot.loop.create_task(reminder())
         self._scheduled_reminders[user] = scheduled_reminder
+        scheduled_reminder.add_done_callback(
+            lambda _: self._scheduled_reminders.pop(user)
+        )
         return scheduled_reminder
 
     @vbu.Cog.listener("on_ready")
