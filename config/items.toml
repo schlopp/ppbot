@@ -96,3 +96,9 @@
     description = "This is a sign to join :eyes:"
     purchasable = false
     season = "2022"
+
+    [legacy.ROSE_TOY]
+    name = "brand-new rose toy"
+    description = "A brand new rose toy, ready to be used"
+    purchasable = false
+    season = "2025"
