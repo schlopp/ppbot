@@ -17,7 +17,7 @@ AnimalLiterals = Literal[
     "kangaroo",
     "koala",
     "panda",
-    "raccoon",
+    "racoon",
     "red_panda",
 ]
 
@@ -258,29 +258,29 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
         )
 
     @commands.command(
-        "raccoon",
+        "racoon",
         utils.Command,
         category=utils.CommandCategory.FUN,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
     @commands.is_slash_command()
-    async def raccoon_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
+    async def racoon_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
         """
         pics of little trash bears
         """
 
         await self.send_animal_embed(
             ctx,
-            "raccoon",
+            "racoon",
             [
-                "raccoon pic for u!",
-                "yes yes raccoon yes",
+                "racoon pic for u!",
+                "yes yes racoon yes",
                 "tiny bandit",
                 "look at this fuzzy dumpster wizard",
                 "skitter skitter",
                 "snatch and dash",
-                "i would rob a convenience store with this raccoon",
-                "This raccoon has five aliases and a court date in Nevada.",
+                "i would rob a convenience store with this racoon",
+                "This racoon has five aliases and a court date in Nevada.",
             ],
         )
 
