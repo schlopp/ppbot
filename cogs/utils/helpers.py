@@ -133,7 +133,7 @@ class Object:
 
     def __repr__(self) -> str:
         attribute_text = " ".join(
-            f"{attribute_name}={getattr(self, attribute_name)}"
+            f"{attribute_name}={getattr(self, attribute_name)!r}"
             for attribute_name in self._repr_attributes
             if not attribute_name.startswith("_")
         )
