@@ -42,6 +42,7 @@ class CasinoSession(utils.Object):
         self._stakes = max(min(pp.size.value, self.MAX_STAKES, 1000), self.MIN_STAKES)
         self.pp = pp
         self.game_embed = utils.Embed()
+        self.game_embed.set_author(name=f"{utils.clean(self.ctx.author.display_name).title()}'s Casino")
         self.game_components = discord.ui.MessageComponents()
         self.state = CasinoState.MENU
         self.last_interaction: datetime | None = datetime.now(UTC).replace(tzinfo=None)
@@ -140,6 +141,7 @@ class CasinoSession(utils.Object):
     def generate_embed(self, *, entrance: bool = False) -> utils.Embed:
         embed = utils.Embed()
         embed.colour = utils.BLUE
+        embed.set_author(name=f"{utils.clean(self.ctx.author.display_name)}'s Casino")
 
         if entrance:
             embed.title = "Welcome to the casino!"
@@ -257,6 +259,7 @@ class CasinoSession(utils.Object):
     ) -> None:
         self.cache.pop(self.ctx)
         embed = utils.Embed()
+        embed.set_author(name=f"{utils.clean(self.ctx.author.display_name).title()}'s Casino")
         embed.title = "Casino closed"
         embed.colour = utils.RED
 
@@ -315,6 +318,7 @@ class CasinoSession(utils.Object):
 
         while True:
             self.game_embed = utils.Embed()
+            self.game_embed.set_author(name=f"{utils.clean(self.ctx.author.display_name).title()}'s game of Dice")
             self.game_embed.title = (
                 f"{utils.clean(self.ctx.author.display_name)} decides to roll a d12..."
             )
