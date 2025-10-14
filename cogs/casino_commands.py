@@ -462,11 +462,12 @@ class CasinoSession(utils.Object):
 
             if interaction_id == "MENU":
                 return interaction, None
-            
+
             if interaction_id == "HIT":
                 last_move = "HIT"
             elif interaction_id == "STAND":
                 last_move = "STAND"
+
 
 class CasinoCommandCog(vbu.Cog[utils.Bot]):
     def __init__(self, bot: utils.Bot, logger_name: str | None = None) -> None:
