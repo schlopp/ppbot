@@ -126,7 +126,10 @@ class Paginator(Object, Generic[_ItemT, _ActionsT]):
                 )
             except TimeoutError:
                 self._update_components(disable_all=True)
-                await interaction.edit_original_message(components=self._components)
+                try:
+                    await interaction.edit_original_message(components=self._components)
+                except discord.NotFound:
+                    pass
                 return
 
             self.handle_interaction(component_interaction, action)
