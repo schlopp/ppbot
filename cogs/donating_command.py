@@ -175,7 +175,7 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
 
                 assert isinstance(ctx.command, utils.Command)
                 await ctx.command.async_reset_cooldown(ctx)
-                
+
                 return
 
             # Fetch the recipiant pp again with edit=true

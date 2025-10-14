@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS donations (
     recipiant_id BIGINT NOT NULL,
     donor_id BIGINT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT timezone('UTC', now()),
-    amount INTEGER NOT NULL DEFAULT 0
+    amount INTEGER NOT NULL
 );
 
 
