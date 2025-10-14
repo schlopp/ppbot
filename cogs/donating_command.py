@@ -172,7 +172,10 @@ class DonateCommandCog(vbu.Cog[utils.Bot]):
                     f"I guess {ctx.author.mention} really hates {recipiant.mention}"
                 )
                 await interaction.response.edit_message(embed=embed, components=None)
-                self.donate_command.reset_cooldown(ctx)
+
+                assert isinstance(ctx.command, utils.Command)
+                await ctx.command.async_reset_cooldown(ctx)
+                
                 return
 
             # Fetch the recipiant pp again with edit=true
