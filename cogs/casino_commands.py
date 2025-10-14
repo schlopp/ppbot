@@ -141,7 +141,7 @@ class CasinoSession(utils.Object):
     def generate_embed(self, *, entrance: bool = False) -> utils.Embed:
         embed = utils.Embed()
         embed.colour = utils.BLUE
-        embed.set_author(name=f"{utils.clean(self.ctx.author.display_name)}'s Casino")
+        embed.set_author(name=f"{utils.clean(self.ctx.author.display_name).title()}'s Casino")
 
         if entrance:
             embed.title = "Welcome to the casino!"
