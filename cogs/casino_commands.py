@@ -3,7 +3,7 @@ import enum
 import uuid
 import random
 from datetime import datetime, timedelta, UTC
-from typing import Self
+from typing import Self, Literal
 
 import discord
 from discord.ext import commands, vbu, tasks
@@ -23,6 +23,7 @@ class CasinoState(enum.Enum):
     MENU = enum.auto()
     CHANGING_STAKES = enum.auto()
     PLAYING_DICE = enum.auto()
+    PLAYING_BLACKJACK = enum.auto()
 
 
 class CasinoStakes(enum.Enum):
@@ -42,7 +43,9 @@ class CasinoSession(utils.Object):
         self._stakes = max(min(pp.size.value, self.MAX_STAKES, 1000), self.MIN_STAKES)
         self.pp = pp
         self.game_embed = utils.Embed()
-        self.game_embed.set_author(name=f"{utils.clean(self.ctx.author.display_name).title()}'s Casino")
+        self.game_embed.set_author(
+            name=f"{utils.clean(self.ctx.author.display_name).title()}'s Casino"
+        )
         self.game_components = discord.ui.MessageComponents()
         self.state = CasinoState.MENU
         self.last_interaction: datetime | None = datetime.now(UTC).replace(tzinfo=None)
@@ -94,11 +97,11 @@ class CasinoSession(utils.Object):
                     disabled=self.pp.size.value < self.stakes,
                 ),
                 discord.ui.Button(
-                    label="Blackjack (SOON!)",
+                    label="Blackjack",
                     custom_id=f"{self.id}_BLACKJACK",
                     style=discord.ButtonStyle.green,
                     emoji="🃏",
-                    disabled=True,
+                    disabled=self.pp.size.value < self.stakes,
                 ),
                 discord.ui.Button(
                     label="Deathroll (SOON!)",
@@ -141,7 +144,9 @@ class CasinoSession(utils.Object):
     def generate_embed(self, *, entrance: bool = False) -> utils.Embed:
         embed = utils.Embed()
         embed.colour = utils.BLUE
-        embed.set_author(name=f"{utils.clean(self.ctx.author.display_name).title()}'s Casino")
+        embed.set_author(
+            name=f"{utils.clean(self.ctx.author.display_name).title()}'s Casino"
+        )
 
         if entrance:
             embed.title = "Welcome to the casino!"
@@ -235,7 +240,7 @@ class CasinoSession(utils.Object):
                 components=components,
             )
             return
-        if self.state == CasinoState.PLAYING_DICE:
+        if self.state in [CasinoState.PLAYING_DICE, CasinoState.PLAYING_BLACKJACK]:
             assert response is not None
             if disable:
                 self.game_components.disable_components()
@@ -259,7 +264,9 @@ class CasinoSession(utils.Object):
     ) -> None:
         self.cache.pop(self.ctx)
         embed = utils.Embed()
-        embed.set_author(name=f"{utils.clean(self.ctx.author.display_name).title()}'s Casino")
+        embed.set_author(
+            name=f"{utils.clean(self.ctx.author.display_name).title()}'s Casino"
+        )
         embed.title = "Casino closed"
         embed.colour = utils.RED
 
@@ -318,7 +325,9 @@ class CasinoSession(utils.Object):
 
         while True:
             self.game_embed = utils.Embed()
-            self.game_embed.set_author(name=f"{utils.clean(self.ctx.author.display_name).title()}'s game of Dice")
+            self.game_embed.set_author(
+                name=f"{utils.clean(self.ctx.author.display_name).title()}'s game of Dice"
+            )
             self.game_embed.title = (
                 f"{utils.clean(self.ctx.author.display_name)} decides to roll a d12..."
             )
@@ -360,7 +369,7 @@ class CasinoSession(utils.Object):
             self.game_components.add_component(
                 discord.ui.ActionRow(
                     discord.ui.Button(
-                        label="Roll again",
+                        label="Roll Again",
                         custom_id=f"{self.id}_REROLL",
                         style=discord.ui.ButtonStyle.green,
                         disabled=self.pp.size.value < self.stakes,
@@ -370,7 +379,7 @@ class CasinoSession(utils.Object):
                         custom_id=f"{self.id}_MENU",
                         style=discord.ui.ButtonStyle.red,
                     ),
-                )
+                ),
             )
 
             await self.send(response=interaction.response)
@@ -388,6 +397,76 @@ class CasinoSession(utils.Object):
             if interaction_id == "MENU":
                 return interaction, None
 
+    async def play_blackjack(
+        self, interaction: discord.ComponentInteraction
+    ) -> tuple[discord.ComponentInteraction | None, Exception | None]:
+        """Returns (interaction: discord.ComponentInteraction | None, error: Exception | None)"""
+        self.state = CasinoState.PLAYING_BLACKJACK
+
+        last_move: Literal["HIT", "STAND"] | None = None
+        self.last_interaction = None
+
+        while True:
+            self.game_embed = utils.Embed()
+            self.game_embed.set_author(
+                name=f"{utils.clean(self.ctx.author.display_name).title()}'s game of Blackjack"
+            )
+            self.game_embed.title = f"{utils.clean(self.ctx.author.display_name).title()}'s Turn {random.random()}"
+
+            self.game_components.components.clear()
+            self.game_components.add_component(
+                discord.ui.ActionRow(
+                    discord.ui.Button(
+                        label="Hit",
+                        custom_id=f"{self.id}_HIT",
+                        style=(
+                            discord.ui.ButtonStyle.green
+                            if last_move == "HIT"
+                            else discord.ui.ButtonStyle.blurple
+                        ),
+                        disabled=self.pp.size.value < self.stakes,
+                    ),
+                    discord.ui.Button(
+                        label="Stand",
+                        custom_id=f"{self.id}_STAND",
+                        style=(
+                            discord.ui.ButtonStyle.blurple
+                            if last_move == "STAND"
+                            else discord.ui.ButtonStyle.blurple
+                        ),
+                        disabled=self.pp.size.value < self.stakes,
+                    ),
+                ),
+            )
+            self.game_components.add_component(
+                discord.ui.ActionRow(
+                    discord.ui.Button(
+                        label="Menu (Leave)",
+                        custom_id=f"{self.id}_MENU",
+                        style=discord.ui.ButtonStyle.red,
+                    ),
+                ),
+            )
+
+            await self.send(response=interaction.response)
+
+            try:
+                interaction, interaction_id = await self.wait_for_interaction(
+                    "HIT", "STAND", "MENU", "EXTERNAL_LEAVE"
+                )
+            except (InvalidAction, asyncio.TimeoutError) as error:
+                return None, error
+
+            if interaction_id == "EXTERNAL_LEAVE":
+                return interaction, ExternalLeave()
+
+            if interaction_id == "MENU":
+                return interaction, None
+            
+            if interaction_id == "HIT":
+                last_move = "HIT"
+            elif interaction_id == "STAND":
+                last_move = "STAND"
 
 class CasinoCommandCog(vbu.Cog[utils.Bot]):
     def __init__(self, bot: utils.Bot, logger_name: str | None = None) -> None:
@@ -508,10 +587,16 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
             if interaction_id == "LEAVE":
                 self.bot.dispatch("casino_leave", casino_session, interaction, None)
                 return
-            if interaction_id == "DICE":
-                result_interaction, result_error = await casino_session.play_dice(
-                    interaction
-                )
+            if interaction_id in ["DICE", "BLACKJACK"]:
+                if interaction_id == "DICE":
+                    result_interaction, result_error = await casino_session.play_dice(
+                        interaction
+                    )
+                else:
+                    result_interaction, result_error = (
+                        await casino_session.play_blackjack(interaction)
+                    )
+
                 if result_error is not None:
                     self.bot.dispatch(
                         "casino_leave",
