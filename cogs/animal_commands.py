@@ -258,13 +258,13 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
         )
 
     @commands.command(
-        "racoon",
+        "raccoon",
         utils.Command,
         category=utils.CommandCategory.FUN,
         application_command_meta=commands.ApplicationCommandMeta(),
     )
     @commands.is_slash_command()
-    async def racoon_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
+    async def raccoon_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
         """
         pics of little trash bears
         """
@@ -273,14 +273,14 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
             ctx,
             "racoon",
             [
-                "racoon pic for u!",
-                "yes yes racoon yes",
+                "raccoon pic for u!",
+                "yes yes raccoon yes",
                 "tiny bandit",
                 "look at this fuzzy dumpster wizard",
                 "skitter skitter",
                 "snatch and dash",
-                "i would rob a convenience store with this racoon",
-                "This racoon has five aliases and a court date in Nevada.",
+                "i would rob a convenience store with this raccoon",
+                "This raccoon has five aliases and a court date in Nevada.",
             ],
         )
 
