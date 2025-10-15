@@ -121,10 +121,10 @@ class BlackjackHand(Hand):
         while aces:
             if total + 11 * aces > 21:
                 total += 1
-                aces -= 1
             else:
                 total += 11
                 soft = True
+            aces -= 1
 
         return total, soft
 

@@ -3,7 +3,7 @@ import enum
 import uuid
 import random
 from datetime import datetime, timedelta, UTC
-from typing import Self, Literal
+from typing import Self, Literal, NoReturn
 
 import discord
 from discord.ext import commands, vbu, tasks
@@ -211,6 +211,7 @@ class CasinoSession(utils.Object):
         defer: bool = False,
         external_leave: bool = False,
         entrance: bool = False,
+        still_playing: bool = False,
     ) -> None:
         if external_leave:
             try:
@@ -246,7 +247,7 @@ class CasinoSession(utils.Object):
                 self.game_components.disable_components()
             if response.is_done():
                 await self.ctx.interaction.edit_original_message(
-                    embed=embed or self.generate_embed(),
+                    embed=self.game_embed if still_playing else embed or self.generate_embed(),
                     components=self.game_components,
                 )
                 return
@@ -405,6 +406,7 @@ class CasinoSession(utils.Object):
         self.last_interaction = None
 
         last_move: Literal["HIT", "STAND"] | None = None
+        game_over: bool = False
 
         player_hand = utils.BlackjackHand()
         player_hand.add()
@@ -415,16 +417,64 @@ class CasinoSession(utils.Object):
         dealer_hand.add()
 
         while True:
+            print("topline!")
+            self.game_embed = utils.Embed()
+            self.game_embed.set_author(
+                name=f"{utils.clean(self.ctx.author.display_name).title()}'s game of Blackjack"
+            )
+            self.game_embed.set_footer(text="Deleting this message results in an automatic loss!")
+
             if last_move == "HIT":
                 player_hand.add()
 
             player_total, player_soft = player_hand.calculate_total()
-            if player_soft:
+            dealer_total, dealer_soft = dealer_hand.calculate_total()
+
+            if last_move == "STAND":
+                self.game_embed.title = "Dealer's turn"
+                if not dealer_hand.hide_second_card and dealer_total < 17:
+                    dealer_hand.add()
+                dealer_hand.hide_second_card = False
+            
+            dealer_total, dealer_soft = dealer_hand.calculate_total()
+            
+            player_field_name = ""
+            dealer_field_name = ""
+
+            if player_total > 21:
+                game_over = True
+                player_field_name = "BUST! "
+                self.game_embed.color = utils.RED
+                self.game_embed.title = "YOU LOST!! loser"
+            
+            if dealer_total > 21:
+                last_move = None
+                game_over = True
+                dealer_field_name = "BUST! "
+                self.game_embed.title = "you won!!"
+                self.game_embed.color = utils.GREEN
+
+            if 17 <= dealer_total <= 21 and last_move == "STAND":
+                last_move = None
+                game_over = True
+                if dealer_total > player_total:
+                    self.game_embed.title = "YOU LOST!! loser"
+                    self.game_embed.color = utils.RED
+                elif dealer_total < player_total:
+                    self.game_embed.title = "you won!!"
+                    self.game_embed.color = utils.GREEN
+                else:
+                    self.game_embed.title = "PUSH"
+                    self.game_embed.color = utils.BLUE
+
+            if game_over:
+                dealer_hand.hide_second_card = False
+            
+            if player_soft and last_move != "STAND":
                 player_value = f"{player_total}/{player_total-10}"
             else:
                 player_value = str(player_total)
 
-            dealer_total, dealer_soft = dealer_hand.calculate_total()
             if dealer_hand.hide_second_card:
                 dealer_value = "??"
             elif dealer_soft:
@@ -432,19 +482,20 @@ class CasinoSession(utils.Object):
             else:
                 dealer_value = str(dealer_total)
 
-            self.game_embed = utils.Embed()
-            self.game_embed.set_author(
-                name=f"{utils.clean(self.ctx.author.display_name).title()}'s game of Blackjack"
-            )
             # self.game_embed.title = f"{utils.clean(self.ctx.author.display_name).title()}'s Turn"
 
+            player_field_name += (
+                f"({player_value}) {utils.clean(self.ctx.author.display_name)}'s hand"
+            )
+            dealer_field_name += f"({dealer_value}) pp bot's hand"
+
+
             self.game_embed.add_field(
-                name=f"({player_value}) {utils.clean(self.ctx.author.display_name)}'s hand",
+                name=player_field_name,
                 value=f"{player_hand:s}",
             )
-            self.game_embed.add_field(
-                name=f"({dealer_value}) pp bot's hand", value=f"{dealer_hand:s}"
-            )
+
+            self.game_embed.add_field(name=dealer_field_name, value=f"{dealer_hand:s}")
 
             self.game_components.components.clear()
             self.game_components.add_component(
@@ -458,7 +509,7 @@ class CasinoSession(utils.Object):
                             if last_move == "HIT"
                             else discord.ui.ButtonStyle.grey
                         ),
-                        disabled=self.pp.size.value < self.stakes,
+                        disabled=self.pp.size.value < self.stakes or game_over or last_move == "STAND",
                     ),
                     discord.ui.Button(
                         label="Stand",
@@ -469,7 +520,7 @@ class CasinoSession(utils.Object):
                             if last_move == "STAND"
                             else discord.ui.ButtonStyle.grey
                         ),
-                        disabled=self.pp.size.value < self.stakes,
+                        disabled=self.pp.size.value < self.stakes or game_over or last_move == "STAND",
                     ),
                 ),
             )
@@ -479,11 +530,18 @@ class CasinoSession(utils.Object):
                         label="Menu (Leave)",
                         custom_id=f"{self.id}_MENU",
                         style=discord.ui.ButtonStyle.red,
+                        disabled=not game_over
                     ),
                 ),
             )
 
-            await self.send(response=interaction.response)
+            await self.send(response=interaction.response, still_playing=True)
+
+            if last_move == "STAND" and not game_over:
+                print("vo'tje?")
+                await asyncio.sleep(3)
+                print("vo voor die stand")
+                continue
 
             try:
                 interaction, interaction_id = await self.wait_for_interaction(
@@ -632,6 +690,7 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
                     result_interaction, result_error = (
                         await casino_session.play_blackjack(interaction)
                     )
+                    print("resultje!")
 
                 if result_error is not None:
                     self.bot.dispatch(
