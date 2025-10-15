@@ -247,7 +247,11 @@ class CasinoSession(utils.Object):
                 self.game_components.disable_components()
             if response.is_done():
                 await self.ctx.interaction.edit_original_message(
-                    embed=self.game_embed if still_playing else embed or self.generate_embed(),
+                    embed=(
+                        self.game_embed
+                        if still_playing
+                        else embed or self.generate_embed()
+                    ),
                     components=self.game_components,
                 )
                 return
@@ -422,7 +426,9 @@ class CasinoSession(utils.Object):
             self.game_embed.set_author(
                 name=f"{utils.clean(self.ctx.author.display_name).title()}'s game of Blackjack"
             )
-            self.game_embed.set_footer(text="Deleting this message results in an automatic loss!")
+            self.game_embed.set_footer(
+                text="Deleting this message results in an automatic loss!"
+            )
 
             if last_move == "HIT":
                 player_hand.add()
@@ -435,9 +441,9 @@ class CasinoSession(utils.Object):
                 if not dealer_hand.hide_second_card and dealer_total < 17:
                     dealer_hand.add()
                 dealer_hand.hide_second_card = False
-            
+
             dealer_total, dealer_soft = dealer_hand.calculate_total()
-            
+
             player_field_name = ""
             dealer_field_name = ""
 
@@ -446,7 +452,7 @@ class CasinoSession(utils.Object):
                 player_field_name = "BUST! "
                 self.game_embed.color = utils.RED
                 self.game_embed.title = "YOU LOST!! loser"
-            
+
             if dealer_total > 21:
                 last_move = None
                 game_over = True
@@ -469,7 +475,7 @@ class CasinoSession(utils.Object):
 
             if game_over:
                 dealer_hand.hide_second_card = False
-            
+
             if player_soft and last_move != "STAND":
                 player_value = f"{player_total}/{player_total-10}"
             else:
@@ -488,7 +494,6 @@ class CasinoSession(utils.Object):
                 f"({player_value}) {utils.clean(self.ctx.author.display_name)}'s hand"
             )
             dealer_field_name += f"({dealer_value}) pp bot's hand"
-
 
             self.game_embed.add_field(
                 name=player_field_name,
@@ -509,7 +514,9 @@ class CasinoSession(utils.Object):
                             if last_move == "HIT"
                             else discord.ui.ButtonStyle.grey
                         ),
-                        disabled=self.pp.size.value < self.stakes or game_over or last_move == "STAND",
+                        disabled=self.pp.size.value < self.stakes
+                        or game_over
+                        or last_move == "STAND",
                     ),
                     discord.ui.Button(
                         label="Stand",
@@ -520,7 +527,9 @@ class CasinoSession(utils.Object):
                             if last_move == "STAND"
                             else discord.ui.ButtonStyle.grey
                         ),
-                        disabled=self.pp.size.value < self.stakes or game_over or last_move == "STAND",
+                        disabled=self.pp.size.value < self.stakes
+                        or game_over
+                        or last_move == "STAND",
                     ),
                 ),
             )
@@ -530,7 +539,7 @@ class CasinoSession(utils.Object):
                         label="Menu (Leave)",
                         custom_id=f"{self.id}_MENU",
                         style=discord.ui.ButtonStyle.red,
-                        disabled=not game_over
+                        disabled=not game_over,
                     ),
                 ),
             )
