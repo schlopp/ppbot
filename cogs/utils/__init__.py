@@ -103,7 +103,7 @@ from .helpers import (
     SlashCommandMappingManager as SlashCommandMappingManager,
     format_slash_command as format_slash_command,
 )
-from .cards import Rank as Rank, Suit as Suit, Deck as Deck, Hand as Hand
+from .cards import Rank as Rank, Suit as Suit, Card as Card, Deck as Deck, Hand as Hand, BlackjackHand as BlackjackHand
 from .command import (
     ExtendBucketType as ExtendBucketType,
     CooldownFactory as CooldownFactory,

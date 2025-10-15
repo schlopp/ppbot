@@ -1,7 +1,8 @@
 from __future__ import annotations
 import random
-from typing import overload, Literal
+from typing import overload, Literal, Self
 from enum import StrEnum, IntEnum
+
 from . import Object, IntegerHolder
 
 
@@ -39,11 +40,17 @@ class Card(Object):
         return f"{self.rank.name.title()} of {self.suit.name.lower()}"
 
     def __format__(self, format_spec: str):
-        if format_spec == "":
+        if format_spec in ["", "l"]:
             return str(self)
-        if format_spec == "blackjack":
-            return f"`{self.suit.value} {self.rank.name.title()}`"
+        if format_spec == "m":
+            return f"{self.suit.value} {self.rank.name.title()}"
+        if format_spec == "s":
+            return f"{self.suit.value}{self.rank.value if self.rank.value != 11 else 'A'}"
         raise ValueError(f"Invalid format specification {format_spec!r}")
+
+    @classmethod
+    def random(cls: type[Self]) -> Self:
+        return cls(random.choice(tuple(Rank)), random.choice(tuple(Suit)))
 
 
 class Deck(Object):
@@ -64,7 +71,7 @@ class Deck(Object):
     def draw(self, amount: int = 1, *, hand: Hand | None = None) -> Card | list[Card]:
         cards = [self.cards.pop() for _ in range(amount)]
         if hand is not None:
-            hand.give(*cards)
+            hand.add(*cards)
         if len(cards) == 1:
             return cards[0]
         return cards
@@ -76,18 +83,18 @@ class Hand(Object):
     def __init__(self):
         self.cards: list[Card] = []
 
-    def give(self, *cards: Card):
+    def add(self, *cards: Card):
+        if not cards:
+            self.cards.append(Card.random())
+            return
+        
         self.cards.extend(cards)
 
     def __str__(self) -> str:
         return ", ".join(map(str, self.cards))
 
     def __format__(self, format_spec: str):
-        if format_spec == "":
-            return str(self)
-        if format_spec == "blackjack":
-            return " ".join(f"{card:blackjack}" for card in self.cards)
-        raise ValueError(f"Invalid format specification {format_spec!r}")
+        return " ".join(f"`{card:{format_spec}}`" for card in self.cards)
 
 
 class BlackjackHand(Hand):
@@ -97,16 +104,24 @@ class BlackjackHand(Hand):
         super().__init__()
         self.hide_second_card = hide_second_card
 
-    @property
-    def total(self) -> int:
+    def calculate_total(self) -> tuple[int, bool]:
         total = 0
-        for card in self.cards:
-            total += card.rank.value
-        return total
+        soft = False
+        aces = 0
 
-    @property
-    def visual_total(self) -> int:
-        total = 0
-        if self.hide_second_card and len(self.cards) == 2:
-            return self.cards[0].rank.value
-        return total
+        for card in self.cards:
+            if card.rank == Rank.ACE:
+                aces += 1
+                continue
+
+            total += card.rank.value
+
+        while aces:
+            if total + 11 * aces > 21:
+                total += 1
+                aces -= 1
+            else:
+                total += 11
+                soft = True
+
+        return total, soft
