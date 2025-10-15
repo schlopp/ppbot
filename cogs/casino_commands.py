@@ -412,6 +412,8 @@ class CasinoSession(utils.Object):
         last_move: Literal["HIT", "STAND"] | None = None
         game_over: bool = False
 
+        display_name = utils.clean(self.ctx.author.display_name)
+
         player_hand = utils.BlackjackHand()
         player_hand.add()
         player_hand.add()
@@ -420,11 +422,15 @@ class CasinoSession(utils.Object):
         dealer_hand.add()
         dealer_hand.add()
 
+        actions = []
+
         while True:
+            description = ""
+
             print("topline!")
             self.game_embed = utils.Embed()
             self.game_embed.set_author(
-                name=f"{utils.clean(self.ctx.author.display_name).title()}'s game of Blackjack"
+                name=f"{display_name.title()}'s game of Blackjack"
             )
             self.game_embed.set_footer(
                 text="Deleting this message results in an automatic loss!"
@@ -432,6 +438,9 @@ class CasinoSession(utils.Object):
 
             if last_move == "HIT":
                 player_hand.add()
+                actions.append(
+                    f"* {display_name}" f" hits and receives {player_hand.cards[-1]:s}"
+                )
 
             player_total, player_soft = player_hand.calculate_total()
             dealer_total, dealer_soft = dealer_hand.calculate_total()
@@ -440,6 +449,9 @@ class CasinoSession(utils.Object):
                 self.game_embed.title = "Dealer's turn"
                 if not dealer_hand.hide_second_card and dealer_total < 17:
                     dealer_hand.add()
+                    actions.append(
+                        f"* dealer hits and receives {dealer_hand.cards[-1]:s}"
+                    )
                 dealer_hand.hide_second_card = False
 
             dealer_total, dealer_soft = dealer_hand.calculate_total()
@@ -452,6 +464,10 @@ class CasinoSession(utils.Object):
                 player_field_name = "BUST! "
                 self.game_embed.color = utils.RED
                 self.game_embed.title = "YOU LOST!! loser"
+                actions.append(
+                    f"- {display_name} busts."
+                    f" {random.choice(["Yikes!", "RIP", "I'm boutta bussssss"])}"
+                )
 
             if dealer_total > 21:
                 last_move = None
@@ -459,6 +475,7 @@ class CasinoSession(utils.Object):
                 dealer_field_name = "BUST! "
                 self.game_embed.title = "you won!!"
                 self.game_embed.color = utils.GREEN
+                actions.append(f"- dealer busts")
 
             if 17 <= dealer_total <= 21 and last_move == "STAND":
                 last_move = None
@@ -466,12 +483,19 @@ class CasinoSession(utils.Object):
                 if dealer_total > player_total:
                     self.game_embed.title = "YOU LOST!! loser"
                     self.game_embed.color = utils.RED
+                    actions.append(
+                        f"- {display_name} loses {player_total} to {dealer_total}"
+                    )
                 elif dealer_total < player_total:
                     self.game_embed.title = "you won!!"
                     self.game_embed.color = utils.GREEN
+                    actions.append(
+                        f"+ {display_name} wins {player_total} to {dealer_total}"
+                    )
                 else:
                     self.game_embed.title = "PUSH"
                     self.game_embed.color = utils.BLUE
+                    actions.append(f"push: {player_total} to {dealer_total}")
 
             if game_over:
                 dealer_hand.hide_second_card = False
@@ -499,6 +523,22 @@ class CasinoSession(utils.Object):
                 name=player_field_name,
                 value=f"{player_hand:s}",
             )
+
+            if len(actions) < 4:
+                formatted_actions = "\n".join(reversed(actions))
+            else:
+                formatted_actions = "\n".join(reversed(actions[-3:]))
+                formatted_actions += f"\n({len(actions) - 3} previous action{'s' if len(actions) - 3 else ''}...)"
+
+            if last_move != "STAND" and not game_over:
+                formatted_actions = (
+                    "hit: +1 card  |  stand: dealer's turn\n\n" + formatted_actions
+                )
+            elif last_move == "STAND":
+                formatted_actions = "dealer's turn\n\n" + formatted_actions
+
+            description += f"```diff\n{formatted_actions}```"
+            self.game_embed.description = description
 
             self.game_embed.add_field(name=dealer_field_name, value=f"{dealer_hand:s}")
 
@@ -569,6 +609,7 @@ class CasinoSession(utils.Object):
                 last_move = "HIT"
             elif interaction_id == "STAND":
                 last_move = "STAND"
+                actions.append(f"* {display_name} stands...")
 
 
 class CasinoCommandCog(vbu.Cog[utils.Bot]):
