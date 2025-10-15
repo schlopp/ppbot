@@ -45,7 +45,9 @@ class Card(Object):
         if format_spec == "m":
             return f"{self.suit.value} {self.rank.name.title()}"
         if format_spec == "s":
-            return f"{self.suit.value}{self.rank.value if self.rank.value != 11 else 'A'}"
+            return (
+                f"{self.suit.value}{self.rank.value if self.rank.value != 11 else 'A'}"
+            )
         raise ValueError(f"Invalid format specification {format_spec!r}")
 
     @classmethod
@@ -87,7 +89,7 @@ class Hand(Object):
         if not cards:
             self.cards.append(Card.random())
             return
-        
+
         self.cards.extend(cards)
 
     def __str__(self) -> str:

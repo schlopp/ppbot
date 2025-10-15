@@ -405,7 +405,7 @@ class CasinoSession(utils.Object):
         self.last_interaction = None
 
         last_move: Literal["HIT", "STAND"] | None = None
-        
+
         player_hand = utils.BlackjackHand()
         player_hand.add()
         player_hand.add()
@@ -442,7 +442,9 @@ class CasinoSession(utils.Object):
                 name=f"({player_value}) {utils.clean(self.ctx.author.display_name)}'s hand",
                 value=f"{player_hand:s}",
             )
-            self.game_embed.add_field(name=f"({dealer_value}) pp bot's hand", value=f"{dealer_hand:s}")
+            self.game_embed.add_field(
+                name=f"({dealer_value}) pp bot's hand", value=f"{dealer_hand:s}"
+            )
 
             self.game_components.components.clear()
             self.game_components.add_component(
