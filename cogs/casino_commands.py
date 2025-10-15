@@ -402,16 +402,47 @@ class CasinoSession(utils.Object):
     ) -> tuple[discord.ComponentInteraction | None, Exception | None]:
         """Returns (interaction: discord.ComponentInteraction | None, error: Exception | None)"""
         self.state = CasinoState.PLAYING_BLACKJACK
-
-        last_move: Literal["HIT", "STAND"] | None = None
         self.last_interaction = None
 
+        last_move: Literal["HIT", "STAND"] | None = None
+        
+        player_hand = utils.BlackjackHand()
+        player_hand.add()
+        player_hand.add()
+
+        dealer_hand = utils.BlackjackHand(hide_second_card=True)
+        dealer_hand.add()
+        dealer_hand.add()
+
         while True:
+            if last_move == "HIT":
+                player_hand.add()
+
+            player_total, player_soft = player_hand.calculate_total()
+            if player_soft:
+                player_value = f"{player_total}/{player_total-10}"
+            else:
+                player_value = str(player_total)
+
+            dealer_total, dealer_soft = dealer_hand.calculate_total()
+            if dealer_hand.hide_second_card:
+                dealer_value = "??"
+            elif dealer_soft:
+                dealer_value = f"{dealer_total}/{dealer_total-10}"
+            else:
+                dealer_value = str(dealer_total)
+
             self.game_embed = utils.Embed()
             self.game_embed.set_author(
                 name=f"{utils.clean(self.ctx.author.display_name).title()}'s game of Blackjack"
             )
-            self.game_embed.title = f"{utils.clean(self.ctx.author.display_name).title()}'s Turn {random.random()}"
+            # self.game_embed.title = f"{utils.clean(self.ctx.author.display_name).title()}'s Turn"
+
+            self.game_embed.add_field(
+                name=f"({player_value}) {utils.clean(self.ctx.author.display_name)}'s hand",
+                value=f"{player_hand:s}",
+            )
+            self.game_embed.add_field(name=f"({dealer_value}) pp bot's hand", value=f"{dealer_hand:s}")
 
             self.game_components.components.clear()
             self.game_components.add_component(
@@ -419,20 +450,22 @@ class CasinoSession(utils.Object):
                     discord.ui.Button(
                         label="Hit",
                         custom_id=f"{self.id}_HIT",
+                        emoji="👆",
                         style=(
-                            discord.ui.ButtonStyle.green
+                            discord.ui.ButtonStyle.blurple
                             if last_move == "HIT"
-                            else discord.ui.ButtonStyle.blurple
+                            else discord.ui.ButtonStyle.grey
                         ),
                         disabled=self.pp.size.value < self.stakes,
                     ),
                     discord.ui.Button(
                         label="Stand",
                         custom_id=f"{self.id}_STAND",
+                        emoji="🤚",
                         style=(
                             discord.ui.ButtonStyle.blurple
                             if last_move == "STAND"
-                            else discord.ui.ButtonStyle.blurple
+                            else discord.ui.ButtonStyle.grey
                         ),
                         disabled=self.pp.size.value < self.stakes,
                     ),

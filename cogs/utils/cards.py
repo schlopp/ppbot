@@ -125,3 +125,8 @@ class BlackjackHand(Hand):
                 soft = True
 
         return total, soft
+
+    def __format__(self, format_spec: str):
+        if self.hide_second_card:
+            return f"`{self.cards[0]:{format_spec}}` `??`"
+        return " ".join(f"`{card:{format_spec}}`" for card in self.cards)
