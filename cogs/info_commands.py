@@ -175,6 +175,7 @@ class HelpCommandsCog(vbu.Cog[utils.Bot]):
             "Voting is free and gives you:"
             f"\n- a [**300% multiplier increase**]({utils.VOTE_URL})"
             f"\n- [**shorter cooldowns**]({utils.VOTE_URL})"
+            f"\n- [**a LOT of inches**]({utils.VOTE_URL})"
             f"\n- {random.choice([
                 "love from your parents",
                 "two packs of Malboro Reds",
