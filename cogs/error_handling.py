@@ -498,9 +498,7 @@ class ErrorHandler(vbu.Cog):
         )
 
         if isinstance(ctx, commands.SlashContext):
-            error_text += (
-                f"```json\n// json dump of ctx.interaction.data\n{json.dumps(ctx.interaction.data, indent=4)}\n```"
-            )
+            error_text += f"```json\n// json dump of ctx.interaction.data\n{json.dumps(ctx.interaction.data, indent=4)}\n```"
 
         # DM to owners
         if self.bot.config.get("dm_uncaught_errors", False):
