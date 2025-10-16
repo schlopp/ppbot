@@ -505,14 +505,14 @@ class CasinoSession(utils.Object):
                 if game_over:
                     dealer_hand.hide_second_card = False
 
-                if player_soft and last_move != "STAND":
+                if player_soft and last_move != "STAND" and not game_over:
                     player_value = f"{player_total}/{player_total-10}"
                 else:
                     player_value = str(player_total)
 
                 if dealer_hand.hide_second_card:
                     dealer_value = "??"
-                elif dealer_soft:
+                elif dealer_soft and not game_over:
                     dealer_value = f"{dealer_total}/{dealer_total-10}"
                 else:
                     dealer_value = str(dealer_total)
