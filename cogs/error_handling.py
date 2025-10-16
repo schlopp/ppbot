@@ -1,4 +1,5 @@
 import io
+import json
 import random
 import traceback
 from collections.abc import Callable, Iterable
@@ -491,9 +492,15 @@ class ErrorHandler(vbu.Cog):
         file_handle = io.StringIO(error_string + "\n")
         guild_id = ctx.guild.id if ctx.guild else None
         error_text = (
-            f"Error `{error}` encountered.\nGuild `{guild_id}`, channel `{ctx.channel.id}`, "
-            f"user `{ctx.author.id}`\n```\n{ctx.message.content if ctx.message else '[No message content]'}\n```"
+            f"Error `{error}` encountered."
+            f"\nGuild `{guild_id}`, channel `{ctx.channel.id}`, user `{ctx.author.id}"
+            f"\n```\n{ctx.message.content if ctx.message else '[No message content]'}\n```"
         )
+
+        if isinstance(ctx, commands.SlashContext):
+            error_text += (
+                f"```json\n// json dump of ctx.interaction.data\n{json.dumps(ctx.interaction.data, indent=4)}\n```"
+            )
 
         # DM to owners
         if self.bot.config.get("dm_uncaught_errors", False):
