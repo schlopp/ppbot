@@ -402,6 +402,9 @@ class CasinoSession(utils.Object):
             if interaction_id == "MENU":
                 return interaction, None
 
+    async def play_blackjack_round(self, interaction: discord.ComponentInteraction):
+        pass
+
     async def play_blackjack(
         self, interaction: discord.ComponentInteraction
     ) -> tuple[discord.ComponentInteraction | None, Exception | None]:
@@ -409,207 +412,217 @@ class CasinoSession(utils.Object):
         self.state = CasinoState.PLAYING_BLACKJACK
         self.last_interaction = None
 
-        last_move: Literal["HIT", "STAND"] | None = None
-        game_over: bool = False
-
-        display_name = utils.clean(self.ctx.author.display_name)
-
-        player_hand = utils.BlackjackHand()
-        player_hand.add()
-        player_hand.add()
-
-        dealer_hand = utils.BlackjackHand(hide_second_card=True)
-        dealer_hand.add()
-        dealer_hand.add()
-
-        actions = []
-
         while True:
-            description = ""
+            last_move: Literal["HIT", "STAND"] | None = None
+            game_over: bool = False
 
-            print("topline!")
-            self.game_embed = utils.Embed()
-            self.game_embed.set_author(
-                name=f"{display_name.title()}'s game of Blackjack"
-            )
-            self.game_embed.set_footer(
-                text="Deleting this message results in an automatic loss!"
-            )
+            display_name = utils.clean(self.ctx.author.display_name)
 
-            if last_move == "HIT":
-                player_hand.add()
-                actions.append(
-                    f"* {display_name}" f" hits and receives {player_hand.cards[-1]:s}"
+            player_hand = utils.BlackjackHand()
+            player_hand.add()
+            player_hand.add()
+
+            dealer_hand = utils.BlackjackHand(hide_second_card=True)
+            dealer_hand.add()
+            dealer_hand.add()
+
+            actions = []
+
+            while True:
+                description = ""
+
+                print("topline!")
+                self.game_embed = utils.Embed()
+                self.game_embed.set_author(
+                    name=f"{display_name.title()}'s game of Blackjack"
+                )
+                self.game_embed.set_footer(
+                    text="Deleting this message results in an automatic loss!"
                 )
 
-            player_total, player_soft = player_hand.calculate_total()
-            dealer_total, dealer_soft = dealer_hand.calculate_total()
-
-            if last_move == "STAND":
-                self.game_embed.title = "Dealer's turn"
-                if not dealer_hand.hide_second_card and dealer_total < 17:
-                    dealer_hand.add()
+                if last_move == "HIT":
+                    player_hand.add()
                     actions.append(
-                        f"* dealer hits and receives {dealer_hand.cards[-1]:s}"
+                        f"* {display_name}"
+                        f" hits and receives {player_hand.cards[-1]:s}"
                     )
-                dealer_hand.hide_second_card = False
 
-            dealer_total, dealer_soft = dealer_hand.calculate_total()
+                player_total, player_soft = player_hand.calculate_total()
+                dealer_total, dealer_soft = dealer_hand.calculate_total()
 
-            player_field_name = ""
-            dealer_field_name = ""
+                if last_move == "STAND":
+                    self.game_embed.title = "Dealer's turn"
+                    if not dealer_hand.hide_second_card and dealer_total < 17:
+                        dealer_hand.add()
+                        actions.append(
+                            f"* dealer hits and receives {dealer_hand.cards[-1]:s}"
+                        )
+                    dealer_hand.hide_second_card = False
 
-            if player_total > 21:
-                game_over = True
-                player_field_name = "BUST! "
-                self.game_embed.color = utils.RED
-                self.game_embed.title = "YOU LOST!! loser"
-                actions.append(
-                    f"- {display_name} busts."
-                    f" {random.choice(["Yikes!", "RIP", "I'm boutta bussssss"])}"
-                )
+                dealer_total, dealer_soft = dealer_hand.calculate_total()
 
-            if dealer_total > 21:
-                last_move = None
-                game_over = True
-                dealer_field_name = "BUST! "
-                self.game_embed.title = "you won!!"
-                self.game_embed.color = utils.GREEN
-                actions.append(f"- dealer busts")
+                player_field_name = ""
+                dealer_field_name = ""
 
-            if 17 <= dealer_total <= 21 and last_move == "STAND":
-                last_move = None
-                game_over = True
-                if dealer_total > player_total:
-                    self.game_embed.title = "YOU LOST!! loser"
+                if player_total > 21:
+                    game_over = True
+                    player_field_name = "BUST! "
                     self.game_embed.color = utils.RED
+                    self.game_embed.title = "YOU LOST!! loser"
                     actions.append(
-                        f"- {display_name} loses {player_total} to {dealer_total}"
+                        f"- {display_name} busts."
+                        f" {random.choice(["Yikes!", "RIP", "I'm boutta bussssss"])}"
                     )
-                elif dealer_total < player_total:
+
+                if dealer_total > 21:
+                    last_move = None
+                    game_over = True
+                    dealer_field_name = "BUST! "
                     self.game_embed.title = "you won!!"
                     self.game_embed.color = utils.GREEN
-                    actions.append(
-                        f"+ {display_name} wins {player_total} to {dealer_total}"
-                    )
+                    actions.append(f"- dealer busts")
+
+                if 17 <= dealer_total <= 21 and last_move == "STAND":
+                    last_move = None
+                    game_over = True
+                    if dealer_total > player_total:
+                        self.game_embed.title = "YOU LOST!! loser"
+                        self.game_embed.color = utils.RED
+                        actions.append(
+                            f"- {display_name} loses {player_total} to {dealer_total}"
+                        )
+                    elif dealer_total < player_total:
+                        self.game_embed.title = "you won!!"
+                        self.game_embed.color = utils.GREEN
+                        actions.append(
+                            f"+ {display_name} wins {player_total} to {dealer_total}"
+                        )
+                    else:
+                        self.game_embed.title = "PUSH"
+                        self.game_embed.color = utils.BLUE
+                        actions.append(f"push: {player_total} to {dealer_total}")
+
+                if game_over:
+                    dealer_hand.hide_second_card = False
+
+                if player_soft and last_move != "STAND":
+                    player_value = f"{player_total}/{player_total-10}"
                 else:
-                    self.game_embed.title = "PUSH"
-                    self.game_embed.color = utils.BLUE
-                    actions.append(f"push: {player_total} to {dealer_total}")
+                    player_value = str(player_total)
 
-            if game_over:
-                dealer_hand.hide_second_card = False
+                if dealer_hand.hide_second_card:
+                    dealer_value = "??"
+                elif dealer_soft:
+                    dealer_value = f"{dealer_total}/{dealer_total-10}"
+                else:
+                    dealer_value = str(dealer_total)
 
-            if player_soft and last_move != "STAND":
-                player_value = f"{player_total}/{player_total-10}"
-            else:
-                player_value = str(player_total)
+                # self.game_embed.title = f"{utils.clean(self.ctx.author.display_name).title()}'s Turn"
 
-            if dealer_hand.hide_second_card:
-                dealer_value = "??"
-            elif dealer_soft:
-                dealer_value = f"{dealer_total}/{dealer_total-10}"
-            else:
-                dealer_value = str(dealer_total)
+                player_field_name += f"({player_value}) {utils.clean(self.ctx.author.display_name)}'s hand"
+                dealer_field_name += f"({dealer_value}) pp bot's hand"
 
-            # self.game_embed.title = f"{utils.clean(self.ctx.author.display_name).title()}'s Turn"
-
-            player_field_name += (
-                f"({player_value}) {utils.clean(self.ctx.author.display_name)}'s hand"
-            )
-            dealer_field_name += f"({dealer_value}) pp bot's hand"
-
-            self.game_embed.add_field(
-                name=player_field_name,
-                value=f"{player_hand:s}",
-            )
-
-            if len(actions) < 4:
-                formatted_actions = "\n".join(reversed(actions))
-            else:
-                formatted_actions = "\n".join(reversed(actions[-3:]))
-                formatted_actions += f"\n({len(actions) - 3} previous action{'s' if len(actions) - 3 else ''}...)"
-
-            if last_move != "STAND" and not game_over:
-                formatted_actions = (
-                    "hit: +1 card  |  stand: dealer's turn\n\n" + formatted_actions
+                self.game_embed.add_field(
+                    name=player_field_name,
+                    value=f"{player_hand:s}",
                 )
-            elif last_move == "STAND":
-                formatted_actions = "dealer's turn\n\n" + formatted_actions
 
-            description += f"```diff\n{formatted_actions}```"
-            self.game_embed.description = description
+                if len(actions) < 4:
+                    formatted_actions = "\n".join(reversed(actions))
+                else:
+                    formatted_actions = "\n".join(reversed(actions[-3:]))
+                    formatted_actions += f"\n({len(actions) - 3} previous action{'s' if len(actions) - 3 else ''}...)"
 
-            self.game_embed.add_field(name=dealer_field_name, value=f"{dealer_hand:s}")
+                if last_move != "STAND" and not game_over:
+                    formatted_actions = (
+                        "hit: +1 card  |  stand: dealer's turn\n\n" + formatted_actions
+                    )
+                elif last_move == "STAND":
+                    formatted_actions = "dealer's turn\n\n" + formatted_actions
 
-            self.game_components.components.clear()
-            self.game_components.add_component(
-                discord.ui.ActionRow(
-                    discord.ui.Button(
-                        label="Hit",
-                        custom_id=f"{self.id}_HIT",
-                        emoji="👆",
-                        style=(
-                            discord.ui.ButtonStyle.blurple
-                            if last_move == "HIT"
-                            else discord.ui.ButtonStyle.grey
+                description += f"```diff\n{formatted_actions}```"
+                self.game_embed.description = description
+
+                self.game_embed.add_field(
+                    name=dealer_field_name, value=f"{dealer_hand:s}"
+                )
+
+                self.game_components.components.clear()
+                self.game_components.add_component(
+                    discord.ui.ActionRow(
+                        discord.ui.Button(
+                            label="Hit",
+                            custom_id=f"{self.id}_HIT",
+                            emoji="👆",
+                            style=(
+                                discord.ui.ButtonStyle.blurple
+                                if last_move == "HIT"
+                                else discord.ui.ButtonStyle.grey
+                            ),
+                            disabled=self.pp.size.value < self.stakes
+                            or game_over
+                            or last_move == "STAND",
                         ),
-                        disabled=self.pp.size.value < self.stakes
-                        or game_over
-                        or last_move == "STAND",
-                    ),
-                    discord.ui.Button(
-                        label="Stand",
-                        custom_id=f"{self.id}_STAND",
-                        emoji="🤚",
-                        style=(
-                            discord.ui.ButtonStyle.blurple
-                            if last_move == "STAND"
-                            else discord.ui.ButtonStyle.grey
+                        discord.ui.Button(
+                            label="Stand",
+                            custom_id=f"{self.id}_STAND",
+                            emoji="🤚",
+                            style=(
+                                discord.ui.ButtonStyle.blurple
+                                if last_move == "STAND"
+                                else discord.ui.ButtonStyle.grey
+                            ),
+                            disabled=self.pp.size.value < self.stakes
+                            or game_over
+                            or last_move == "STAND",
                         ),
-                        disabled=self.pp.size.value < self.stakes
-                        or game_over
-                        or last_move == "STAND",
                     ),
-                ),
-            )
-            self.game_components.add_component(
-                discord.ui.ActionRow(
+                )
+
+                second_row = discord.ui.ActionRow(
+                    discord.ui.Button(
+                        label="Play Again",
+                        custom_id=f"{self.id}_REPLAY",
+                        style=discord.ui.ButtonStyle.green,
+                        disabled=not game_over,
+                    ),
                     discord.ui.Button(
                         label="Menu (Leave)",
                         custom_id=f"{self.id}_MENU",
                         style=discord.ui.ButtonStyle.red,
                         disabled=not game_over,
                     ),
-                ),
-            )
-
-            await self.send(response=interaction.response, still_playing=True)
-
-            if last_move == "STAND" and not game_over:
-                print("vo'tje?")
-                await asyncio.sleep(3)
-                print("vo voor die stand")
-                continue
-
-            try:
-                interaction, interaction_id = await self.wait_for_interaction(
-                    "HIT", "STAND", "MENU", "EXTERNAL_LEAVE"
                 )
-            except (InvalidAction, asyncio.TimeoutError) as error:
-                return None, error
 
-            if interaction_id == "EXTERNAL_LEAVE":
-                return interaction, ExternalLeave()
+                self.game_components.add_component(second_row)
 
-            if interaction_id == "MENU":
-                return interaction, None
+                await self.send(response=interaction.response, still_playing=True)
 
-            if interaction_id == "HIT":
-                last_move = "HIT"
-            elif interaction_id == "STAND":
-                last_move = "STAND"
-                actions.append(f"* {display_name} stands...")
+                if last_move == "STAND" and not game_over:
+                    await asyncio.sleep(2)
+                    continue
+
+                try:
+                    interaction, interaction_id = await self.wait_for_interaction(
+                        "HIT", "STAND", "REPLAY", "MENU", "EXTERNAL_LEAVE"
+                    )
+                except (InvalidAction, asyncio.TimeoutError) as error:
+                    return None, error
+
+                if interaction_id == "EXTERNAL_LEAVE":
+                    return interaction, ExternalLeave()
+
+                if interaction_id == "MENU":
+                    return interaction, None
+
+                if interaction_id == "REPLAY":
+                    break
+
+                if interaction_id == "HIT":
+                    last_move = "HIT"
+                elif interaction_id == "STAND":
+                    last_move = "STAND"
+                    actions.append(f"* {display_name} stands...")
 
 
 class CasinoCommandCog(vbu.Cog[utils.Bot]):
