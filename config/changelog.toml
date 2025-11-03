@@ -1,4 +1,13 @@
-latest_version = "2.0"
+latest_version = "3.1"
+
+
+["3.1"]
+title = "Blackjack update!!!"
+description = """
+try it out now with `/casino` !!
+-# christmas event coming soon :eyes:
+‎ 
+[**TRIPLE MULTIPLIER EVENT AND HUGE GIVEAWAY**](https://discord.gg) **TO CELEBRATE THE NEW UPDATE!**"""
 
 ["2.0"]
 title = "The pp bot revamp is complete"
