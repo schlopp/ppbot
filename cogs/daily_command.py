@@ -22,6 +22,13 @@ class StreakReward(utils.Object):
         self.note = note
         self.items = items
 
+    async def give(self, conn: asyncpg.Connection, pp: utils.Pp) -> None:
+        if self.multiplier:
+            pp.multiplier.value += self.multiplier
+        for item_key, amount in self.items.items():
+            item = utils.InventoryItem(pp.user_id, item_key, amount)
+            await item.update(conn, ensure_difference=False, additional=True)
+
 
 class DailyCommandCog(vbu.Cog[utils.Bot]):
     MIN_DAILY_GROWTH = 240
@@ -117,7 +124,8 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
         application_command_meta=commands.ApplicationCommandMeta(),
     )
     @utils.Command.tiered_cooldown(
-        default=60 * 60 * 24,
+        # default=60 * 60 * 24,
+        default=0,
         voter=commands.Cooldown(2, 60 * 60 * 24),
     )
     @commands.is_slash_command()
@@ -168,6 +176,8 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
                 embed.description = (
                     f"[**STREAK BONUS!**]({utils.MEME_URL}) {embed.description}"
                 )
+                reward = self.STREAK_REWARDS[streaks.daily.value]
+                await reward.give(db.conn, pp)
 
             _, next_streak = self.get_next_streak_reward(streaks.daily.value)
             days_left = next_streak - streaks.daily.value
