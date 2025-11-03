@@ -718,6 +718,19 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
         """
         await self.casino_command.invoke(ctx)
 
+    @commands.command(
+        "blackjack",
+        utils.Command,
+        category=utils.CommandCategory.GAMBLING,
+        application_command_meta=commands.ApplicationCommandMeta(),
+    )
+    @commands.is_slash_command()
+    async def blackjack_command(self, ctx: commands.SlashContext[utils.Bot]) -> None:
+        """
+        (same command as /casino) Visit the casino and gamble your shit away
+        """
+        await self.casino_command.invoke(ctx)
+
     @vbu.Cog.listener("on_component_interaction")
     async def casino_component_interaction_handler(
         self, interaction: discord.ComponentInteraction
