@@ -213,53 +213,64 @@ class CasinoSession(utils.Object):
         entrance: bool = False,
         still_playing: bool = False,
     ) -> None:
-        if external_leave:
-            try:
-                await self.ctx.interaction.delete_original_message()
-            except discord.HTTPException:
-                pass
-        if self.state in [CasinoState.MENU, CasinoState.CHANGING_STAKES]:
-            components = self.generate_menu_components()
-            if disable:
-                components.disable_components()
-            if response is not None:
-                if not defer:
-                    await response.edit_message(
+        try:
+            if external_leave:
+                try:
+                    await self.ctx.interaction.delete_original_message()
+                except discord.HTTPException:
+                    pass
+            if self.state in [CasinoState.MENU, CasinoState.CHANGING_STAKES]:
+                components = self.generate_menu_components()
+                if disable:
+                    components.disable_components()
+                if response is not None:
+                    if not defer:
+                        await response.edit_message(
+                            embed=embed or self.generate_embed(entrance=entrance),
+                            components=components,
+                        )
+                        return
+                    await response.defer_update()
+                if self.ctx.interaction.response.is_done():
+                    await self.ctx.interaction.edit_original_message(
                         embed=embed or self.generate_embed(entrance=entrance),
                         components=components,
                     )
                     return
-                await response.defer_update()
-            if self.ctx.interaction.response.is_done():
-                await self.ctx.interaction.edit_original_message(
+                await self.ctx.interaction.response.send_message(
                     embed=embed or self.generate_embed(entrance=entrance),
                     components=components,
                 )
                 return
-            await self.ctx.interaction.response.send_message(
-                embed=embed or self.generate_embed(entrance=entrance),
-                components=components,
-            )
-            return
-        if self.state in [CasinoState.PLAYING_DICE, CasinoState.PLAYING_BLACKJACK]:
-            assert response is not None
-            if disable:
-                self.game_components.disable_components()
-            if response.is_done():
-                await self.ctx.interaction.edit_original_message(
-                    embed=(
-                        self.game_embed
-                        if still_playing
-                        else embed or self.generate_embed()
-                    ),
-                    components=self.game_components,
+            if self.state in [CasinoState.PLAYING_DICE, CasinoState.PLAYING_BLACKJACK]:
+                assert response is not None
+                if disable:
+                    self.game_components.disable_components()
+                if response.is_done():
+                    await self.ctx.interaction.edit_original_message(
+                        embed=(
+                            self.game_embed
+                            if still_playing
+                            else embed or self.generate_embed()
+                        ),
+                        components=self.game_components,
+                    )
+                    return
+                await response.edit_message(
+                    embed=embed or self.game_embed, components=self.game_components
                 )
                 return
-            await response.edit_message(
-                embed=embed or self.game_embed, components=self.game_components
+            raise NotImplementedError("Sending in invalid state")
+
+        # ! Really not supposed to happen either,
+        # ! but just in case since we're responsible for the transaction
+        except Exception as error:
+            self.ctx.bot.dispatch(
+                "casino_leave",
+                self,
+                response._parent if response is not None else self.ctx.interaction,
+                error,
             )
-            return
-        raise NotImplementedError("Sending in invalid state")
 
     async def close(
         self,
@@ -286,7 +297,7 @@ class CasinoSession(utils.Object):
             embed.description = (
                 "This probably wasn't supposed to happen, you might want to report this to the staff in"
                 " [our Discord server](https://discord.gg/ppbot) so we can take a closer look at it."
-                f" (`{error!r}`)"
+                f" (`{error!r}` on `STATE {self.state}`)"
             )
 
         embed.description += "\n\n" + self.generate_stat_description()
@@ -402,9 +413,6 @@ class CasinoSession(utils.Object):
             if interaction_id == "MENU":
                 return interaction, None
 
-    async def play_blackjack_round(self, interaction: discord.ComponentInteraction):
-        pass
-
     async def play_blackjack(
         self, interaction: discord.ComponentInteraction
     ) -> tuple[discord.ComponentInteraction | None, Exception | None]:
@@ -431,7 +439,6 @@ class CasinoSession(utils.Object):
             while True:
                 description = ""
 
-                print("topline!")
                 self.game_embed = utils.Embed()
                 self.game_embed.set_author(
                     name=f"{display_name.title()}'s game of Blackjack"
@@ -473,6 +480,7 @@ class CasinoSession(utils.Object):
                         f"- {display_name} busts."
                         f" {random.choice(["Yikes!", "RIP", "I'm boutta bussssss"])}"
                     )
+                    self.pp.grow(-self.stakes)
 
                 if dealer_total > 21:
                     last_move = None
@@ -481,6 +489,7 @@ class CasinoSession(utils.Object):
                     self.game_embed.title = "you won!!"
                     self.game_embed.color = utils.GREEN
                     actions.append(f"- dealer busts")
+                    self.pp.grow(self.stakes)
 
                 if 17 <= dealer_total <= 21 and last_move == "STAND":
                     last_move = None
@@ -491,12 +500,14 @@ class CasinoSession(utils.Object):
                         actions.append(
                             f"- {display_name} loses {player_total} to {dealer_total}"
                         )
+                        self.pp.grow(-self.stakes)
                     elif dealer_total < player_total:
                         self.game_embed.title = "you won!!"
                         self.game_embed.color = utils.GREEN
                         actions.append(
                             f"+ {display_name} wins {player_total} to {dealer_total}"
                         )
+                        self.pp.grow(self.stakes)
                     else:
                         self.game_embed.title = "PUSH"
                         self.game_embed.color = utils.BLUE
@@ -541,6 +552,12 @@ class CasinoSession(utils.Object):
                     formatted_actions = "dealer's turn\n\n" + formatted_actions
 
                 description += f"```diff\n{formatted_actions}```"
+
+                if game_over:
+                    description += "\n" + self.generate_stat_description(
+                        note_invalid_stakes=True
+                    )
+
                 self.game_embed.description = description
 
                 self.game_embed.add_field(
@@ -634,6 +651,21 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
         super().cog_unload()
         self.garbage_collector.cancel()
 
+        # Force-close every open casino session
+        # ? Use this instead of a direct for-loop to avoid runtime errors
+        cache_keys = tuple(CasinoSession.cache.keys())
+
+        for cache_key in cache_keys:
+            # ? Cache could've been modified while looping
+            try:
+                casino_session = CasinoSession.cache[cache_key]
+            except KeyError:
+                continue
+
+            self.bot.dispatch(
+                "casino_leave", casino_session, None, asyncio.TimeoutError()
+            )
+
     @commands.command(
         "casino",
         utils.Command,
@@ -697,88 +729,103 @@ class CasinoCommandCog(vbu.Cog[utils.Bot]):
         if casino_session.ctx.author.id != interaction.user.id:
             return
 
-        if casino_session.state in [CasinoState.MENU, CasinoState.CHANGING_STAKES]:
-            if interaction_id == "STAKES":
-                casino_session.last_interaction = datetime.now(UTC).replace(tzinfo=None)
-                casino_session.state = CasinoState.CHANGING_STAKES
-                await interaction.response.send_modal(
-                    discord.ui.Modal(
-                        title="Changing casino stakes",
-                        custom_id=f"{casino_session.id}_CHANGING_STAKES",
-                        components=[
-                            discord.ui.ActionRow(
-                                discord.ui.InputText(
-                                    label="How many inches do you want to gamble?",
-                                    custom_id=f"{casino_session.id}_STAKES",
-                                    style=discord.TextStyle.long,
-                                    placeholder=f"{casino_session.MIN_STAKES} - {casino_session.MAX_STAKES}",
-                                    min_length=min(
-                                        3,
-                                        len(
-                                            utils.format_int(
-                                                casino_session.MIN_STAKES,
-                                                utils.IntFormatType.FULL,
-                                            )
+        try:
+            if casino_session.state in [CasinoState.MENU, CasinoState.CHANGING_STAKES]:
+                if interaction_id == "STAKES":
+                    casino_session.last_interaction = datetime.now(UTC).replace(
+                        tzinfo=None
+                    )
+                    casino_session.state = CasinoState.CHANGING_STAKES
+                    await interaction.response.send_modal(
+                        discord.ui.Modal(
+                            title="Changing casino stakes",
+                            custom_id=f"{casino_session.id}_CHANGING_STAKES",
+                            components=[
+                                discord.ui.ActionRow(
+                                    discord.ui.InputText(
+                                        label="How many inches do you want to gamble?",
+                                        custom_id=f"{casino_session.id}_STAKES",
+                                        style=discord.TextStyle.long,
+                                        placeholder=f"{casino_session.MIN_STAKES} - {casino_session.MAX_STAKES}",
+                                        min_length=min(
+                                            3,
+                                            len(
+                                                utils.format_int(
+                                                    casino_session.MIN_STAKES,
+                                                    utils.IntFormatType.FULL,
+                                                )
+                                            ),
                                         ),
-                                    ),
-                                    max_length=max(
-                                        3,
-                                        len(
-                                            utils.format_int(
-                                                casino_session.MAX_STAKES,
-                                                utils.IntFormatType.FULL,
-                                            )
+                                        max_length=max(
+                                            3,
+                                            len(
+                                                utils.format_int(
+                                                    casino_session.MAX_STAKES,
+                                                    utils.IntFormatType.FULL,
+                                                )
+                                            ),
                                         ),
-                                    ),
+                                    )
                                 )
-                            )
-                        ],
+                            ],
+                        )
                     )
-                )
-                return
-            if interaction_id == "EXTERNAL_LEAVE":
-                self.bot.dispatch(
-                    "casino_leave", casino_session, interaction, ExternalLeave()
-                )
-                return
-            if interaction_id == "LEAVE":
-                self.bot.dispatch("casino_leave", casino_session, interaction, None)
-                return
-            if interaction_id in ["DICE", "BLACKJACK"]:
-                if interaction_id == "DICE":
-                    result_interaction, result_error = await casino_session.play_dice(
-                        interaction
+                    return
+                if interaction_id == "EXTERNAL_LEAVE":
+                    self.bot.dispatch(
+                        "casino_leave", casino_session, interaction, ExternalLeave()
                     )
-                else:
-                    result_interaction, result_error = (
-                        await casino_session.play_blackjack(interaction)
-                    )
-                    print("resultje!")
+                    return
+                if interaction_id == "LEAVE":
+                    self.bot.dispatch("casino_leave", casino_session, interaction, None)
+                    return
+                if interaction_id in ["DICE", "BLACKJACK"]:
+                    if interaction_id == "DICE":
+                        result_interaction, result_error = (
+                            await casino_session.play_dice(interaction)
+                        )
+                    else:
+                        result_interaction, result_error = (
+                            await casino_session.play_blackjack(interaction)
+                        )
 
-                if result_error is not None:
-                    self.bot.dispatch(
-                        "casino_leave",
-                        casino_session,
-                        (
-                            result_interaction
-                            if result_interaction is not None
-                            else interaction
-                        ),
-                        result_error,
+                    if result_error is not None:
+                        self.bot.dispatch(
+                            "casino_leave",
+                            casino_session,
+                            (
+                                result_interaction
+                                if result_interaction is not None
+                                else interaction
+                            ),
+                            result_error,
+                        )
+                        return
+                    if result_interaction is None:  # ! Not supposed to ever happen!
+                        self.bot.dispatch(
+                            "casino_leave",
+                            casino_session,
+                            interaction,
+                            Exception("The code fucked up"),
+                        )
+                        return
+                    casino_session.last_interaction = datetime.now(UTC).replace(
+                        tzinfo=None
                     )
+                    casino_session.state = CasinoState.MENU
+                    await casino_session.send(response=result_interaction.response)
                     return
-                if result_interaction is None:  # ! Not supposed to ever happen!
-                    self.bot.dispatch(
-                        "casino_leave",
-                        casino_session,
-                        interaction,
-                        Exception("The code fucked up"),
-                    )
-                    return
-                casino_session.last_interaction = datetime.now(UTC).replace(tzinfo=None)
-                casino_session.state = CasinoState.MENU
-                await casino_session.send(response=result_interaction.response)
-                return
+
+        # ! Really not supposed to happen either,
+        # ! but just in case since we're responsible for the transaction
+        except Exception as error:
+            self.bot.dispatch(
+                "casino_leave",
+                casino_session,
+                interaction,
+                error,
+            )
+            return
 
     @vbu.Cog.listener("on_modal_submit")
     async def casino_modal_submit_handler(
