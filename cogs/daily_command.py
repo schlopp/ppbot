@@ -124,8 +124,8 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
         application_command_meta=commands.ApplicationCommandMeta(),
     )
     @utils.Command.tiered_cooldown(
-        # default=60 * 60 * 24,
-        default=0,
+        default=60 * 60 * 24,
+        # default=0,
         voter=commands.Cooldown(2, 60 * 60 * 24),
     )
     @commands.is_slash_command()
