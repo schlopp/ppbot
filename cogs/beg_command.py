@@ -1,5 +1,6 @@
 import enum
 import random
+from dataclasses import dataclass
 from typing import Literal, cast
 
 import asyncpg
@@ -32,65 +33,102 @@ MinigameActivity = Literal[
 ]
 
 
+@dataclass
+class Dialogue:
+    responses: list[str]
+    donators: dict[str, str | list[str] | None]
+
+
 class BegCommandCog(vbu.Cog[utils.Bot]):
-    RESPONSES: list[str] = [
-        "ew poor",
-        "don't touch my pp",
-        "my wife has a bigger pp than you",
-        "broke ass bitch",
-        "cringe poor",
-        "beg harder",
-        "poor people make me scared",
-        "dont touch me poor person",
-        "get a job",
-        "im offended",
-        "no u",
-        "i dont speak poor",
-        "you should take a shower",
-        "i love my wife... i love my wife... i love my wife..",
-        "drink some water",
-        "begone beggar",
-        "No.",
-        "no wtf?",
-        'try being a little "cooler" next time',
-        "womp womp",
-        (
-            "i just came back from one of Diddy's parties it was deck n balls everywhere you"
-            " shoulda been there"
-        ),
-    ]
-    DONATORS: dict[str, str | list[str] | None] = {
-        "obama": None,
-        "roblox noob": None,
-        "dick roberts": None,
-        "johnny from johnny johnny yes papa": None,
-        "shrek": None,
-        'kae "little twink boy"': None,
-        "bob": None,
-        "walter": None,
-        "napoleon bonaparte": None,
-        "bob ross": None,
-        "coco": None,
-        "thanos": ["begone before i snap you", "i'll snap ur pp out of existence"],
-        "don vito": None,
-        "bill cosby": [
-            "dude im a registered sex offender what do you want from me",
-            "im too busy touching people",
+    DEFAULT_DIALOGUE = Dialogue(
+        [
+            "ew poor",
+            "don't touch my pp",
+            "my wife has a bigger pp than you",
+            "broke ass bitch",
+            "cringe poor",
+            "beg harder",
+            "poor people make me scared",
+            "dont touch me poor person",
+            "get a job",
+            "im offended",
+            "no u",
+            "i dont speak poor",
+            "you should take a shower",
+            "i love my wife... i love my wife... i love my wife..",
+            "drink some water",
+            "begone beggar",
+            "No.",
+            "no wtf?",
+            'try being a little "cooler" next time',
+            "womp womp",
+            (
+                "i just came back from one of Diddy's parties it was deck n balls everywhere you"
+                " shoulda been there"
+            ),
         ],
-        "your step-sis": "i cant give any inches right now, im stuck",
-        "pp god": "begone mortal",
-        "random guy": None,
-        "genie": "rub me harder next time 😩",
-        "the guy u accidentally made eye contact with at the urinal": "eyes on your own pp man",
-        "your mom": ["you want WHAT?", "im saving my pp for your dad"],
-        "ur daughter": None,
-        "Big Man Tyrone": "Every 60 seconds in Africa a minute passes.",
-        "speed": None,
-        "catdotjs": "Meow",
-        "Meek Mill": "Get UHHPPP 😩",
-        "Diddy": None,
-        "schlöpp": None,
-    }
+        {
+            "obama": None,
+            "roblox noob": None,
+            "dick roberts": None,
+            "johnny from johnny johnny yes papa": None,
+            "shrek": None,
+            'kae "little twink boy"': None,
+            "bob": None,
+            "walter": None,
+            "napoleon bonaparte": None,
+            "bob ross": None,
+            "coco": None,
+            "thanos": ["begone before i snap you", "i'll snap ur pp out of existence"],
+            "don vito": None,
+            "bill cosby": [
+                "dude im a registered sex offender what do you want from me",
+                "im too busy touching people",
+            ],
+            "your step-sis": "i cant give any inches right now, im stuck",
+            "pp god": "begone mortal",
+            "random guy": None,
+            "genie": "rub me harder next time 😩",
+            "the guy u accidentally made eye contact with at the urinal": "eyes on your own pp man",
+            "your mom": ["you want WHAT?", "im saving my pp for your dad"],
+            "ur daughter": None,
+            "Big Man Tyrone": "Every 60 seconds in Africa a minute passes.",
+            "speed": None,
+            "catdotjs": "Meow",
+            "Meek Mill": "Get UHHPPP 😩",
+            "Diddy": None,
+            "schlöpp": None,
+        },
+    )
+
+    # Alternative dialogue
+    CHRISTMAS_DIALOGUE = Dialogue(
+        [
+            "you don't seem jolly enough.",
+            "im not sensing enough jolly energy from you",
+            "nah ur not getting my candy cane this time",
+            "why don't u jingle my bells instead",
+            "beg again and i'll make you a slave in the workshop",
+            "you should get more jolly",
+            "ur getting coal this year bro",
+            "ur getting nothing but coal",
+            "im not filling ur stockings today but i can fill something else tho",
+            'try being a little "jollier" next time',
+            "last christmas i gave you my dih but the very next day you gave it away 💔",
+            "all i want for christmassss is dihhhhhhh ❤️‍🩹",
+            "im not feeling the christmas spirit rn",
+            "ur definitely on the naughty list this year",
+            "only if you stand under the mistletoe with me 😳",
+            "maybe if you weren't such a ho-ho-ho",
+            "sorry we're out of presents",
+            "sorry but i already emptied my sack 😩",
+        ],
+        {
+            "santa": None,
+        },
+    )
+
+    DIALOGUE = DEFAULT_DIALOGUE
 
     def __init__(self, bot: Bot, logger_name: str | None = None):
         super().__init__(bot, logger_name)
@@ -158,7 +196,7 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
                 )
                 return
 
-            donator = random.choice(list(self.DONATORS))
+            donator = random.choice(list(self.DIALOGUE.donators))
             embed = utils.Embed()
 
             if activity == Activity.DONATION:
@@ -172,14 +210,14 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
 
             elif activity == Activity.REJECTION:
                 embed.colour = utils.BLUE
-                response = self.DONATORS[donator]
+                response = self.DIALOGUE.donators[donator]
 
                 if isinstance(response, list):
                     quote = random.choice(response)
                 elif isinstance(response, str):
                     quote = response
                 else:
-                    quote = random.choice(self.RESPONSES)
+                    quote = random.choice(self.DIALOGUE.responses)
 
                 embed.description = f"**{donator}:** {quote}"
 
