@@ -1,7 +1,3 @@
-[chance_weights]
-CLICK_THAT_BUTTON = 1
-
-
 [[CLICK_THAT_BUTTON]]
 object = "fish"
 action = "catch"

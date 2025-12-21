@@ -13,8 +13,8 @@ from . import utils
 
 
 class Activity(enum.Enum):
-    DONATION = 0.8
-    REJECTION = 0.1
+    DONATION = 0.8 / 1000
+    REJECTION = 0.1 / 1000
     FILL_IN_THE_BLANK_MINIGAME = 0.1 / 3
     REVERSE_MINIGAME = 0.1 / 3
     REPEAT_MINIGAME = 0.1 / 3
@@ -124,7 +124,7 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
             "sorry but i already emptied my sack 😩",
         ],
         {
-            "santa": None,
+            "Santa Claus": None,
         },
     )
 

@@ -1,7 +1,3 @@
-[chance_weights]
-    FILL_IN_THE_BLANK = 1
-
-
 [[FILL_IN_THE_BLANK]]
     person = "LowTierGod"
     situations = [

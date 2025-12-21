@@ -1,0 +1,90 @@
+[[FILL_IN_THE_BLANK]]
+    person = "Santa Claus"
+    situations = [
+        "Santa Claus wants to give you some inches, but only if you get the lyrics right!",
+    ]
+    reasons = [
+        "make Santa proud",
+        "restore the christmas spirit",
+        "get a sweet reward",
+    ]
+    prompts = [
+        ["🎵 All I want for Christmas is {} 🎵", "you"],
+        ["🎵 Dashing through the {}, in a one-horse open sleigh 🎵", "snow"],
+        ["🎵 It's beginning to {} a lot like Christmas, everywhere you go 🎵", "look"],
+        ["🎵 Rudolph the red-nosed reindeer had a very {} nose 🎵", "shiny"],
+        ["🎵 Rockin' around the Christmas {} at the Christmas party hop 🎵", "tree"],
+        ["🎵 Oh, the {} outside is frightful, but the fire is so delightful 🎵", "weather"],
+        ["🎵 {} roasting on an open fire, Jack Frost nipping at your nose 🎵", "chestnuts"],
+
+    ]
+    fails = [
+        "Santa sends his reindeer to stomp your dih into the snow.",
+        "Santa proceeds to unload his Glock-19 with a switch into your pp.",
+        "Santa will be putting you on his naughty list.",
+    ]
+    wins = [
+        "Santa claps his fat hands and you magically receive {}. Ho ho ho!",
+        "Santa laughs jolly, reaches into his sack, and blesses you with {}. Ho ho ho!",
+    ]
+
+[[REVERSE]]
+    person = "Santa Claus"
+    situations = [
+        "Santa fell asleep in your living room.",
+    ]
+    reasons = [
+        "steal all his presents",
+        "rob him",
+    ]
+    phrases = [
+        "i love cookies",
+        "i love milk",
+        "naughty list",
+        "christmas",
+        "chestnuts",
+        "reindeer",
+    ]
+    fails = [
+        "Santa's elves catch you and beat you the fuck up.",
+        "You attempted to rob the Santa but he shot you 12 times.",
+        "Santa caught you and put you on the naughty list.",
+    ]
+    wins = [
+        "You steal Santa's sack and find {}.",
+    ]
+
+[[REPEAT]]
+    person = "drunk mall Santa"
+    situations = [
+        "A clearly drunk mall Santa grabs your arm and starts rambling.",
+    ]
+    reasons = ["get him to calm down"]
+    sentences = [
+        "your mom is a ho ho ho",
+        "merry chrimmas",
+        "where my reindeer at",
+        "i swear i am the real santa",
+        "where is my mommy",
+        "this suit is too hot",
+    ]
+    fails = [
+        "Drunk santa gets mad and runs away.",
+    ]
+    wins = [
+        "Security arrests Santa and give you {}.",
+    ]
+
+[[CLICK_THAT_BUTTON]]
+object = "candy cane"
+action = "catch"
+target_emoji = "<a:CANDY_CANE:1452409272112513156>"
+fails = [
+    "The candy cane slips out of your hand.",
+]
+wins = [
+    "The magical candy cane grants you {}.",
+]
+foreground_style = "blurple"
+background_style = "grey"
+background_emoji = "❄️"
