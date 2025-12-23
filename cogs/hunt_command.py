@@ -1,5 +1,6 @@
 import enum
 import random
+from dataclasses import dataclass
 from typing import Literal, cast
 
 import asyncpg
@@ -19,40 +20,89 @@ class Activity(enum.Enum):
     @classmethod
     def random(cls):
         return random.choices(
-            list(Activity), weights=list(activity.value for activity in Activity)
+            list(cls), weights=list(activity.value for activity in cls)
         )[0]
 
 
 MinigameActivity = Literal[Activity.CLICK_THAT_BUTTON_MINIGAME]
 
 
-class HuntCommandCog(vbu.Cog[utils.Bot]):
-    HUNTING_OPTIONS: dict[str, range] = {
-        "shot a homeless man": range(1, 21),
-        "deadass just killed a man": range(5, 21),
-        "shot up a mall": range(5, 21),
-        "hijacked a fucking orphanage and sold all the kids": range(30, 51),
-        "KILLED THE PP GODS": range(50, 101),
-    }
+class ChristmasActivity(enum.Enum):
+    SUCCESS = 0.7
+    RIFLE_BREAK = 0.1
+    FILL_IN_THE_BLANK_MINIGAME = 0.2 / 4
+    REVERSE_MINIGAME = 0.2 / 4
+    REPEAT_MINIGAME = 0.2 / 4
+    CLICK_THAT_BUTTON_MINIGAME = 0.2 / 4
 
-    ITEM_BREAK_RESPONSES: list[str] = [
-        "{} got arrested and their rifle got confiscated!!1!",
-    ]
+    @classmethod
+    def random(cls):
+        return random.choices(
+            list(cls), weights=list(activity.value for activity in cls)
+        )[0]
+
+
+ChristmasMinigameActivity = Literal[
+    ChristmasActivity.FILL_IN_THE_BLANK_MINIGAME,
+    ChristmasActivity.REVERSE_MINIGAME,
+    ChristmasActivity.REPEAT_MINIGAME,
+    ChristmasActivity.FILL_IN_THE_BLANK_MINIGAME,
+]
+
+
+@dataclass
+class Dialogue:
+    hunting_options: dict[str, range]
+    item_break_responses: list[str]
+
+
+class HuntCommandCog(vbu.Cog[utils.Bot]):
+    DEFAULT_DIALOGUE = Dialogue(
+        {
+            "shot a homeless man": range(1, 21),
+            "deadass just killed a man": range(5, 21),
+            "shot up a mall": range(5, 21),
+            "hijacked a fucking orphanage and sold all the kids": range(30, 51),
+            "KILLED THE PP GODS": range(50, 101),
+        },
+        [
+            "{} got arrested and their rifle got confiscated!!1!",
+        ],
+    )
+
+    CHRISTMAS_DIALOGUE = Dialogue(
+        {
+            "shot one of Santa's elves": range(1, 21),
+            "deadass just killed one of Santa's reindeer": range(5, 21),
+            "shot up the christmas workshop": range(5, 21),
+            "hijacked Santa's wife and children": range(30, 51),
+            "KILLED SANTA AND FUCKING RUDOLPH WHAT THE FUCK WHAT THE FUCK WHAT THE FUCK": range(
+                101, 201
+            ),
+        },
+        [
+            "{} got caught by the elves and their rifle got confiscated!!1!",
+        ],
+    )
 
     def __init__(self, bot: Bot, logger_name: str | None = None):
         super().__init__(bot, logger_name)
 
     async def start_minigame(
         self,
-        minigame_activity: MinigameActivity,
+        minigame_activity: MinigameActivity | ChristmasMinigameActivity,
         *,
         bot: utils.Bot,
         connection: asyncpg.Connection,
         pp: utils.Pp,
         interaction: discord.Interaction,
     ):
-        minigame_types: dict[Activity, type[utils.Minigame]] = {
+        minigame_types: dict[Activity | ChristmasActivity, type[utils.Minigame]] = {
             Activity.CLICK_THAT_BUTTON_MINIGAME: utils.ClickThatButtonMinigame,
+            ChristmasActivity.FILL_IN_THE_BLANK_MINIGAME: utils.FillInTheBlankMinigame,
+            ChristmasActivity.REVERSE_MINIGAME: utils.ReverseMinigame,
+            ChristmasActivity.REPEAT_MINIGAME: utils.RepeatMinigame,
+            ChristmasActivity.FILL_IN_THE_BLANK_MINIGAME: utils.FillInTheBlankMinigame,
         }
 
         minigame_type = minigame_types[minigame_activity]
@@ -68,11 +118,16 @@ class HuntCommandCog(vbu.Cog[utils.Bot]):
 
     def get_hunting_option(self) -> tuple[str, int]:
         """Returns `(hunting_option: str, growth: int)`"""
-        worth_index = random.randrange(0, len(self.HUNTING_OPTIONS))
-        hunting_option = list(self.HUNTING_OPTIONS)[worth_index]
-        growth = random.choice(self.HUNTING_OPTIONS[hunting_option])
+        if utils.MinigameDialogueManager.variant == "christmas":
+            dialogue = self.CHRISTMAS_DIALOGUE
+        else:
+            dialogue = self.DEFAULT_DIALOGUE
 
-        worth = worth_index / (len(self.HUNTING_OPTIONS) - 1)
+        worth_index = random.randrange(0, len(dialogue.hunting_options))
+        hunting_option = list(dialogue.hunting_options)[worth_index]
+        growth = random.choice(dialogue.hunting_options[hunting_option])
+
+        worth = worth_index / (len(dialogue.hunting_options) - 1)
 
         if worth > 0.8:
             return f"**[{hunting_option}](<{utils.MEME_URL}>)**", growth
@@ -113,10 +168,17 @@ class HuntCommandCog(vbu.Cog[utils.Bot]):
             ):
                 raise utils.MissingTool(tool=tool)
 
+            if utils.MinigameDialogueManager.variant == "christmas":
+                activity = ChristmasActivity.random()
+                dialogue = self.CHRISTMAS_DIALOGUE
+            else:
+                activity = Activity.random()
+                dialogue = self.DEFAULT_DIALOGUE
+
             activity = Activity.random()
 
             if activity.name.endswith("_MINIGAME"):
-                activity = cast(MinigameActivity, activity)
+                activity = cast(MinigameActivity | ChristmasMinigameActivity, activity)
                 await self.start_minigame(
                     activity,
                     bot=self.bot,
@@ -128,7 +190,10 @@ class HuntCommandCog(vbu.Cog[utils.Bot]):
 
             embed = utils.Embed()
 
-            if activity == Activity.RIFLE_BREAK:
+            if utils.MinigameDialogueManager.variant == "christmas":
+                embed.set_author(name="🎄🤑 holiday hunting")
+
+            if activity in [Activity.RIFLE_BREAK, ChristmasActivity.RIFLE_BREAK]:
                 inv_tool = await utils.InventoryItem.fetch(
                     db.conn,
                     {"user_id": ctx.author.id, "id": tool.id},
@@ -138,17 +203,19 @@ class HuntCommandCog(vbu.Cog[utils.Bot]):
                 await inv_tool.update(db.conn)
 
                 embed.colour = utils.RED
-                embed.description = random.choice(self.ITEM_BREAK_RESPONSES).format(
+                embed.description = random.choice(dialogue.item_break_responses).format(
                     ctx.author.mention
                 ) + (
                     f"\n\n(You now have {inv_tool.format_item(article=utils.Article.NUMERAL)}"
-                    " left)"
+                    " left"
                 )
 
                 if inv_tool.amount.value == 0:
                     embed.description += " 😢"
 
-            elif activity == Activity.SUCCESS:
+                embed.description += ")"
+
+            elif activity in [Activity.SUCCESS, ChristmasActivity.SUCCESS]:
                 option, growth = self.get_hunting_option()
                 pp.grow_with_multipliers(
                     growth, voted=await pp.has_voted(), channel=ctx.channel

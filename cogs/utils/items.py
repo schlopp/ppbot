@@ -72,9 +72,9 @@ class UselessItem(Object):
         )
 
 
-class LegacyItem(UselessItem):
+class SeasonalItem(UselessItem):
     """
-    For legacy items (usually from giveaways) / items that have not officially been added
+    For seasonal items (usually from giveaways) / items that have not officially been added
     """
 
     __slots__ = (
@@ -88,8 +88,8 @@ class LegacyItem(UselessItem):
         "season",
     )
     _repr_attributes = __slots__
-    category = "LEGACY"
-    category_name = "Legacy Items"
+    category = "SEASONAL"
+    category_name = "Seasonal Items"
 
     def __init__(
         self,
@@ -101,7 +101,7 @@ class LegacyItem(UselessItem):
             Literal[Article.INDEFINITE_A, Article.INDEFINITE_AN, Article.INDEFINITE]
             | None
         ) = Article.INDEFINITE,
-        description: str = "This is a legacy/exclusive item.",
+        description: str = "This is a seasonal/exclusive item.",
         price: int = 0,
         purchasable: bool = False,
         season: str = "???",
@@ -267,7 +267,7 @@ class ToolItem(UselessItem):
         return format_slash_command(self.associated_command_name)
 
 
-Item = UselessItem | LegacyItem | MultiplierItem | BuffItem | ToolItem
+Item = UselessItem | SeasonalItem | MultiplierItem | BuffItem | ToolItem
 
 
 class InventoryItem(DatabaseWrapperObject):
@@ -378,11 +378,11 @@ class InventoryItem(DatabaseWrapperObject):
 
 class ItemManager:
     items: dict[str, Item] = {}
+    seasonal: dict[str, SeasonalItem] = {}
     multipliers: dict[str, MultiplierItem] = {}
     buffs: dict[str, BuffItem] = {}
     tools: dict[str, ToolItem] = {}
     useless: dict[str, UselessItem] = {}
-    legacy: dict[str, LegacyItem] = {}
     items_by_name: dict[str, Item] = {}
     _MATCH_SLASH_COMMANDS_PATTERN = re.compile(r"<\/[A-z](?:[A-z]|[0-9]|-|\s)*>")
     _logger = logging.getLogger("vbu.bot.cog.utils.ItemManager")
@@ -432,11 +432,11 @@ class ItemManager:
 
         if item is None:
             if possible_legacy:
-                item = LegacyItem.from_name(item_key)
+                item = SeasonalItem.from_name(item_key)
 
                 cls.items[item.id] = item
                 cls.items_by_name[item.name] = item
-                cls.legacy[item.id] = item
+                cls.seasonal[item.id] = item
 
                 return item
 
@@ -466,8 +466,8 @@ class ItemManager:
             cls.items[item.id] = item
             cls.items_by_name[item.name] = item
 
-            if isinstance(item, LegacyItem):
-                cls.legacy[item.id] = item
+            if isinstance(item, SeasonalItem):
+                cls.seasonal[item.id] = item
 
             elif isinstance(item, MultiplierItem):
                 cls.multipliers[item.id] = item
@@ -490,8 +490,8 @@ class ItemManager:
 
         cls.items_by_name.pop(item.name)
 
-        if isinstance(item, LegacyItem):
-            cls.multipliers.pop(item.id)
+        if isinstance(item, SeasonalItem):
+            cls.seasonal.pop(item.id)
 
         elif isinstance(item, MultiplierItem):
             cls.multipliers.pop(item.id)
@@ -512,6 +512,12 @@ class ItemManager:
         # Store the new items in a temporary list to avoid having an extended period of time where
         # the self.items list is empty. This should make the transition nearly instant
         new_items: list[Item] = []
+
+        for item_id, item in item_data["seasonal"].items():
+            cls._format_indefinite_article(item)
+            new_item = SeasonalItem(item_id, **item)
+            new_items.append(new_item)
+            cls._logger.info(f" * Loaded legacy item {new_item.id!r}")
 
         for item_id, item in item_data["multipliers"].items():
             cls._format_indefinite_article(item)
@@ -564,12 +570,6 @@ class ItemManager:
             new_item = UselessItem(item_id, **item)
             new_items.append(new_item)
             cls._logger.info(f" * Loaded useless item {new_item.id!r}")
-
-        for item_id, item in item_data["legacy"].items():
-            cls._format_indefinite_article(item)
-            new_item = LegacyItem(item_id, **item)
-            new_items.append(new_item)
-            cls._logger.info(f" * Loaded legacy item {new_item.id!r}")
 
         cls.items.clear()
         cls.add(*new_items)

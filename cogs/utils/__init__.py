@@ -132,7 +132,7 @@ from .streaks import Streaks as Streaks
 from .items import (
     UnknownItemError as UnknownItemError,
     UselessItem as UselessItem,
-    LegacyItem as LegacyItem,
+    SeasonalItem as SeasonalItem,
     MultiplierItem as MultiplierItem,
     BuffItem as BuffItem,
     ToolItem as ToolItem,

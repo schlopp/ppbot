@@ -148,7 +148,6 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
         ],
         {
             "🎅🍆 Santa Claus": None,
-            "🎁🧔 Mall Santa (off-duty)": None,
             "🦌 Rudolph the Red-Nosed Reindeer": None,
             "🧝 Santa's Elf": None,
         },

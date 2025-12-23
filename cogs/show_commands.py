@@ -137,6 +137,11 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         if random.random() > 0.05:
             other_stats.append(random.choice(easter_egg_stats))
 
+        if utils.MinigameDialogueManager.variant == "christmas":
+            other_stats.append(
+                f"{"your" if is_author else f"{member.mention}'s"} pp is [**extremely jolly**]({utils.MEME_URL})"
+            )
+
         if other_stats:
             embed.add_field(
                 name="and some more stats",
@@ -177,7 +182,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
             utils.ToolItem.category_name: [],
             utils.BuffItem.category_name: [],
             utils.UselessItem.category_name: [],
-            utils.LegacyItem.category_name: [],
+            utils.SeasonalItem.category_name: [],
         }
         sorted_inventory = sorted(
             inventory, key=lambda inv_item: inv_item.amount.value, reverse=True
