@@ -19,7 +19,19 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
     def format_listing(
         self, item: utils.Item, *, pp: utils.Pp, amount_owned: int | None = None
     ) -> str:
-        listing_title = f"[**`{item.category}`**]({utils.MEME_URL}) **{item.name}**"
+        if isinstance(item, utils.SeasonalItem):
+            listing_title = f"[**`{item.season}`**]({utils.MEME_URL}) **{item.name}**"
+            if utils.MinigameDialogueManager.variant == "christmas":
+                listing_title = (
+                    "<a:CANDY_CANE:1452409272112513156>"
+                    " **NEW SEASONAL ITEM!**"
+                    " <a:CANDY_CANE:1452409272112513156>"
+                    f"\n{listing_title}"
+                )
+            else:
+                listing_title = "**NEW SEASONAL ITEM!**\n" + listing_title
+        else:
+            listing_title = f"[**`{item.category}`**]({utils.MEME_URL}) **{item.name}**"
 
         if amount_owned is not None:
             listing_title += f" ({amount_owned})"
@@ -139,6 +151,7 @@ class ShopCommandCog(vbu.Cog[utils.Bot]):
             categories={
                 ItemClass.category: ItemClass.category_name
                 for ItemClass in [
+                    utils.SeasonalItem,
                     utils.MultiplierItem,
                     utils.ToolItem,
                     utils.UselessItem,

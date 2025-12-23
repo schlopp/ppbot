@@ -54,4 +54,4 @@ As of right now, what you're able to contribute will be very limited. This repos
 
 As a result of this rewrite, code contributions will **likely be rejected.** It's nothing personal, it's just that the project is very incomplete and I need a lil' more time before I can start dealing with other peoples' code. Once the rewrite is officially released, I'll be more open to contributions from you, the community.
 
-An exception to this is dialogue contributions. All the minigames in pp bot need custom, funny dialogue. The bulk of this dialogue is contained inside the `config/minigames.toml` file. Feel free to add new dialogue options to this file, and submit them as PR's. I'll be sure to take a look at them <3
+An exception to this is dialogue contributions. All the minigames in pp bot need custom, funny dialogue. The bulk of this dialogue is contained inside the `config/dialogue/default/minigames` folder. (or in other subfolders of `config/dialogue` for seasonal dialogue such as during christmas). Feel free to add new dialogue options to this folder, and submit them as PR's. I'll be sure to take a look at them <3

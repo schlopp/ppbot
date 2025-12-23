@@ -101,6 +101,7 @@ class Embed(discord.Embed):
         "There is no tip, take off your clothes.",
         "If you say pp 666 times at 3:00 AM, the pp monster appears",
         "Tools in the shop unlock commands!",
+        "You can unlock the `💀 dih` tag next to your Discord name from the [**pp bot server!**](https://discord.gg/ppbot)",
         "Multipliers in the shop increase the amount of inches you get!",
         "There's a small chance of an event happening upon using a command!",
         f"You can see the leaderboard by using the {format_slash_command("leaderboard")} command!",

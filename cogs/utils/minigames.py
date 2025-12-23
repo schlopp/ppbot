@@ -129,6 +129,9 @@ class ReverseMinigame(Minigame[ReverseContextDict]):
         embed.colour = PINK
         embed.title = "MINIGAME - REVERSE"
 
+        if MinigameDialogueManager.variant == "christmas":
+            embed.title = f"🎅🎄 JOLLY {embed.title} ❄️🦌"
+
         embed.description = (
             f"{self.context['situation']}"
             f" **Use {format_slash_command('reply')} and enter the phrase in reverse to {self.context['reason']}!**"
@@ -139,6 +142,9 @@ class ReverseMinigame(Minigame[ReverseContextDict]):
 
         embed = Embed()
         embed.title = "MINIGAME - REVERSE"
+
+        if MinigameDialogueManager.variant == "christmas":
+            embed.title = f"🎅🎄 JOLLY {embed.title} ❄️🦌"
 
         try:
             # assert isinstance(interaction.channel, discord.TextChannel)
@@ -205,6 +211,9 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
         embed.colour = PINK
         embed.title = "MINIGAME - REPEAT"
 
+        if MinigameDialogueManager.variant == "christmas":
+            embed.title = f"🎅🎄 JOLLY {embed.title} ❄️🦌"
+
         obscured_sentence = ZERO_WIDTH_CHARACTER.join(self.context["sentence"])
 
         embed.description = (
@@ -217,6 +226,9 @@ class RepeatMinigame(Minigame[RepeatContextDict]):
 
         embed = Embed()
         embed.title = "MINIGAME - REPEAT"
+
+        if MinigameDialogueManager.variant == "christmas":
+            embed.title = f"🎅🎄 JOLLY {embed.title} ❄️🦌"
 
         try:
             # assert isinstance(interaction.channel, discord.TextChannel)
@@ -288,7 +300,11 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
     async def start(self, interaction: discord.Interaction) -> None:
         embed = Embed()
         embed.colour = PINK
+
         embed.title = "MINIGAME - FILL IN THE BLANK"
+
+        if MinigameDialogueManager.variant == "christmas":
+            embed.title = f"🎅🎄 JOLLY {embed.title} ❄️🦌"
 
         # This looks cursed as fuck
         # Should output something along the lines of "`Go `[`fuck`](...)` yourself!`"
@@ -315,6 +331,9 @@ class FillInTheBlankMinigame(Minigame[FillInTheBlankContextDict]):
 
         embed = Embed()
         embed.title = "MINIGAME - FILL IN THE BLANK"
+
+        if MinigameDialogueManager.variant == "christmas":
+            embed.title = f"🎅🎄 JOLLY {embed.title} ❄️🦌"
 
         try:
             reply_context, reply = await ReplyManager.wait_for_reply(
@@ -518,6 +537,9 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
             f" {self.context['object'].upper()}"
         )
 
+        if MinigameDialogueManager.variant == "christmas":
+            embed.title = f"🎅🎄 JOLLY {embed.title} ❄️🦌"
+
         self._move_target()
 
         await interaction.response.send_message(
@@ -533,6 +555,9 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
             f"MINIGAME - {self.context['action'].upper()} THAT"
             f" {self.context['object'].upper()}"
         )
+
+        if MinigameDialogueManager.variant == "christmas":
+            embed.title = f"🎅🎄 JOLLY {embed.title} ❄️🦌"
 
         try:
             _, action = await wait_for_component_interaction(
@@ -606,27 +631,44 @@ class ClickThatButtonMinigame(Minigame[ClickThatButtonContextDict]):
 
 
 class MinigameDialogueManager:
-    DIALOGUE_DIRECTORY = "config/minigames"
+    DIALOGUE_DIRECTORY = "config/dialogue"
+    variant = "default"
+    minigame_directory = f"{DIALOGUE_DIRECTORY}/{variant}/minigames"
     dialogue: dict[str, dict[str, list[dict]]] = {}
     _logger = logging.getLogger("vbu.bot.cog.utils.MinigameDialogueManager")
 
     @classmethod
     def load(cls) -> None:
-        cls.dialogue.clear()
-        for subpath in os.listdir(cls.DIALOGUE_DIRECTORY):
-            assert subpath.endswith(".toml"), (
+        try:
+            config = toml.load(f"{cls.DIALOGUE_DIRECTORY}/config.toml")
+            cls.variant = config["variant"]
+        except:
+            raise FileNotFoundError(
                 f"Loading minigame dialogue failed: Dialogue directory {cls.DIALOGUE_DIRECTORY!r}"
-                " contains non-TOML files."
+                " does not contains the required config.toml file."
+            )
+
+        cls._logger.info(
+            f" * Loaded variant {cls.variant!r} from {cls.DIALOGUE_DIRECTORY}/config.toml"
+        )
+
+        cls.minigame_directory = f"{cls.DIALOGUE_DIRECTORY}/{cls.variant}/minigames"
+
+        cls.dialogue.clear()
+        for subpath in os.listdir(cls.minigame_directory):
+            assert subpath.endswith(".toml"), (
+                "Loading minigame dialogue failed: Minigame dialogue directory"
+                f" {cls.minigame_directory!r} contains non-TOML files."
             )
             cls.dialogue.update(
                 {
                     subpath.rsplit(".")[0]: toml.load(
-                        f"{cls.DIALOGUE_DIRECTORY}/{subpath}"
+                        f"{cls.minigame_directory}/{subpath}"
                     )
                 }
             )
             cls._logger.info(
-                f" * Added dialogue from {cls.DIALOGUE_DIRECTORY}/{subpath}"
+                f" * Added minigame dialogue from {cls.minigame_directory}/{subpath}"
             )
 
     @classmethod
@@ -635,13 +677,18 @@ class MinigameDialogueManager:
         minigame_type: type[Minigame[_MinigameContextDictT]],
         section: str = "global",
     ) -> _MinigameContextDictT:
+
+        # In case of christmas, override the specified section
+        if cls.variant == "christmas":
+            section = "global"
+
         section_dialogue = cls.dialogue.get(section, {})
         dialogue_options = section_dialogue.get(minigame_type.ID, [])
 
         if not dialogue_options:
             raise ValueError(
                 "No minigame dialogue options associated with the"
-                f" section {section!r} found in config/minigames.toml"
+                f" section {section!r} found in {cls.minigame_directory}"
             )
 
         dialogue_option = random.choice(dialogue_options)
