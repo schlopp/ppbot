@@ -90,14 +90,21 @@
     price = 50
     purchasable = true
 
-[legacy]
-    [legacy.DISCORDGGPPBOT]
+[seasonal]
+    [seasonal.JOLLY_DIH]
+    name = "jolly dihhhhh"
+    description = "this dih is SUPER jolly and will make everyone around you feel super jolly aswell"
+    purchasable = true
+    price = 1_000_000
+    season = "CHRISTMAS 2025"
+
+    [seasonal.DISCORDGGPPBOT]
     name = "discord.gg/ppbot"
     description = "This is a sign to join :eyes:"
     purchasable = false
     season = "2022"
 
-    [legacy.ROSE_TOY]
+    [seasonal.ROSE_TOY]
     name = "brand-new rose toy"
     description = "A brand new rose toy, ready to be used"
     purchasable = false
