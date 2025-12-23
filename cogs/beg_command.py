@@ -13,8 +13,8 @@ from . import utils
 
 
 class Activity(enum.Enum):
-    DONATION = 0.8 / 1000
-    REJECTION = 0.1 / 1000
+    DONATION = 0.8
+    REJECTION = 0.1
     FILL_IN_THE_BLANK_MINIGAME = 0.1 / 3
     REVERSE_MINIGAME = 0.1 / 3
     REPEAT_MINIGAME = 0.1 / 3
@@ -22,7 +22,7 @@ class Activity(enum.Enum):
     @classmethod
     def random(cls):
         return random.choices(
-            list(Activity), weights=list(activity.value for activity in Activity)
+            list(cls), weights=list(activity.value for activity in cls)
         )[0]
 
 
@@ -30,6 +30,29 @@ MinigameActivity = Literal[
     Activity.FILL_IN_THE_BLANK_MINIGAME,
     Activity.REVERSE_MINIGAME,
     Activity.REPEAT_MINIGAME,
+]
+
+
+class ChristmasActivity(enum.Enum):
+    DONATION = 0.7
+    REJECTION = 0.1
+    FILL_IN_THE_BLANK_MINIGAME = 0.2 / 4
+    REVERSE_MINIGAME = 0.2 / 4
+    REPEAT_MINIGAME = 0.2 / 4
+    CLICK_THAT_BUTTON_MINIGAME = 0.2 / 4
+
+    @classmethod
+    def random(cls):
+        return random.choices(
+            list(cls), weights=list(activity.value for activity in cls)
+        )[0]
+
+
+ChristmasMinigameActivity = Literal[
+    ChristmasActivity.FILL_IN_THE_BLANK_MINIGAME,
+    ChristmasActivity.REVERSE_MINIGAME,
+    ChristmasActivity.REPEAT_MINIGAME,
+    ChristmasActivity.FILL_IN_THE_BLANK_MINIGAME,
 ]
 
 
@@ -124,28 +147,33 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
             "sorry but i already emptied my sack 😩",
         ],
         {
-            "Santa Claus": None,
+            "🎅🍆 Santa Claus": None,
+            "🎁🧔 Mall Santa (off-duty)": None,
+            "🦌 Rudolph the Red-Nosed Reindeer": None,
+            "🧝 Santa's Elf": None,
         },
     )
-
-    DIALOGUE = DEFAULT_DIALOGUE
 
     def __init__(self, bot: Bot, logger_name: str | None = None):
         super().__init__(bot, logger_name)
 
     async def start_minigame(
         self,
-        minigame_activity: MinigameActivity,
+        minigame_activity: MinigameActivity | ChristmasMinigameActivity,
         *,
         bot: utils.Bot,
         connection: asyncpg.Connection,
         pp: utils.Pp,
         interaction: discord.Interaction,
     ):
-        minigame_types: dict[Activity, type[utils.Minigame]] = {
+        minigame_types: dict[Activity | ChristmasActivity, type[utils.Minigame]] = {
             Activity.FILL_IN_THE_BLANK_MINIGAME: utils.FillInTheBlankMinigame,
             Activity.REPEAT_MINIGAME: utils.RepeatMinigame,
             Activity.REVERSE_MINIGAME: utils.ReverseMinigame,
+            ChristmasActivity.FILL_IN_THE_BLANK_MINIGAME: utils.FillInTheBlankMinigame,
+            ChristmasActivity.REPEAT_MINIGAME: utils.RepeatMinigame,
+            ChristmasActivity.REVERSE_MINIGAME: utils.ReverseMinigame,
+            ChristmasActivity.CLICK_THAT_BUTTON_MINIGAME: utils.ClickThatButtonMinigame,
         }
 
         minigame_type = minigame_types[minigame_activity]
@@ -183,10 +211,15 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
         ):
             pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
 
-            activity = Activity.random()
+            if utils.MinigameDialogueManager.variant == "christmas":
+                activity = ChristmasActivity.random()
+                dialogue = self.CHRISTMAS_DIALOGUE
+            else:
+                activity = Activity.random()
+                dialogue = self.DEFAULT_DIALOGUE
 
             if activity.name.endswith("_MINIGAME"):
-                activity = cast(MinigameActivity, activity)
+                activity = cast(MinigameActivity | ChristmasMinigameActivity, activity)
                 await self.start_minigame(
                     activity,
                     bot=self.bot,
@@ -196,10 +229,10 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
                 )
                 return
 
-            donator = random.choice(list(self.DIALOGUE.donators))
+            donator = random.choice(list(dialogue.donators))
             embed = utils.Embed()
 
-            if activity == Activity.DONATION:
+            if activity in [Activity.DONATION, ChristmasActivity.DONATION]:
                 pp.grow_with_multipliers(
                     random.randint(1, 15),
                     voted=await pp.has_voted(),
@@ -208,16 +241,16 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
                 embed.colour = utils.GREEN
                 embed.description = f"**{donator}** donated {pp.format_growth()} to {ctx.author.mention}"
 
-            elif activity == Activity.REJECTION:
+            elif activity in [Activity.REJECTION, ChristmasActivity.REJECTION]:
                 embed.colour = utils.BLUE
-                response = self.DIALOGUE.donators[donator]
+                response = dialogue.donators[donator]
 
                 if isinstance(response, list):
                     quote = random.choice(response)
                 elif isinstance(response, str):
                     quote = response
                 else:
-                    quote = random.choice(self.DIALOGUE.responses)
+                    quote = random.choice(dialogue.responses)
 
                 embed.description = f"**{donator}:** {quote}"
 
