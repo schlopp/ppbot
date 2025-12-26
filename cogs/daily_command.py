@@ -107,7 +107,9 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
         max_streak = list(self.STREAK_REWARDS)[-1]
 
         if streak >= max_streak:
-            required_streak = streak // self.LOOP_STREAK_REWARD + 1
+            required_streak = (
+                streak // self.LOOP_STREAK_REWARD + 1
+            ) * self.LOOP_STREAK_REWARD
             next_streak_award = self.STREAK_REWARDS[self.LOOP_STREAK_REWARD]
             return next_streak_award, required_streak
 
