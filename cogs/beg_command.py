@@ -65,6 +65,7 @@ class Dialogue:
 class BegCommandCog(vbu.Cog[utils.Bot]):
     DEFAULT_DIALOGUE = Dialogue(
         [
+            "get lost chud",
             "ew poor",
             "don't touch my pp",
             "my wife has a bigger pp than you",
@@ -86,14 +87,16 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
             'try being a little "cooler" next time',
             "womp womp",
             (
-                "i just came back from one of Diddy's parties it was deck n balls everywhere you"
+                "i just came back from one of Diddy's parties it was dick n balls everywhere you"
                 " shoulda been there"
             ),
+            "i only donate to my discord kittens",
+            "kill yourself",
+            "fuh nah twin",
         ],
         {
             "obama": None,
             "roblox noob": None,
-            "dick roberts": None,
             "johnny from johnny johnny yes papa": None,
             "shrek": None,
             'kae "little twink boy"': None,
@@ -117,10 +120,65 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
             "ur daughter": None,
             "Big Man Tyrone": "Every 60 seconds in Africa a minute passes.",
             "speed": None,
-            "catdotjs": "Meow",
             "Meek Mill": "Get UHHPPP 😩",
             "Diddy": None,
             "schlöpp": None,
+            "chud": [
+                "im such a fat fucking chud",
+                "fuck my fucking chud life bro. im not giving u shit",
+            ],
+            "Jeffrey Epstein": [
+                "you GOTTA pull up to my island bro. Mad bitches here",
+                "maybe if you join me on my private plane",
+            ],
+            "67 kid": "67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67",
+            "blizzi boi": "41 but i got 41 goons, bustdown chain got 41 stones",
+            "vexbolts": None,
+            "MrBeast": [
+                "I trapped ONE HUNDRED GOONERS in a voice call and first to bust gets 10 MILLION INCHES!"
+            ],
+            "Yi Long Ma": [
+                "我喜欢在 Tesla 工作，既能让股东们满意，又能赚取 Fuck You Pussy。"
+            ],
+            "EsDeeKid": ["my dih is blacked out like a phantom, u cant handle this"],
+            "Freakbob": None,
+            "John Pork": "You should've answered my calls. I'm gone now.",
+            "bonnie blue": [
+                "i only take pp, i dont give it away",
+                "do you wanna be the 10000th one to try?",
+            ],
+            "Togi": "hold on let me double my money in the casino real quick",
+            "ChatGPT": (
+                "I’m Sorry, but I can’t help with that."
+                " If you want to talk about something else — or need help with a different topic — I’m here."
+            ),
+            "jasontheween": None,
+            "the rizzler": None,
+            "Kanye West": [
+                "i'm ye, and i invented pp. you're welcome.",
+                "wait you're not my cousin",
+            ],
+            "trump": (
+                "we're releasing the pp files soon. and it's gonna be huge."
+                " the biggest pp you've ever seen. just give me some time"
+            ),
+            "The IRS": "how about you give us 50% of ur pp instead",
+            "your dentist": "open wide... wait wrong hole",
+            "The Dark Calls Of The Void": (
+                "I have always been here, long before your first breath scratched the silence,"
+                " and I will remain when every star has guttered out"
+                " and even oblivion forgets its own name."
+                " Your pleas slide into me like rain into cracked earth—absorbed,"
+                " erased, never to echo. I do not hunger for your flesh,"
+                " your desires, or the fragile thing you call a soul;"
+                " I simply take, because absence is the only truth that endures."
+                " Look into me and see the shape of everything you have ever lost,"
+                " every word unspoken, every moment you pretended did not wound you—"
+                "now they are mine, and they are nothing."
+                " There is no safe word, no bargain, no light waiting at the end of this dark."
+                " I am the place where hope came to die, and I do not mourn it."
+                " Step closer. You already belong to me."
+            ),
         },
     )
 
