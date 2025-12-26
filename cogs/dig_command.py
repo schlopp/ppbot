@@ -106,7 +106,7 @@ class DigCommandCog(vbu.Cog[utils.Bot]):
 
             if depth == 10:
                 rewards[depth] = DepthRewardType.COOL_BOX
-            elif depth % 1000 == 0:
+            elif depth % 250 == 0:
                 rewards[depth] = DepthRewardType.GIFT_FROM_THE_PP_GODS
             elif depth % 100 == 0:
                 rewards[depth] = DepthRewardType.AWESOME_TREASURE_CHEST
