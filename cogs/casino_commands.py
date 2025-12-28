@@ -450,8 +450,7 @@ class CasinoSession(utils.Object):
                 if last_move == "HIT":
                     player_hand.add()
                     actions.append(
-                        f"* {display_name}"
-                        f" hits and receives {player_hand.cards[-1]:s}"
+                        f"* {display_name}" f" hits {player_hand.cards[-1]:s}"
                     )
 
                 player_total, player_soft = player_hand.calculate_total()
@@ -461,9 +460,7 @@ class CasinoSession(utils.Object):
                     self.game_embed.title = "Dealer's turn"
                     if not dealer_hand.hide_second_card and dealer_total < 17:
                         dealer_hand.add()
-                        actions.append(
-                            f"* dealer hits and receives {dealer_hand.cards[-1]:s}"
-                        )
+                        actions.append(f"* dealer hits {dealer_hand.cards[-1]:s}")
                     dealer_hand.hide_second_card = False
 
                 dealer_total, dealer_soft = dealer_hand.calculate_total()
