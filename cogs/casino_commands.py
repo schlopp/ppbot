@@ -624,6 +624,8 @@ class CasinoSession(utils.Object):
                         "HIT", "STAND", "REPLAY", "MENU", "EXTERNAL_LEAVE"
                     )
                 except (InvalidAction, asyncio.TimeoutError) as error:
+                    if not game_over:
+                        self.pp.grow(-self.stakes)
                     return None, error
 
                 if interaction_id == "EXTERNAL_LEAVE":
