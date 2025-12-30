@@ -115,7 +115,6 @@ class FishCommandCog(vbu.Cog[utils.Bot]):
 
         # avoid different behaviour for different worths with the same fishing_catch value
         worth = worth_index / (len(catches) - 1)
-        print(worth)
 
         if worth > 0.8:
             return f"**[{fishing_catch}](<{utils.MEME_URL}>)**"
