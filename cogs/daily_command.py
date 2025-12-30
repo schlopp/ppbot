@@ -1,4 +1,6 @@
+import asyncio
 import random
+import uuid
 from datetime import datetime, UTC
 
 import asyncpg
@@ -36,30 +38,34 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
     STREAK_REWARDS: dict[int, StreakReward] = {
         3: StreakReward(
             items={
-                "FISHING_ROD": 5,
+                "FISHING_ROD": 10,
+                "RIFLE": 10,
+                "SHOVEL": 10,
             }
         ),
         10: StreakReward(
             multiplier=5,
             items={
-                "FISHING_ROD": 20,
-                "RIFLE": 10,
+                "FISHING_ROD": 50,
+                "RIFLE": 50,
+                "SHOVEL": 50,
             },
         ),
         25: StreakReward(
             multiplier=20,
             items={
-                "FISHING_ROD": 100,
-                "RIFLE": 50,
-                "SHOVEL": 25,
+                "FISHING_ROD": 1000,
+                "RIFLE": 500,
+                "SHOVEL": 250,
             },
         ),
         50: StreakReward(
             multiplier=50,
             items={
-                "FISHING_ROD": 500,
-                "RIFLE": 250,
-                "SHOVEL": 100,
+                "FISHING_ROD": 10000,
+                "RIFLE": 2500,
+                "SHOVEL": 500,
+                "GOLDEN_COIN": 10,
             },
         ),
         69: StreakReward(
@@ -76,6 +82,7 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
         pp: utils.Pp,
         channel: utils.InteractionChannel | str | None,
         streak: int,
+        voted: bool,  # to avoid double-fetching
         *,
         connection: asyncpg.Connection,
     ) -> str:
@@ -85,7 +92,7 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
             random.randint(
                 DailyCommandCog.MIN_DAILY_GROWTH, DailyCommandCog.MAX_DAILY_GROWTH
             ),
-            voted=await pp.has_voted(),
+            voted=voted,
             channel=channel,
         )
         reward_message_chunks.append(pp.format_growth())
@@ -119,6 +126,121 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
 
         raise ValueError
 
+    async def not_voted_handler(
+        self, ctx: commands.SlashContext[utils.Bot], pp: utils.Pp
+    ) -> discord.ComponentInteraction | None:
+        """Returns `continue_without_voting: bool`"""
+        embed = utils.Embed(utils.RED)
+        embed.title = random.choice(
+            [
+                f"ur missing out on a lot of pp!!!!",
+                f"ur about to waste so many inches",
+            ]
+        )
+
+        multiplier, _, _ = pp.get_full_multiplier(voted=True, channel=ctx.channel)
+        max_growth = self.MAX_DAILY_GROWTH * multiplier
+        embed.description = (
+            f"{ctx.author.mention} You haven't voted yet bro!!!!"
+            " that means you'll be missing out on up to"
+            f" {utils.format_inches(max_growth)}**!!!!!!**"
+            "\n\n Voting also allows you to run this command **TWICE A DAY!!!!**"
+            f"\n\n not worth it twin. **[VOTE!!!!!]({utils.VOTE_URL})**"
+        )
+
+        interaction_id = uuid.uuid4().hex
+
+        components = discord.ui.MessageComponents(
+            discord.ui.ActionRow(
+                discord.ui.Button(
+                    label="I'll come back after voting :)",
+                    custom_id=f"{interaction_id}_CANCEL",
+                    style=discord.ButtonStyle.green,
+                ),
+                discord.ui.Button(
+                    label="Nah. I hate free stuff.",
+                    custom_id=f"{interaction_id}_PROCEED",
+                    style=discord.ButtonStyle.red,
+                ),
+            )
+        )
+
+        vote_components = discord.ui.MessageComponents(
+            discord.ui.ActionRow(
+                discord.ui.Button(
+                    label="vote!! (infinity dih button)",
+                    style=discord.ButtonStyle.url,
+                    url=utils.VOTE_URL,
+                )
+            )
+        )
+
+        await ctx.interaction.response.send_message(
+            embed=embed,
+            components=components,
+        )
+
+        try:
+            component_interaction, action = await utils.wait_for_component_interaction(
+                self.bot,
+                interaction_id,
+                users=[ctx.author],
+                actions=["CANCEL", "PROCEED"],
+                timeout=15,
+            )
+        except asyncio.TimeoutError:
+            assert isinstance(ctx.command, utils.Command)
+            await ctx.command.async_reset_cooldown(ctx)
+
+            embed = utils.Embed(utils.RED)
+            embed.title = "You've been idle for a while so this command got cancelled"
+            embed.url = utils.VOTE_URL
+            embed.description = (
+                "i assume you went off to vote or something."
+                f"\n\nif you didn't - **[VOTE NOW!!!1!!!!]({utils.VOTE_URL})**"
+            )
+
+            try:
+                await ctx.interaction.edit_original_message(
+                    embed=embed,
+                    components=vote_components,
+                )
+            except discord.HTTPException:
+                pass
+
+            return None
+
+        if action == "CANCEL":
+            assert isinstance(ctx.command, utils.Command)
+
+            await ctx.command.async_reset_cooldown(ctx)
+
+            embed.color = utils.GREEN
+            embed.title = f"{':face_holding_back_tears:'*3} thank u"
+            embed.url = utils.VOTE_URL
+
+            embed.description = (
+                f"awesome!! you can vote by clicking **[here]({utils.VOTE_URL})**,"
+                f" **[here]({utils.VOTE_URL})** or **[here]({utils.VOTE_URL})**."
+                f" or maybe even **[here]({utils.VOTE_URL})**."
+                f" and if you're reaaaalllyyy feeling frisky,"
+                f" you could even click **[here]({utils.VOTE_URL})**."
+                " or the little button down below. all up to you :))"
+                f"\n\n **Run {utils.format_slash_command('daily')} again"
+                " when you're back!**"
+            )
+            try:
+                await component_interaction.response.edit_message(
+                    embed=embed,
+                    components=vote_components,
+                )
+            except discord.HTTPException:
+                pass
+
+            return None
+
+        return component_interaction
+
     @commands.command(
         "daily",
         utils.Command,
@@ -135,6 +257,20 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
         """
         Collect your daily reward!
         """
+
+        continue_without_voting_interaction: discord.ComponentInteraction | None = None
+        voted = await vbu.user_has_voted(ctx.author.id)
+
+        if not voted:
+            async with utils.DatabaseWrapper() as db:
+                pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id)
+
+            continue_without_voting_interaction = await self.not_voted_handler(ctx, pp)
+
+            if not continue_without_voting_interaction:
+                return
+
+        # double fetch in case of changes while in not_voted_handler state
         async with (
             utils.DatabaseWrapper() as db,
             db.conn.transaction(),
@@ -143,6 +279,7 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
             ),
         ):
             pp = await utils.Pp.fetch_from_user(db.conn, ctx.author.id, edit=True)
+            voted = await pp.has_voted()
             streaks = await utils.Streaks.fetch_from_user(
                 db.conn, ctx.author.id, edit=True
             )
@@ -161,7 +298,7 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
             await streaks.update(db.conn)
 
             reward_message = await self.give_reward(
-                pp, ctx.channel, streaks.daily.value, connection=db.conn
+                pp, ctx.channel, streaks.daily.value, voted, connection=db.conn
             )
 
             embed = utils.Embed()
@@ -192,7 +329,22 @@ class DailyCommandCog(vbu.Cog[utils.Bot]):
 
             embed.add_tip()
 
-            await ctx.interaction.response.send_message(embed=embed)
+            if continue_without_voting_interaction is None:
+                await ctx.interaction.response.send_message(embed=embed)
+                return
+
+            embed.set_footer(text="you should've voted lil bro")
+
+            interaction = continue_without_voting_interaction
+
+            try:
+                await interaction.response.edit_message(
+                    embed=embed,
+                    components=None,
+                )
+                return
+            except discord.HTTPException:
+                await interaction.response.send_message(embed=embed)
 
 
 async def setup(bot: utils.Bot):
