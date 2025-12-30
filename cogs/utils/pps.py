@@ -23,6 +23,7 @@ from . import (
     format_slash_command,
     is_weekend,
     PpMissing,
+    Record,
 )
 
 
@@ -268,3 +269,48 @@ class PpExtras(DatabaseWrapperObject):
                 reason=reason,
                 casino_id=casino_id,
             )
+
+
+class PpGuilds(DatabaseWrapperObject):
+    __slots__ = ("user_id", "guild_id")
+    _repr_attributes = __slots__
+    _table = "pp_guilds"
+    _columns = {
+        "user_id": "user_id",
+        "guild_id": "guild_id",
+    }
+    _column_attributes = {attribute: column for column, attribute in _columns.items()}
+    _identifier_attributes = ("user_id", "guild_id")
+    _trackers = ()
+
+    def __init__(self, user_id: int, guild_id: str) -> None:
+        self.user_id = user_id
+        self.guild_id = guild_id
+
+    @classmethod
+    async def register(
+        cls, connection: asyncpg.Connection, user_id: int, guild_id: int
+    ) -> None:
+        await connection.execute(
+            f"""
+            INSERT INTO {cls._table} (user_id, guild_id)
+            VALUES ($1, $2)
+            ON CONFLICT (user_id, guild_id)
+            DO NOTHING
+            """,
+            user_id,
+            guild_id,
+        )
+
+    @classmethod
+    async def fetch_pps(cls, connection: asyncpg.Connection, guild_id: int) -> list[Pp]:
+        records: list[Record] = await connection.fetch(
+            f"""
+            SELECT pps.*
+            FROM pps
+            JOIN pp_guilds ON pp_guilds.user_id = pps.user_id
+            WHERE pp_guilds.guild_id = $1;
+            """,
+            guild_id,
+        )
+        return [Pp.from_record(record) for record in records]

@@ -26,6 +26,12 @@ CREATE TABLE IF NOT EXISTS pp_extras (
     last_played_version TEXT
 );
 
+CREATE TABLE IF NOT EXISTS pp_guilds (
+    user_id BIGINT,
+    guild_id BIGINT,
+    PRIMARY KEY (user_id, guild_id)
+);
+
 CREATE TABLE IF NOT EXISTS inventories (
     user_id BIGINT,
     item_id TEXT,

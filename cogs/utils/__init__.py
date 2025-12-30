@@ -146,6 +146,7 @@ from .pps import (
     BoostType as BoostType,
     Pp as Pp,
     PpExtras as PpExtras,
+    PpGuilds as PpGuilds,
     DatabaseTimeout as DatabaseTimeout,
 )
 from .paginator import (

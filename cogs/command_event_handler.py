@@ -49,6 +49,9 @@ class CommandEventHandlerCog(vbu.Cog):
             return
 
         async with utils.DatabaseWrapper() as db:
+            if ctx.guild is not None:
+                await utils.PpGuilds.register(db.conn, ctx.author.id, ctx.guild.id)
+
             try:
                 pp_extras = await utils.PpExtras.fetch_from_user(
                     db.conn, user_id=ctx.author.id, edit=True
