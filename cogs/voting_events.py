@@ -289,7 +289,7 @@ class VotingEventsCog(vbu.Cog[utils.Bot]):
             try:
                 pp.grow_with_multipliers(
                     random.randint(self.MIN_VOTE_GROWTH, self.MAX_VOTE_GROWTH),
-                    voted=await pp.has_voted(),
+                    voted=True,
                     channel=None,
                 )
                 await pp.update(db.conn)
