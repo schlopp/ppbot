@@ -95,7 +95,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
             name="stats",
             value=utils.format_iterable(
                 [
-                    f"**{utils.format_int(pp.size.value)}** inches",
+                    utils.format_inches(pp.size.value),
                     multiplier_display,
                 ]
             ),
