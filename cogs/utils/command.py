@@ -26,15 +26,15 @@ class RedisCooldownMapping(commands.CooldownMapping):
 
     def redis_bucket_key(
         self,
-        ctx: commands.Context[Bot],
+        command: Command,
         identifier: discord.Message | discord.Interaction,
     ) -> Any:
-        ctx.command = cast(Command, ctx.command)
+        command = cast(Command, command)
         if (
             self._type == commands.BucketType.default
         ):  # pyright: ignore [reportUnnecessaryComparison]
-            return f"cooldowns:{ctx.command.name}:default"
-        return f"cooldowns:{ctx.command.name}:{self._type(identifier)}"
+            return f"cooldowns:{command.name}:default"
+        return f"cooldowns:{command.name}:{self._type(identifier)}"
 
     async def redis_get_bucket(
         self, redis: vbu.Redis, key: str, current: float | None = None
@@ -230,13 +230,13 @@ class Command(commands.Command):
         return self._buckets
 
     async def _async_prepare_cooldowns(self, ctx: commands.Context[Bot]) -> None:
-        assert isinstance(ctx.command, Command)
+        assert isinstance(self, Command)
         buckets = await self._get_buckets(ctx)
         if buckets.valid:
             dt = (ctx.message.edited_at or ctx.message.created_at) if ctx.message else discord.utils.snowflake_time(ctx.interaction.id)  # type: ignore
             current = dt.replace(tzinfo=timezone.utc).timestamp()
             cooldown, retry_after = await buckets.redis_update_rate_limit(
-                buckets.redis_bucket_key(ctx, buckets.get_message(ctx)),
+                buckets.redis_bucket_key(self, buckets.get_message(ctx)),
                 current,
             )
             if retry_after:
@@ -307,7 +307,7 @@ class Command(commands.Command):
             return (
                 await buckets.redis_get_bucket(
                     redis,
-                    buckets.redis_bucket_key(ctx, buckets.get_message(ctx)),
+                    buckets.redis_bucket_key(self, buckets.get_message(ctx)),
                     current,
                 )
             )[0] == 0
@@ -319,7 +319,7 @@ class Command(commands.Command):
         buckets = await self._get_buckets(ctx)
         if buckets.valid:
             await buckets.redis_reset(
-                buckets.redis_bucket_key(ctx, buckets.get_message(ctx))
+                buckets.redis_bucket_key(self, buckets.get_message(ctx))
             )
 
     def get_cooldown_retry_after(self, *_, **_1):
@@ -331,7 +331,7 @@ class Command(commands.Command):
             dt = (ctx.message.edited_at or ctx.message.created_at) if ctx.message else discord.utils.snowflake_time(ctx.interaction.id)  # type: ignore
             current = dt.replace(tzinfo=timezone.utc).timestamp()
             return await buckets.redis_get_retry_after(
-                buckets.redis_bucket_key(ctx, buckets.get_message(ctx)),
+                buckets.redis_bucket_key(self, buckets.get_message(ctx)),
                 current,
             )
 
