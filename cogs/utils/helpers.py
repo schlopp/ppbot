@@ -113,8 +113,8 @@ class Embed(discord.Embed):
         "When you're in a channel named `pp-bot` you get a **bonus multiplier!**",
     ]
 
-    def __init__(self, *args, color=BLUE, **kwargs) -> None:
-        super().__init__(*args, color=color, **kwargs)
+    def __init__(self, color=BLUE, **kwargs) -> None:
+        super().__init__(color=color, **kwargs)
 
     def add_tip(self) -> None:
         if not random.randint(0, 5):
