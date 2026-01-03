@@ -104,7 +104,7 @@
     purchasable = false
     season = "2025"
 
-    [2025_NEW_YEARS_DILDO]
+    [seasonal.2025_NEW_YEARS_DILDO]
     name = "2025 New Year's dildo"
     description = "happy new year!!"
     purchasable = false
@@ -116,31 +116,31 @@
     purchasable = false
     season = "2022"
 
-    [CHRISTMASTHEMED_ADULT_TOY]
+    [seasonal.CHRISTMASTHEMED_ADULT_TOY]
     name = "Christmas themed adult toy"
     description = "merry pp-mas!"
     purchasable = false
     season = "2021"
     
-    [OLD_ROTTEN_APPLES]
+    [seasonal.OLD_ROTTEN_APPLES]
     name = "old rotten apples"
     description = "gross."
     purchasable = false
     season = "2025"
 
-    [MEME_MACHINE]
+    [seasonal.MEME_MACHINE]
     name = "old rusty meme machine"
     description = "doesn't work anymore."
     purchasable = false
     season = "2025"
 
-    [SAD_FLOUR]
+    [seasonal.SAD_FLOUR]
     name = "old, sad flour"
     description = "not useful when making bread"
     purchasable = false
     season = "2025"
 
-    [SCHLOPP]
+    [seasonal.SCHLOPP]
     name = "schlöpp"
     description = "IM TRAPPED IN THIS BOT"
     purchasable = false
