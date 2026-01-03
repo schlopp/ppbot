@@ -1,1 +1,1 @@
-variant = "christmas"  # (str) can be "default" or "christmas"
+variant = "default"  # (str) can be "default" or "christmas"
