@@ -2,7 +2,7 @@ import asyncio
 import logging
 import uuid
 from datetime import timedelta
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, Literal, cast, Self
 
 import discord
 from discord.ext import commands, vbu, tasks
@@ -12,6 +12,9 @@ from . import utils
 
 _T_co = TypeVar("_T_co", covariant=True)
 _V_co = TypeVar("_V_co", covariant=True)
+
+
+LeaderboardScope = Literal["GLOBAL", "GUILD"]
 
 
 class LeaderboardCache(utils.Object, Generic[_T_co, _V_co]):
@@ -38,6 +41,10 @@ class LeaderboardCache(utils.Object, Generic[_T_co, _V_co]):
         self.positions_per_user_id = {}
         self.leaderboard_items = []
         self.values_by_position = []
+
+    @classmethod
+    def for_guild(cls: type[Self], guild: discord.Guild) -> Self:
+        raise NotImplementedError
 
     async def update(self) -> None:
         raise NotImplementedError
@@ -110,6 +117,63 @@ class SizeLeaderboardCache(LeaderboardCache[int, int]):
     title = "the biggest pps in the entire universe"
     label = "Size"
 
+    @classmethod
+    def for_guild(cls: type[Self], guild: discord.Guild) -> Self:
+        leaderboard_cache = cls(
+            logger=logging.getLogger(
+                "vbu.bot.cog.LeaderboardCommandCog.SizeLeaderboardCache"
+                f"-GUILD-{guild.id}"
+            ),
+        )
+
+        leaderboard_cache.title = "the biggest pps in this server"
+
+        async def guild_update():
+            leaderboard_cache.logger.debug("Updating size leaderboard cache...")
+
+            new_position_per_user_id: dict[int, int] = {}
+            new_leaderboard_items: list[tuple[utils.Pp, int]] = []
+            new_values_by_position: list[int] = []
+
+            async with utils.DatabaseWrapper() as db:
+                records = await db(
+                    """
+                    SELECT pps.*
+                    FROM pps
+                    INNER JOIN pp_guilds ON
+                        pp_guilds.user_id=pps.user_id
+                        AND pp_guilds.guild_id=$1 
+                    ORDER BY pp_size DESC
+                    """,
+                    guild.id,
+                )
+                next_place: utils.Pp | None = None
+                for n, record in enumerate(records):
+                    pp_data = dict(record)
+                    pp = utils.Pp.from_record(pp_data)
+
+                    if n < 10:
+                        new_leaderboard_items.append((pp, pp.size.value))
+
+                    if next_place is None:
+                        overtake_difference = 0
+                    else:
+                        overtake_difference = next_place.size.value - pp.size.value
+
+                    new_position_per_user_id[record["user_id"]] = n + 1
+                    new_values_by_position.append(overtake_difference)
+                    next_place = pp
+
+            leaderboard_cache.positions_per_user_id = new_position_per_user_id
+            leaderboard_cache.leaderboard_items = new_leaderboard_items
+            leaderboard_cache.values_by_position = new_values_by_position
+
+            leaderboard_cache.logger.debug("Size leaderboard cache updated")
+
+        leaderboard_cache.update = guild_update
+
+        return leaderboard_cache
+
     async def update(self) -> None:
         self.logger.debug("Updating size leaderboard cache...")
 
@@ -167,6 +231,67 @@ class SizeLeaderboardCache(LeaderboardCache[int, int]):
 class MultiplierLeaderboardCache(LeaderboardCache[int, int]):
     title = "the craziest multipliers across all of pp bot (boosts not included)"
     label = "Multiplier"
+
+    @classmethod
+    def for_guild(cls: type[Self], guild: discord.Guild) -> Self:
+        leaderboard_cache = cls(
+            logger=logging.getLogger(
+                "vbu.bot.cog.LeaderboardCommandCog.MultiplierLeaderboardCache"
+                f"-GUILD-{guild.id}"
+            ),
+        )
+
+        leaderboard_cache.title = (
+            "the craziest multipliers in this server (boosts not included)"
+        )
+
+        async def guild_update():
+            leaderboard_cache.logger.debug("Updating multiplier leaderboard cache...")
+
+            new_position_per_user_id: dict[int, int] = {}
+            new_leaderboard_items: list[tuple[utils.Pp, int]] = []
+            new_values_by_position: list[int] = []
+
+            async with utils.DatabaseWrapper() as db:
+                records = await db(
+                    """
+                    SELECT pps.*
+                    FROM pps
+                    INNER JOIN pp_guilds ON
+                        pp_guilds.user_id=pps.user_id
+                        AND pp_guilds.guild_id=$1
+                    ORDER BY pp_multiplier DESC
+                    """,
+                    guild.id,
+                )
+                next_place: utils.Pp | None = None
+                for n, record in enumerate(records):
+                    pp_data = dict(record)
+                    pp = utils.Pp.from_record(pp_data)
+
+                    if n < 10:
+                        new_leaderboard_items.append((pp, pp.multiplier.value))
+
+                    if next_place is None:
+                        overtake_difference = 0
+                    else:
+                        overtake_difference = (
+                            next_place.multiplier.value - pp.multiplier.value
+                        )
+
+                    new_position_per_user_id[record["user_id"]] = n + 1
+                    new_values_by_position.append(overtake_difference)
+                    next_place = pp
+
+            leaderboard_cache.positions_per_user_id = new_position_per_user_id
+            leaderboard_cache.leaderboard_items = new_leaderboard_items
+            leaderboard_cache.values_by_position = new_values_by_position
+
+            leaderboard_cache.logger.debug("Multiplier leaderboard cache updated")
+
+        leaderboard_cache.update = guild_update
+
+        return leaderboard_cache
 
     async def update(self) -> None:
         self.logger.debug("Updating multiplier leaderboard cache...")
@@ -227,6 +352,76 @@ class MultiplierLeaderboardCache(LeaderboardCache[int, int]):
 class DonationLeaderboardCache(LeaderboardCache[int, int]):
     title = "the most generous people sharing their pp with everyone"
     label = "Donations (via /donate)"
+
+    @classmethod
+    def for_guild(cls: type[Self], guild: discord.Guild) -> Self:
+        leaderboard_cache = cls(
+            logger=logging.getLogger(
+                "vbu.bot.cog.LeaderboardCommandCog.DonationLeaderboardCache"
+                f"-GUILD-{guild.id}"
+            ),
+        )
+
+        leaderboard_cache.title = (
+            "the most generous server members sharing their pp with everyone"
+        )
+
+        async def guild_update():
+            leaderboard_cache.logger.debug("Updating donation leaderboard cache...")
+
+            new_position_per_user_id: dict[int, int] = {}
+            new_leaderboard_items: list[tuple[utils.Pp, int]] = []
+            new_values_by_position: list[int] = []
+
+            async with utils.DatabaseWrapper() as db:
+                records = await db(
+                    """
+                    WITH donation_totals AS (
+                        SELECT
+                            donor_id,
+                            SUM(amount) AS total_donations
+                        FROM donations
+                        INNER JOIN pp_guilds ON
+                            pp_guilds.user_id=donations.donor_id
+                            AND pp_guilds.guild_id=$1 
+                        GROUP BY donor_id
+                    )
+                    SELECT
+                        pps.*,
+                        donation_totals.total_donations
+                    FROM donation_totals
+                    JOIN pps
+                        ON donation_totals.donor_id = pps.user_id
+                    ORDER BY donation_totals.total_donations DESC
+                    """,
+                    guild.id,
+                )
+                next_place_total_donations = 0
+
+                for n, record in enumerate(records):
+                    pp_data = dict(record)
+                    total_donations = pp_data.pop("total_donations")
+
+                    if n < 10:
+                        pp = utils.Pp.from_record(pp_data)
+                        new_leaderboard_items.append((pp, total_donations))
+
+                    new_position_per_user_id[record["user_id"]] = n + 1
+                    new_values_by_position.append(
+                        next_place_total_donations - total_donations
+                    )
+
+                    next_place_total_donations = total_donations
+
+            leaderboard_cache.positions_per_user_id = new_position_per_user_id
+            leaderboard_cache.leaderboard_items = new_leaderboard_items
+            leaderboard_cache.values_by_position = new_values_by_position
+
+            leaderboard_cache.logger.debug("Donation leaderboard cache updated")
+
+        leaderboard_cache.update = guild_update
+
+        return leaderboard_cache
 
     async def update(self) -> None:
         self.logger.debug("Updating donation leaderboard cache...")
@@ -343,21 +538,56 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
         Check out the biggest pps in the world
         """
 
-        embed = self.size_leaderboard_cache.generate_embed(ctx)
+        current_category = "SIZE"
+        current_scope = "GLOBAL"
+        leaderboard_cache = self.CATEGORIES[current_category]
+
+        embed = leaderboard_cache.generate_embed(ctx)
 
         interaction_id = uuid.uuid4().hex
-        select_menu = discord.ui.SelectMenu(
+        category_menu = discord.ui.SelectMenu(
             custom_id=f"{interaction_id}_CATEGORY",
             options=[
                 discord.ui.SelectOption(
                     label=leaderboard_cache.label,
                     value=category,
-                    default=category == "SIZE",
+                    default=category == current_category,
                 )
                 for category, leaderboard_cache in self.CATEGORIES.items()
             ],
         )
-        components = discord.ui.MessageComponents(discord.ui.ActionRow(select_menu))
+
+        if ctx.guild is not None:
+            guild = cast(discord.Guild, ctx.guild)
+
+            scope_menu = discord.ui.SelectMenu(
+                custom_id=f"{interaction_id}_SCOPE",
+                options=[
+                    discord.ui.SelectOption(
+                        label="Worldwide",
+                        value="GLOBAL",
+                        description="the biggest pps in the universe",
+                        emoji="🌍",
+                        default=True,
+                    ),
+                    discord.ui.SelectOption(
+                        label=utils.limit_text(guild.name, 80),
+                        value="GUILD",
+                        description="only the pps in this server",
+                        emoji="👑",
+                        default=False,
+                    ),
+                ],
+            )
+
+            components = discord.ui.MessageComponents(
+                discord.ui.ActionRow(category_menu), discord.ui.ActionRow(scope_menu)
+            )
+
+        else:
+            components = discord.ui.MessageComponents(
+                discord.ui.ActionRow(category_menu)
+            )
 
         await ctx.interaction.response.send_message(
             embed=embed,
@@ -366,8 +596,12 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
 
         while True:
             try:
-                interaction, _ = await utils.wait_for_component_interaction(
-                    self.bot, interaction_id, users=[ctx.author], actions=["CATEGORY"]
+                interaction, action = await utils.wait_for_component_interaction(
+                    self.bot,
+                    interaction_id,
+                    users=[ctx.author],
+                    actions=["CATEGORY", "SCOPE"],
+                    timeout=120,
                 )
             except asyncio.TimeoutError:
                 components.disable_components()
@@ -377,16 +611,28 @@ class LeaderboardCommandCog(vbu.Cog[utils.Bot]):
                     pass
                 break
 
-            category = interaction.values[0]
-            leaderboard_cache = self.CATEGORIES[category]
+            if action == "CATEGORY":
+                current_category = interaction.values[0]
+                for option in category_menu.options:
+                    option.default = option.value == current_category
+            elif ctx.guild is not None:
+                current_scope = cast(LeaderboardScope, interaction.values[0])
+
+                # get scope_menu the hard way cause its pOsSiBlY uNbOuNd
+                scope_menu_row = cast(discord.ui.ActionRow, components.components[1])
+                scope_menu = cast(discord.ui.SelectMenu, scope_menu_row.components[0])
+
+                for option in scope_menu.options:
+                    option.default = option.value == current_scope
+
+            leaderboard_cache = self.CATEGORIES[current_category]
+
+            if current_scope == "GUILD" and ctx.guild is not None:
+                guild = cast(discord.Guild, ctx.guild)
+                leaderboard_cache = leaderboard_cache.for_guild(guild)
+                await leaderboard_cache.update()
 
             embed = leaderboard_cache.generate_embed(ctx)
-
-            for option in select_menu.options:
-                if option.value == category:
-                    option.default = True
-                else:
-                    option.default = False
 
             await interaction.response.edit_message(embed=embed, components=components)
 
