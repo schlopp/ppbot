@@ -598,7 +598,7 @@ class CasinoSession(utils.Object):
                         label="Play Again",
                         custom_id=f"{self.id}_REPLAY",
                         style=discord.ui.ButtonStyle.green,
-                        disabled=not game_over,
+                        disabled=not game_over and self.pp.size.value < self.stakes,
                     ),
                     discord.ui.Button(
                         label="Menu (Leave)",
