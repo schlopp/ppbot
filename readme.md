@@ -50,6 +50,10 @@ From here on out, go wild! Give yourself a gazillion inches with the admin comma
 
 ## Can I contribute my own features?
 
+**Update: Contributions are now welcomed!** Pp bot has officially been released since autumn, 2025. If you want to suggest new features, contribute to existing features or dialogue, or open PR's, feel free!
+
+The following can be ignored:
+
 As of right now, what you're able to contribute will be very limited. This repository doesn't even contain the code of the current pp bot; in fact it contains the rewrite I'm currently developing. Pp bot was one of the projects I've ever coded, and as a result, the old code is entirely dogshit. For the last year I've been rewriting every single thing about pp bot, making it look better, feel smoother, load faster and more entertaining.  
 
 As a result of this rewrite, code contributions will **likely be rejected.** It's nothing personal, it's just that the project is very incomplete and I need a lil' more time before I can start dealing with other peoples' code. Once the rewrite is officially released, I'll be more open to contributions from you, the community.
