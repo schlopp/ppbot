@@ -119,6 +119,7 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
             "your mom": ["you want WHAT?", "im saving my pp for your dad"],
             "ur daughter": None,
             "Big Man Tyrone": "Every 60 seconds in Africa a minute passes.",
+            "Big Dick Randy": "I'm coming back for that ass.",
             "speed": None,
             "Meek Mill": "Get UHHPPP 😩",
             "Diddy": None,
