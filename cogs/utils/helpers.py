@@ -112,9 +112,6 @@ class Embed(discord.Embed):
         "[Voting reduces your cooldowns!](https://top.gg/bot/735147633076863027/vote)",
         "When you're in a channel named `pp-bot` you get a **bonus multiplier!**",
     ]
-    TIPS += [
-        "(evil) join [this random server](https://discord.gg/xsg2vm55s) and ask 'do yall got pp bot in here?' to prank my friend lmao"
-    ] * 10
 
     def __init__(self, color=BLUE, **kwargs) -> None:
         super().__init__(color=color, **kwargs)
