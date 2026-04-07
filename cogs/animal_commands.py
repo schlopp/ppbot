@@ -28,7 +28,7 @@ class AnimalPayload(TypedDict):
 
 
 class AnimalCommandsCog(vbu.Cog[utils.Bot]):
-    BASE_URL = "https://some-random-api.com"
+    BASE_URL = "https://api.some-random-api.com"
     animal_payload_cache: dict[AnimalLiterals, list[AnimalPayload]] = {}
 
     async def fetch_animal(
@@ -63,7 +63,6 @@ class AnimalCommandsCog(vbu.Cog[utils.Bot]):
 
         embed = utils.Embed()
         embed.set_image(url=payload["image"])
-        embed.title = random.choice(titles)
         embed.description = f"**Fun Fact:** {payload["fact"]}"
 
         await ctx.interaction.response.send_message(embed=embed)
