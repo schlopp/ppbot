@@ -93,6 +93,8 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
             "i only donate to my discord kittens",
             "kill yourself",
             "fuh nah twin",
+            "im lowkey broke rn",
+            "FUCK YOU",
         ],
         {
             "obama": None,
