@@ -9,7 +9,6 @@ from discord.ext import commands, vbu
 
 from . import Bot, format_cooldown, VOTE_URL
 
-
 type ExtendBucketType = commands.BucketType | Callable[
     [discord.Message | discord.Interaction], Any
 ]

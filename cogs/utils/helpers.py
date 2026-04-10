@@ -10,7 +10,6 @@ import discord
 
 from . import RED, BLUE, Bot
 
-
 _T_co = TypeVar("_T_co", covariant=True)
 
 

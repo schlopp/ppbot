@@ -9,7 +9,6 @@ from discord.ext import commands, vbu
 
 from . import utils
 
-
 ShopPaginatorActions = utils.PaginatorActions | Literal["SELECT_CATEGORY"]
 
 

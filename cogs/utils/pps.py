@@ -26,7 +26,6 @@ from . import (
     Record,
 )
 
-
 NEW_UPDATE_EVENT_LIVE = True
 
 

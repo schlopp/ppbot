@@ -8,7 +8,6 @@ from discord.ext import commands
 
 from . import MEME_URL
 
-
 TimeUnitLiteral = Literal[
     "year", "week", "day", "hour", "minute", "second", "millisecond"
 ]

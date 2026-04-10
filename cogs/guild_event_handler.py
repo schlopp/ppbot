@@ -21,9 +21,7 @@ class GuildEventHandlerCog(vbu.Cog[utils.Bot]):
             f""" and have fun growing ur pp!!
 
             -# need some help? just use {utils.format_slash_command("help")} lil bro
-            """.strip(
-                "\n"
-            )
+            """.strip("\n")
         )
 
         for channel in guild.channels:

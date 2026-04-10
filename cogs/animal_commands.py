@@ -8,7 +8,6 @@ from discord.ext import commands, vbu
 
 from . import utils
 
-
 AnimalLiterals = Literal[
     "bird",
     "cat",

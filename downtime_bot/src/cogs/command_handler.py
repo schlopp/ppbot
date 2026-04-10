@@ -5,8 +5,7 @@ from discord.ext import commands, vbu
 
 
 class CommandHandlerCog(vbu.Cog):
-    EMBED_DESCRIPTION = textwrap.dedent(
-        """
+    EMBED_DESCRIPTION = textwrap.dedent("""
         # [The largest update in pp bot history is coming...](https://discord.gg/ppbot)
 
         In a few days, the biggest pp bot update **ever** will be released.
@@ -21,10 +20,7 @@ class CommandHandlerCog(vbu.Cog):
         -# Thank you all so much for the support I've received over the last few years. I haven't updated pp bot in years but from now on updates will be regular and on a monthly basis. - [schlöpp](https://github.com/schlopp)
 
         <:ppEvil:902894209160347708> [**TRIPLE MULTIPLIER EVENT AND HUGE GIVEAWAY**](https://discord.gg) **TO CELEBRATE THE NEW UPDATE!** <:ppEvil:902894209160347708>
-        """.strip(
-            "\n"
-        )
-    )
+        """.strip("\n"))
     # IMAGE_URL = "https://media.discordapp.net/attachments/959818177926275082/1382715249098231920/ppbot_update1.png"
 
     async def respond(

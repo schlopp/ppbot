@@ -9,7 +9,6 @@ from discord.ext import commands, vbu, tasks
 
 from . import utils
 
-
 _T_co = TypeVar("_T_co", covariant=True)
 _V_co = TypeVar("_V_co", covariant=True)
 
@@ -182,13 +181,11 @@ class SizeLeaderboardCache(LeaderboardCache[int, int]):
         new_values_by_position: list[int] = []
 
         async with utils.DatabaseWrapper() as db:
-            records = await db(
-                """
+            records = await db("""
                 SELECT *
                 FROM pps
                 ORDER BY pp_size DESC
-                """
-            )
+                """)
             next_place: utils.Pp | None = None
             for n, record in enumerate(records):
                 pp_data = dict(record)
@@ -301,13 +298,11 @@ class MultiplierLeaderboardCache(LeaderboardCache[int, int]):
         new_values_by_position: list[int] = []
 
         async with utils.DatabaseWrapper() as db:
-            records = await db(
-                """
+            records = await db("""
                 SELECT *
                 FROM pps
                 ORDER BY pp_multiplier DESC
-                """
-            )
+                """)
             next_place: utils.Pp | None = None
             for n, record in enumerate(records):
                 pp_data = dict(record)
@@ -431,8 +426,7 @@ class DonationLeaderboardCache(LeaderboardCache[int, int]):
         new_values_by_position: list[int] = []
 
         async with utils.DatabaseWrapper() as db:
-            records = await db(
-                """
+            records = await db("""
                 WITH donation_totals AS (
                     SELECT
                         donor_id,
@@ -447,8 +441,7 @@ class DonationLeaderboardCache(LeaderboardCache[int, int]):
                 JOIN pps
                     ON donation_totals.donor_id = pps.user_id
                 ORDER BY donation_totals.total_donations DESC
-                """
-            )
+                """)
             next_place_total_donations = 0
 
             for n, record in enumerate(records):

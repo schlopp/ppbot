@@ -12,7 +12,6 @@ from discord.ext import commands, vbu
 
 from . import utils
 
-
 _T_CommandError = TypeVar("_T_CommandError", bound=commands.CommandError)
 CommandErrorResponseFactory = Callable[
     [vbu.Context[discord.Guild | None], _T_CommandError],

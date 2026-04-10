@@ -7,7 +7,6 @@ import discord
 
 from . import Object, Embed, Bot
 
-
 PaginatorActions = Literal["START", "PREVIOUS", "NEXT", "END"]
 CategorisedPaginatorActions = PaginatorActions | Literal["SELECT_CATEGORY"]
 _ItemT = TypeVar("_ItemT")
