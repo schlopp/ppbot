@@ -271,8 +271,6 @@ class AnimuCommandsCog(vbu.Cog[utils.Bot]):
             ],
         ),
     )
-
-
     @commands.is_slash_command()
     async def kiss_command(
         self, ctx: commands.SlashContext[utils.Bot], who: discord.Member | discord.User
@@ -445,7 +443,7 @@ class AnimuCommandsCog(vbu.Cog[utils.Bot]):
             titles,
             footers,
         )
-    
+
     @commands.command(
         "wink",
         utils.Command,
@@ -521,7 +519,7 @@ class AnimuCommandsCog(vbu.Cog[utils.Bot]):
             "{initiator} asks god why",
             "{initiator} has lost all faith in humanity",
             "{initiator} facepalms so aggressively they give themselves a concussion",
-            "{initiator} lowkey just ends it all"
+            "{initiator} lowkey just ends it all",
         ]
 
         await self.send_animu_embed(
