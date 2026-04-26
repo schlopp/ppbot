@@ -1,7 +1,8 @@
 import discord
 
 # MEME_URL = "https://youtu.be/4rgxdf-fVw0"  # best at sex
-MEME_URL = "https://youtu.be/L74qGsvRZj8"  # pp bot guide
+# MEME_URL = "https://youtu.be/L74qGsvRZj8"  # pp bot guide
+MEME_URL = "https://youtu.be/dhbiW1hiYRc"  # pp bot ruined my life
 VOTE_URL = "https://top.gg/bot/735147633076863027/vote"
 RED = discord.Colour(16007990)
 GREEN = discord.Colour(5025616)
