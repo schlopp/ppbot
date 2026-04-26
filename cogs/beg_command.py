@@ -182,6 +182,7 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
                 " I am the place where hope came to die, and I do not mourn it."
                 " Step closer. You already belong to me."
             ),
+            "Teun": "We are charlie cooked",
         },
     )
 
