@@ -39,6 +39,13 @@ CREATE TABLE IF NOT EXISTS inventories (
     PRIMARY KEY (user_id, item_id)
 );
 
+CREATE TABLE IF NOT EXISTS minions (
+    user_id BIGINT,
+    minion_id TEXT,
+    minion_level INTEGER,
+    PRIMARY KEY (user_id, minion_id)
+);
+
 
 CREATE TABLE IF NOT EXISTS streaks (
     user_id BIGINT PRIMARY KEY,

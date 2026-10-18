@@ -19,6 +19,9 @@ class LoadingCog(vbu.Cog[utils.Bot]):
         utils.ItemManager.load()
         self.logger.info(" * Loading ItemManager... success")
 
+        utils.MinionManager.load()
+        self.logger.info(" * Loading MinionManager... success")
+
         utils.MinigameDialogueManager.load()
         self.logger.info(" * Loading MinigameDialogueManager... success")
 

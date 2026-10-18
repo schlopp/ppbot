@@ -11,7 +11,9 @@ from . import utils
 
 class ShowCommandsCog(vbu.Cog[utils.Bot]):
     def _component_factory(
-        self, *, current_page_id: Literal["SHOW", "INVENTORY", "UNLOCKED_COMMANDS"]
+        self,
+        *,
+        current_page_id: Literal["SHOW", "INVENTORY", "UNLOCKED_COMMANDS", "MINIONS"],
     ) -> tuple[str, discord.ui.MessageComponents]:
         """Returns `(interaction_id: str, components: discord.ui.MessageComponents)`"""
         interaction_id = uuid.uuid4().hex
@@ -24,9 +26,12 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                 label="Unlocked Commands",
                 custom_id=f"{interaction_id}_UNLOCKED_COMMANDS",
             ),
-            "BUFFS": discord.ui.Button(
-                label="Active Buffs (COMING SOON)", disabled=True
+            "MINIONS": discord.ui.Button(
+                label="Minions", custom_id=f"{interaction_id}_MINIONS", emoji="❗"
             ),
+            # "BUFFS": discord.ui.Button(
+            #     label="Buffs (COMING SOON)", disabled=True
+            # ),
         }
         buttons[current_page_id].style = discord.ButtonStyle.blurple
         buttons[current_page_id].disabled = True
@@ -290,6 +295,47 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
 
         return embed
 
+    def _minions_embed_factory(
+        self,
+        member: discord.Member | discord.User,
+        minions: list[utils.OwnedMinion],
+        *,
+        is_author: bool,
+    ) -> utils.Embed:
+        display_name = utils.clean(member.display_name)
+
+        embed = utils.Embed()
+        embed.colour = utils.BLUE
+        embed.title = f"{display_name}'s minions"
+
+        for minion in minions:
+            emojis = minion.minion.emojis
+
+            progress_bar = (
+                "▮" * round(6 * min(20000 / minion.capacity, 1.0))
+                + "▯" * (6 - round(8 * min(20000 / minion.capacity, 1.0)))
+            )
+
+            level = minion.minion.get_level(minion.level.value)
+            
+            if minion.minion.perk == "BONUS":
+                special_ability = f"Earn **+{level.percent}%** for {utils.format_time(level.duration)}"
+            else:
+                raise NotImplementedError("not supposed to be here")
+            
+            embed.add_field(
+                name=f"{minion.format_minion()}",
+                value=(
+                    f"-# “{minion.minion.quote}”"
+                    f"\n{emojis.tl}{emojis.tr} `{progress_bar}` {utils.format_int(20000, utils.IntFormatType.ABBREVIATED_UNIT)}/{utils.format_int(minion.capacity, utils.IntFormatType.ABBREVIATED_UNIT)}"
+                    f"\n{emojis.bl}{emojis.br} Earns {utils.format_inches(minion.inches_per_minute)} per minute"
+                    f"\n- Capacity: {utils.format_inches(minion.capacity)}"
+                    f"\n- **Ability:** {special_ability}"
+                )
+            )
+
+        return embed
+
     async def handle_tabs(
         self,
         ctx: commands.SlashContext[utils.Bot],
@@ -300,6 +346,7 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
         pp_extras: utils.PpExtras | None = None,
         streaks: utils.Streaks | None = None,
         inventory: list[utils.InventoryItem] | None = None,
+        minions: list[utils.OwnedMinion] | None = None,
     ) -> None:
         embed = None
         while True:
@@ -375,6 +422,20 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
                 embed = self._unlocked_commands_embed_factory(member, inventory)
                 interaction_id, components = self._component_factory(
                     current_page_id="UNLOCKED_COMMANDS"
+                )
+            elif action == "MINIONS":
+                if minions is None:
+                    async with utils.DatabaseWrapper() as db:
+                        minions = await utils.OwnedMinion.fetch(
+                            db.conn,
+                            {"user_id": ctx.author.id},
+                            fetch_multiple_rows=True,
+                        )
+                embed = self._minions_embed_factory(
+                    member, minions, is_author=ctx.author == member
+                )
+                interaction_id, components = self._component_factory(
+                    current_page_id="MINIONS"
                 )
 
             await component_interaction.response.edit_message(
@@ -509,6 +570,46 @@ class ShowCommandsCog(vbu.Cog[utils.Bot]):
 
         await self.handle_tabs(
             ctx, member, interaction_id, components=components, inventory=inventory
+        )
+
+    @commands.command(
+        "minions",
+        utils.Command,
+        category=utils.CommandCategory.STATS,
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    type=discord.ApplicationCommandOptionType.user,
+                    description="Whoever's minions you want to take a peek at",
+                    required=False,
+                )
+            ]
+        ),
+    )
+    async def minions_command(
+        self, ctx: commands.SlashContext[utils.Bot], user: discord.Member | None = None
+    ) -> None:
+        """
+        Check out your unpaid minions!
+        """
+
+        member = user or ctx.author
+
+        async with utils.DatabaseWrapper() as db:
+            minions = await utils.OwnedMinion.fetch(
+                db.conn, {"user_id": ctx.author.id}, fetch_multiple_rows=True
+            )
+
+        embed = self._minions_embed_factory(
+            member, minions, is_author=ctx.author == member
+        )
+
+        interaction_id, components = self._component_factory(current_page_id="MINIONS")
+        await ctx.interaction.response.send_message(embed=embed, components=components)
+
+        await self.handle_tabs(
+            ctx, member, interaction_id, components=components, minions=minions
         )
 
 

@@ -117,6 +117,41 @@ def format_inches(
     return f"**[{format_int(__inches)}]({MEME_URL}) {in_between}inch{'' if __inches == 1 else 'es'}**"
 
 
+def format_roman(__int: int, /) -> str:
+    """
+    1994 -> MCMXCIV
+
+    Raises:
+        ValueError: If ``__int`` is outside 1..3999.
+    """
+    if not 1 <= __int <= 3999:
+        raise ValueError(f"format_roman() expects 1 <= number <= 3999, got {__int}")
+
+    table: tuple[tuple[int, str], ...] = (
+        (1000, "M"),
+        (900, "CM"),
+        (500, "D"),
+        (400, "CD"),
+        (100, "C"),
+        (90, "XC"),
+        (50, "L"),
+        (40, "XL"),
+        (10, "X"),
+        (9, "IX"),
+        (5, "V"),
+        (4, "IV"),
+        (1, "I"),
+    )
+
+    parts: list[str] = []
+    remaining: int = __int
+    for value, symbol in table:
+        count, remaining = divmod(remaining, value)
+        if count:
+            parts.append(symbol * count)
+    return "".join(parts)
+
+
 @overload
 def format_time(
     duration: timedelta,

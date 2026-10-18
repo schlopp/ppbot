@@ -77,6 +77,7 @@ from .formatters import (
     Article as Article,
     format_int as format_int,
     format_inches as format_inches,
+    format_roman as format_roman,
     format_time as format_time,
     format_cooldown as format_cooldown,
     format_iterable as format_iterable,
@@ -142,6 +143,14 @@ from .items import (
     InventoryItem as InventoryItem,
     ItemManager as ItemManager,
     MissingTool as MissingTool,
+)
+from .minions import (
+    MinionPerkLiterals as MinionPerkLiterals,
+    UnknownMinionError as UnknownMinionError,
+    MinionLevel as MinionLevel,
+    Minion as Minion,
+    OwnedMinion as OwnedMinion,
+    MinionManager as MinionManager,
 )
 from .pps import (
     BoostType as BoostType,

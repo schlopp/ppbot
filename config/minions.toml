@@ -1,0 +1,62 @@
+[minions]
+    [minions.GOONER]
+    name = "Gooner"
+    quote = "I can't stop gooning .."
+    base_inches_per_minute = 200  # at level 1; rate = base * level
+    perk = "BONUS"
+
+        [minions.GOONER.emojis]
+        tl = "<:ppeGOONER_tl:1556650012312735776>"
+        tr = "<:ppeGOONER_tr:1556650019585785885>"
+        bl = "<:ppeGOONER_bl:1556649987822325780>"
+        br = "<:ppeGOONER_br:1556650000774074418>"
+
+        [[minions.GOONER.levels]] # 1
+        percent = 10
+        duration_min = 30
+        required_items = {COOKIE = 100}  # 5k, 25 min recoup time
+        
+        [[minions.GOONER.levels]] # 2
+        percent = 10
+        duration_min = 60
+        required_items = {COOKIE = 200}  # 10k
+
+        [[minions.GOONER.levels]] # 3
+        percent = 20
+        duration_min = 60
+        required_items = {COOKIE = 1000}  # 50k
+
+        [[minions.GOONER.levels]] # 4
+        percent = 20
+        duration_min = 120
+        required_items = {COOKIE = 2000}  # 100k
+
+        [[minions.GOONER.levels]] # 5
+        percent = 30
+        duration_min = 120
+        required_items = {COOKIE = 10_000}  # 500k
+
+        [[minions.GOONER.levels]] # 6
+        percent = 30
+        duration_min = 180
+        required_items = {COOKIE = 20_000}  # 1m
+
+        [[minions.GOONER.levels]] # 7
+        percent = 40
+        duration_min = 180
+        required_items = {COOKIE = 100_000}  # 5m
+
+        [[minions.GOONER.levels]] # 8
+        percent = 40
+        duration_min = 240
+        required_items = {COOKIE = 200_000}  # 10m
+
+        [[minions.GOONER.levels]] # 9
+        percent = 50
+        duration_min = 240
+        required_items = {COOKIE = 1_000_000}  # 50m
+
+        [[minions.GOONER.levels]] # 10
+        percent = 50
+        duration_min = 0
+        required_items = {COOKIE = 2_000_000}  # 100m
