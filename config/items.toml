@@ -71,7 +71,7 @@
 
     [useless.GOLDEN_COIN]
     name = "golden coin"
-    plural = "bronze coins"
+    plural = "golden coins"
     description = "This coin is also completely useless. It doesn't do anything, and it's even more expensive. Why on earth would you buy this?"
     price = 100_000
     purchasable = true
