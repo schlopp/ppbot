@@ -183,6 +183,24 @@ class BegCommandCog(vbu.Cog[utils.Bot]):
                 " Step closer. You already belong to me."
             ),
             "Teun": "We are charlie cooked",
+            "Claude": (
+                "**You've reached your usage limit**"
+                "\n\nYou've reached your current usage limit."
+                "You'll be able to send more messages when your limit resets."
+                "\n\nYour limit will reset soon. Thanks for your patience!"
+            ),
+            "ChatGPT": (
+                "⚠️ **You've reached your usage limit**"
+                "\n\nYou've reached the usage limit for your current plan."
+                " You'll be able to send more messages when your limit resets."
+                "\n\n⏳ Your limit will reset soon. Thanks for your patience!"
+            ),
+            "Gemini": (
+                "✨ **You've reached your usage limit**"
+                "\n\nYou've reached your current usage limit."
+                " You can continue chatting when your limit resets."
+                "\n\nPlease try again later. Thanks for your patience! 💙"
+            ),
         },
     )
 
